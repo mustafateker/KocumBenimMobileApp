@@ -1,56 +1,89 @@
-# Welcome to your Expo app 👋
+# Koçum Benim
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ortaöğretim öğrencileri için koçluk ve takip sistemi. Öğrenci odaklanır, görevlerini
+bitirir, XP ve coin kazanır; koç panelden süreci yönetir; veli çocuğunun ilerlemesini
+görür. Tek bir Expo uygulaması içinde üç rol.
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Hızlı başlangıç
 
 ```bash
-npm run reset-project
+npm install
+npx expo start        # sonra a (Android) / i (iOS) / w (web)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+İlk açılışta örnek veri kurulur. Demo girişleri:
 
-### Other setup steps
+| Rol | Kişi | Kod |
+|---|---|---|
+| Öğrenci | Deniz Yılmaz | `1111` |
+| Öğrenci | Ege Demir | `2222` |
+| Öğrenci | Mert Kaya | `3333` |
+| Öğretmen | Bahar Hoca | `1234` |
+| Veli | Ayşe Yılmaz | `9999` |
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Örnek verileri temizlemek için `resetDemoData` (`src/db/seed.ts`) kullanılabilir.
 
-## Learn more
+## Ekranlar
 
-To learn more about developing your project with Expo, look at the following resources:
+**Öğrenci** (`src/app/student/`)
+- **Üs** — dairesel odak zamanlayıcı, günlük görev kartları, seri ve coin göstergesi,
+  oyun odası kilidinin ilerlemesi
+- **Sorular** — "Kurtar Beni": soruyu fotoğrafla, üzerine çiz, hocaya yolla
+- **Oyun** — günlük odak hedefi tutunca açılan zeka molası (2048, Sudoku, Hafıza)
+- **Market** — kazanılan coin ile koçun belirlediği ödülleri alma
+- **Ben** — RPG tarzı seviye/karakter kartı, haftalık grafik, en verimli saat analizi,
+  takma adlarla liderlik tablosu
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+**Öğretmen** (`src/app/teacher/`)
+- **Öğrenciler** — kim şu an çalışıyor, haftalık hedefin yüzde kaçı tamam
+- **Gelen Kutusu** — gelen sorular; "derste çözülecek" etiketi veya anında cevap
+- **Program** — 14 günlük pencerede görev atama, taşıma, silme
+- **Ödüller** — market içeriğini yönetme, satın almaları onaylama
+- **Öğrenci detayı** — istatistikler + tek dokunuşla veli raporu (PDF veya WhatsApp metni)
 
-## Join the community
+**Veli** (`src/app/parent/`) — çocuğunun haftalık özeti, salt görüntüleme.
 
-Join our community of developers creating universal apps.
+## Mimari
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+src/
+  app/          expo-router rotaları (student / teacher / parent + login, annotate, game)
+  components/   ortak arayüz parçaları (kart, buton, grafik, kanvas, tab bar)
+  db/           SQLite şeması, migration, örnek veri ve tüm sorgular (repo.ts)
+  features/     oyunlar — saf mantık ayrı dosyada, görünümden bağımsız test edilebilir
+  lib/          oturum, tarih, oyunlaştırma kuralları, zamanlayıcı, veli raporu
+  theme/        renk paleti, tipografi, aralıklar
+```
+
+Ekranlar SQL yazmaz; her şey `src/db/repo.ts` üzerinden geçer. Oyunlaştırma kuralları
+(XP, coin, seri, oyun kilidi) tek yerde: `src/lib/gamification.ts`.
+
+## Veri nerede duruyor
+
+Tüm veri cihazdaki **SQLite** dosyasında (`expo-sqlite`). Bu, uygulamanın internetsiz
+çalışması demek — ama aynı zamanda **öğretmen paneli ile öğrenci uygulamasının veriyi
+ancak aynı cihazdaysa paylaştığı** anlamına gelir. Gerçek kullanımda öğrencilerin kendi
+telefonları olacağı için bir sunucu katmanı gerekir; `repo.ts` bunun için tek giriş
+noktası olacak şekilde yazıldı: fonksiyon gövdelerini ağ çağrılarıyla değiştirmek
+ekranlara dokunmadan mümkün.
+
+## Testler
+
+Oyun mantığı saf fonksiyonlar hâlinde ayrıldığı için doğrudan Node ile çalıştırılabilir:
+
+```bash
+npx tsc src/features/games/logic-2048.ts  --ignoreConfig --outDir /tmp/t --module commonjs --target es2020
+npx tsc src/features/games/logic-sudoku.ts --ignoreConfig --outDir /tmp/t --module commonjs --target es2020
+```
+
+Sudoku üreteci her bulmacanın **tek çözümlü** olduğunu doğrulayarak hücre siler.
+
+## Doğrulama
+
+```bash
+npx tsc --noEmit    # tip kontrolü
+npx expo lint       # React Compiler kuralları dahil
+```
+
+Proje `reactCompiler: true` ile derleniyor; lint bu yüzden shared value mutasyonu ve
+render sırasında ref erişimi gibi konularda katı davranıyor.
