@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-import { OnColor, Palette, Radius, Space, Type, glow } from '@/theme/tokens';
+import { Border, deepOf, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -24,7 +23,7 @@ type PressScaleProps = {
   hapticStyle?: Haptics.ImpactFeedbackStyle;
 };
 
-/** Basinca yayli kuculen dokunma alani. Tum butonlarin temeli. */
+/** Basinca yayli kuculen dokunma alani. Kart, sekme gibi buton-disi ogelerin temeli. */
 export function PressScale({
   onPress,
   disabled,
@@ -61,7 +60,7 @@ export function PressScale({
   );
 }
 
-type NeonButtonProps = {
+type ChunkyButtonProps = {
   label: string;
   onPress?: () => void;
   color?: string;
@@ -72,68 +71,96 @@ type NeonButtonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** Birincil aksiyon — pastel gradyan dolgulu. */
-export function NeonButton({
+/**
+ * Duolingo'nun imza mekanigi: dinlenirken rengin koyu tonundan 4px'lik bir
+ * "3D basma" seridi gorunur; basinca ic katman asagi kayar ve seridi yutar.
+ * Gradyan/parlama yerine duz dolgu + kati kenarlik hiyerarsiyi tasir.
+ */
+function ChunkyButton({
   label,
   onPress,
-  color = Palette.blue,
+  color = Palette.purple,
   icon,
   disabled,
   size = 'md',
   full,
+  fill,
+  textColor,
+  borderColor,
   style,
-}: NeonButtonProps) {
+}: ChunkyButtonProps & { fill: string; textColor: string; borderColor?: string }) {
   const height = size === 'lg' ? 56 : 46;
+  const lift = Border.chunky;
+  const press = useSharedValue(0);
+
+  const innerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: press.value * lift }],
+  }));
 
   return (
-    <PressScale
-      onPress={onPress}
+    <Pressable
       disabled={disabled}
-      hapticStyle={Haptics.ImpactFeedbackStyle.Medium}
-      style={[full && styles.full, style]}
+      onPressIn={() => {
+         
+        press.value = withTiming(1, { duration: Motion.duration.fast });
+      }}
+      onPressOut={() => {
+         
+        press.value = withTiming(0, { duration: Motion.duration.base });
+      }}
+      onPress={() => {
+        if (disabled) return;
+        tap(Haptics.ImpactFeedbackStyle.Medium);
+        onPress?.();
+      }}
+      style={[full && styles.full, disabled && styles.disabled, style]}
     >
-      <LinearGradient
-        colors={[color, shade(color)]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         style={[
-          styles.solid,
-          { height, borderRadius: height / 2 },
-          !disabled && glow(color, 0.35),
+          styles.slab,
+          {
+            height: height + lift,
+            borderRadius: height / 2,
+            backgroundColor: deepOf(color),
+          },
         ]}
       >
-        {icon ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={OnColor} /> : null}
-        <Animated.Text
-          style={[size === 'lg' ? Type.section : Type.bodyStrong, styles.solidLabel]}
-          numberOfLines={1}
+        <Animated.View
+          style={[
+            styles.solid,
+            {
+              height,
+              borderRadius: height / 2,
+              backgroundColor: fill,
+              borderWidth: borderColor ? Border.thick : 0,
+              borderColor,
+            },
+            innerStyle,
+          ]}
         >
-          {label}
-        </Animated.Text>
-      </LinearGradient>
-    </PressScale>
+          {icon ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={textColor} /> : null}
+          <Animated.Text
+            style={[size === 'lg' ? styles.labelLg : styles.labelMd, { color: textColor }]}
+            numberOfLines={1}
+          >
+            {label}
+          </Animated.Text>
+        </Animated.View>
+      </View>
+    </Pressable>
   );
 }
 
-/** Ikincil aksiyon — cerceveli, saydam. */
-export function GhostButton({
-  label,
-  onPress,
-  color = Palette.textDim,
-  icon,
-  disabled,
-  full,
-  style,
-}: Omit<NeonButtonProps, 'size'>) {
-  return (
-    <PressScale onPress={onPress} disabled={disabled} style={[full && styles.full, style]}>
-      <View style={[styles.ghost, { borderColor: color + '55', backgroundColor: color + '12' }]}>
-        {icon ? <Ionicons name={icon} size={16} color={color} /> : null}
-        <Animated.Text style={[Type.bodyStrong, { color }]} numberOfLines={1}>
-          {label}
-        </Animated.Text>
-      </View>
-    </PressScale>
-  );
+/** Birincil aksiyon — vurgu renginde duz dolgu, chunky 3D basma. */
+export function NeonButton(props: ChunkyButtonProps) {
+  const color = props.color ?? Palette.purple;
+  return <ChunkyButton {...props} fill={color} textColor={OnColor} />;
+}
+
+/** Ikincil aksiyon — beyaz dolgu, renkli kati kenarlik, ayni chunky mekanik. */
+export function GhostButton(props: Omit<ChunkyButtonProps, 'size'>) {
+  const color = props.color ?? Palette.textDim;
+  return <ChunkyButton {...props} fill={Palette.surface} textColor={color} borderColor={color} />;
 }
 
 export function IconButton({
@@ -160,8 +187,8 @@ export function IconButton({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: color + '22',
-            borderColor: color + '3A',
+            backgroundColor: color + '18',
+            borderColor: color + '55',
           },
         ]}
       >
@@ -171,22 +198,13 @@ export function IconButton({
   );
 }
 
-/**
- * Gradyanin ikinci durağı için rengi biraz koyulastirir.
- * #RRGGBB bekler; baska bicimde gelirse rengi oldugu gibi dondurur.
- */
-function shade(hex: string, amount = 0.78): string {
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.round(((num >> 16) & 255) * amount);
-  const g = Math.round(((num >> 8) & 255) * amount);
-  const b = Math.round((num & 255) * amount);
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-}
-
 const styles = StyleSheet.create({
   full: { alignSelf: 'stretch' },
   disabled: { opacity: 0.45 },
+  slab: {
+    justifyContent: 'flex-start',
+    overflow: 'hidden',
+  },
   solid: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -194,22 +212,19 @@ const styles = StyleSheet.create({
     gap: Space.sm,
     paddingHorizontal: Space.xl,
   },
-  solidLabel: {
-    color: OnColor,
+  labelMd: {
+    fontFamily: Font.black,
+    fontSize: 15,
+    lineHeight: 20,
   },
-  ghost: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: Space.sm,
-    height: 46,
-    paddingHorizontal: Space.xl,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
+  labelLg: {
+    fontFamily: Font.black,
+    fontSize: 17,
+    lineHeight: 22,
   },
   iconButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: Border.thick,
   },
 });

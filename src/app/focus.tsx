@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NavigationBar } from 'expo-navigation-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -5,37 +7,38 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GhostButton, NeonButton } from '@/components/button';
+import { PressScale } from '@/components/button';
+import { Confetti } from '@/components/confetti';
 import { FocusRing } from '@/components/focus-ring';
-import { ScreenBackground } from '@/components/screen';
 import { Txt } from '@/components/ui';
 import { logSession } from '@/db/repo';
 import { clockFormat } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
-import { Palette, Space } from '@/theme/tokens';
+import { OnColor, Palette, Radius, Space, Type } from '@/theme/tokens';
 
 /**
- * Tam ekran odak modu.
+ * Tam ekran odak modu — uc durum: calisiyor/duraklatildi (mor), tamamlandi
+ * (mor->pembe, konfeti), elle durduruldu (pembe, kaydedilmez).
  *
- * Calisma suresince ekranda yalnizca geri sayim ve iki dugme bulunur; durum
- * cubugu ve Android gezinme cubugu gizlenir, ekran uyumaz. Bu, dikkat dagitan
- * her seyi kapatmak icindir — ancak baska uygulamalarin acilir bildirimlerini
- * engellemek sistemin "Rahatsiz Etmeyin" iznini gerektirir; bir Expo Go
- * uygulamasi bu izni kendi kendine alamaz.
+ * Calisma suresince ekranda dikkat dagitici hicbir sey yok; durum cubugu ve
+ * Android gezinme cubugu gizlenir, ekran uyumaz.
  */
 export default function Focus() {
   const router = useRouter();
   const db = useSQLiteContext();
   const student = useStudent();
   const { refresh } = useSession();
+  const insets = useSafeAreaInsets();
 
   const { seconds } = useLocalSearchParams<{ seconds?: string }>();
   const plannedSec = Math.max(60, Number(seconds) || 25 * 60);
 
   const [result, setResult] = useState<{ minutes: number; xp: number } | null>(null);
+  const [discarded, setDiscarded] = useState(false);
   const startedRef = useRef(false);
 
   useKeepAwake();
@@ -59,7 +62,6 @@ export default function Focus() {
 
   const timer = useFocusTimer({ onComplete: handleComplete });
 
-  // Ekran acilir acilmaz sayaci baslat. Efekt icinde, cunku render saf kalmali.
   const { start } = timer;
   useEffect(() => {
     if (startedRef.current) return;
@@ -67,102 +69,233 @@ export default function Focus() {
     start(plannedSec);
   }, [start, plannedSec]);
 
-  const finishEarly = useCallback(() => {
-    // 30 saniyeden kisa oturumlar kaydedilmez; o durumda ozet gostermeden
-    // dogrudan cikariz. stop() gecen sureyi dondurdugu icin state'in
-    // guncellenmesini beklemeye gerek yok.
-    const elapsed = timer.stop();
-    if (elapsed < 30) router.back();
-  }, [timer, router]);
+  const stopEarly = useCallback(() => {
+    timer.stop();
+    if (Platform.OS !== 'web') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
+    }
+    setDiscarded(true);
+  }, [timer]);
 
   if (result) {
-    return (
-      <ScreenBackground tint={Palette.green}>
-        <StatusBar hidden />
-        {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
-        <View style={styles.center}>
-          <Txt variant="hero" center color={Palette.green}>
-            {result.minutes} dk
-          </Txt>
-          <Txt variant="section" center>
-            Odaklandın
-          </Txt>
-          <Txt variant="body" color={Palette.textDim} center style={styles.gap}>
-            +{result.xp} XP kazandın
-          </Txt>
-          <NeonButton
-            label="Bitir"
-            color={Palette.green}
-            size="lg"
-            onPress={() => router.back()}
-            style={styles.gap}
-          />
-        </View>
-      </ScreenBackground>
-    );
+    return <SuccessScreen minutes={result.minutes} xp={result.xp} onDone={() => router.back()} />;
+  }
+
+  if (discarded) {
+    return <DiscardedScreen onDone={() => router.back()} />;
   }
 
   const paused = timer.status === 'paused';
 
   return (
-    <ScreenBackground tint={Palette.purple}>
+    <View style={styles.root}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
+      <LinearGradient colors={[Palette.purple, '#5C4699']} style={StyleSheet.absoluteFill} />
+
+      <PressScale onPress={stopEarly} style={[styles.close, { top: insets.top + Space.md }]}>
+        <View style={styles.closeCircle}>
+          <Ionicons name="close" size={20} color={OnColor} />
+        </View>
+      </PressScale>
 
       <View style={styles.center}>
-        <FocusRing progress={timer.progress} color={Palette.purple} size={300} strokeWidth={18}>
-          <Txt variant="timer" style={styles.bigTimer}>
-            {clockFormat(timer.remainingSec)}
+        <View style={styles.pill}>
+          <Ionicons name="timer-outline" size={14} color={OnColor} />
+          <Txt variant="tiny" color={OnColor}>
+            Pomodoro
           </Txt>
+        </View>
+
+        <FocusRing progress={timer.progress} color={OnColor} track="rgba(255,255,255,0.22)" size={280} strokeWidth={16}>
+          <Txt style={styles.bigTimer}>{clockFormat(timer.remainingSec)}</Txt>
           {paused ? (
-            <Txt variant="small" color={Palette.textDim}>
+            <Txt variant="small" color="rgba(255,255,255,0.75)">
               duraklatıldı
             </Txt>
           ) : null}
         </FocusRing>
 
-        <View style={styles.controls}>
-          <GhostButton
-            label={paused ? 'Devam et' : 'Duraklat'}
-            icon={paused ? 'play' : 'pause'}
-            color={Palette.purple}
-            onPress={paused ? timer.resume : timer.pause}
-            style={styles.flex}
-            full
-          />
-          <GhostButton
-            label="Bitir"
-            icon="stop"
-            color={Palette.pink}
-            onPress={finishEarly}
-            style={styles.flex}
-            full
-          />
+        <PressScale onPress={paused ? timer.resume : timer.pause} scaleTo={0.92}>
+          <View style={styles.pauseButton}>
+            <Ionicons name={paused ? 'play' : 'pause'} size={26} color={Palette.purple} />
+          </View>
+        </PressScale>
+
+        <View style={styles.footerText}>
+          <Txt variant="small" color="rgba(255,255,255,0.75)" center>
+            Bildirimler devre dışı
+          </Txt>
+          <Txt variant="small" color="rgba(255,255,255,0.75)" center>
+            {paused ? 'Duraklatıldı.' : 'Odak modundasın.'}
+          </Txt>
         </View>
       </View>
-    </ScreenBackground>
+    </View>
+  );
+}
+
+/* ------------------------------- basari ekrani ------------------------------ */
+
+function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; onDone: () => void }) {
+  return (
+    <View style={styles.root}>
+      <StatusBar hidden />
+      {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
+      <LinearGradient colors={[Palette.purple, Palette.pink]} style={StyleSheet.absoluteFill} />
+      <Confetti trigger={1} />
+
+      <View style={styles.center}>
+        <View style={styles.starCircle}>
+          <Ionicons name="star" size={44} color={Palette.gold} />
+        </View>
+        <Txt variant="hero" color={OnColor} center>
+          Harika! 🎉
+        </Txt>
+        <Txt variant="body" color="rgba(255,255,255,0.85)" center>
+          Odak süren tamamlandı. {minutes} dakika.
+        </Txt>
+
+        <View style={styles.xpChip}>
+          <Txt variant="section" color={Palette.purple}>
+            +{xp} XP
+          </Txt>
+        </View>
+
+        <SolidButton label="Devam Et" color={Palette.purple} onPress={onDone} />
+      </View>
+    </View>
+  );
+}
+
+/* ------------------------------ durduruldu ekrani ---------------------------- */
+
+function DiscardedScreen({ onDone }: { onDone: () => void }) {
+  return (
+    <View style={styles.root}>
+      <StatusBar hidden />
+      {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
+      <View style={[styles.root, { backgroundColor: Palette.pink }]} />
+
+      <View style={styles.center}>
+        <View style={styles.starCircle}>
+          <Ionicons name="alarm" size={40} color={Palette.pink} />
+        </View>
+        <Txt variant="title" color={OnColor} center>
+          Odak süren durduruldu.
+        </Txt>
+        <Txt variant="body" color="rgba(255,255,255,0.85)" center>
+          Süre kaydedilmedi.
+        </Txt>
+
+        <SolidButton label="Tamam" color={Palette.pink} onPress={onDone} style={styles.gapTop} />
+      </View>
+    </View>
+  );
+}
+
+/** Renkli tam ekranlar uzerindeki beyaz zeminli birincil buton. */
+function SolidButton({
+  label,
+  color,
+  onPress,
+  style,
+}: {
+  label: string;
+  color: string;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <PressScale onPress={onPress} style={[styles.solidButton, style]} hapticStyle={Haptics.ImpactFeedbackStyle.Medium}>
+      <View style={styles.solidButtonInner}>
+        <Txt variant="section" color={color}>
+          {label}
+        </Txt>
+      </View>
+    </PressScale>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  root: {
+    flex: 1,
+    backgroundColor: Palette.purple,
+  },
+  close: {
+    position: 'absolute',
+    left: Space.lg,
+    zIndex: 1,
+  },
+  closeCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Space.xl,
-    gap: Space.xxl,
+    gap: Space.xl,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Space.lg,
+    height: 32,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.16)',
   },
   bigTimer: {
+    ...Type.timer,
     fontSize: 64,
     lineHeight: 72,
+    color: OnColor,
   },
-  controls: {
-    flexDirection: 'row',
-    gap: Space.md,
+  pauseButton: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: OnColor,
+  },
+  footerText: {
+    gap: 2,
+  },
+  starCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: OnColor,
+  },
+  xpChip: {
+    paddingHorizontal: Space.xl,
+    height: 46,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: OnColor,
+  },
+  solidButton: {
     alignSelf: 'stretch',
   },
-  gap: {
+  solidButtonInner: {
+    height: 56,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: OnColor,
+    paddingHorizontal: Space.xl,
+  },
+  gapTop: {
     marginTop: Space.md,
   },
 });

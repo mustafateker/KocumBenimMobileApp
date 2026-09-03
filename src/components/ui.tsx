@@ -3,14 +3,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   StyleSheet,
   Text,
+  TextInput,
   View,
   type StyleProp,
+  type TextInputProps,
   type TextProps,
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
 
-import { Palette, Radius, Space, Type, cardShadow, glow } from '@/theme/tokens';
+import { Border, Font, OnColor, Palette, Radius, Space, Type, softOf } from '@/theme/tokens';
+
+import { PressScale } from './button';
 
 /* ----------------------------------- yazi ---------------------------------- */
 
@@ -43,7 +47,7 @@ export function Card({
     <View
       style={[
         styles.card,
-        accent ? { borderColor: accent + '55', ...glow(accent, 0.18) } : null,
+        accent ? { borderColor: accent, backgroundColor: softOf(accent) } : null,
         style,
       ]}
       {...rest}
@@ -151,6 +155,63 @@ export function ProgressBar({
   );
 }
 
+/* --------------------------------- sekmeler --------------------------------- */
+
+/** Kapsul icinde yer degistiren sekme secici — Gorevlerim, Liderlik Tablosu. */
+export function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  color = Palette.text,
+}: {
+  options: { key: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  color?: string;
+}) {
+  return (
+    <View style={styles.segmented}>
+      {options.map((o) => {
+        const active = o.key === value;
+        return (
+          <PressScale key={o.key} onPress={() => onChange(o.key)} style={styles.flex} scaleTo={0.97}>
+            <View style={[styles.segmentedItem, active && { backgroundColor: color }]}>
+              <Txt variant="smallStrong" color={active ? OnColor : Palette.textDim}>
+                {o.label}
+              </Txt>
+            </View>
+          </PressScale>
+        );
+      })}
+    </View>
+  );
+}
+
+/* --------------------------------- girdiler --------------------------------- */
+
+/** Formlarda kullanilan ortak metin girisi — auth ve onboarding ekranlarinda. */
+export function TextField({
+  style,
+  multiline,
+  error,
+  ...rest
+}: TextInputProps & { error?: boolean }) {
+  return (
+    <TextInput
+      placeholderTextColor={Palette.textFaint}
+      autoCapitalize="none"
+      multiline={multiline}
+      style={[
+        styles.field,
+        multiline && styles.fieldMultiline,
+        error && styles.fieldError,
+        style,
+      ]}
+      {...rest}
+    />
+  );
+}
+
 /* ------------------------------- bos durumlar ------------------------------ */
 
 export function EmptyState({
@@ -197,10 +258,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.surface,
     borderRadius: Radius.lg,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     borderColor: Palette.border,
     padding: Space.lg,
-    ...cardShadow,
   },
   accentCard: {
     overflow: 'hidden',
@@ -220,13 +280,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.md,
     paddingVertical: 5,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     alignSelf: 'flex-start',
   },
   bubble: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: Border.thick,
   },
   track: {
     width: '100%',
@@ -245,5 +305,42 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     letterSpacing: 1.2,
+  },
+  field: {
+    height: 52,
+    borderRadius: Radius.md,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+    paddingHorizontal: Space.lg,
+    color: Palette.text,
+    fontFamily: Font.regular,
+    fontSize: 15,
+  },
+  fieldMultiline: {
+    height: undefined,
+    minHeight: 120,
+    paddingTop: Space.md,
+    paddingBottom: Space.md,
+    textAlignVertical: 'top',
+  },
+  fieldError: {
+    borderColor: Palette.pink,
+  },
+  flex: { flex: 1 },
+  segmented: {
+    flexDirection: 'row',
+    gap: Space.xs,
+    padding: Space.xs,
+    backgroundColor: Palette.surfaceHi,
+    borderRadius: Radius.pill,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+  },
+  segmentedItem: {
+    height: 38,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

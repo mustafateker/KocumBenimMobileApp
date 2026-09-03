@@ -13,6 +13,7 @@ import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
 import { questionsForStudent } from '@/db/repo';
 import { parseCanvas, type Question, type QuestionStatus } from '@/db/types';
 import { relativeTime } from '@/lib/date';
+import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
 import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
@@ -37,10 +38,14 @@ export default function Questions() {
 
 function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'camera' | 'list') => void }) {
   const insets = useSafeAreaInsets();
+  const { open: openMenu } = useHamburgerMenu();
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + Space.md }]}>
-      <Txt variant="title">Kurtar Beni</Txt>
+      <View style={styles.titleRow}>
+        <Txt variant="title">Kurtar Beni</Txt>
+        <IconButton icon="menu" onPress={openMenu} />
+      </View>
       <View style={styles.segment}>
         {(['camera', 'list'] as const).map((m) => {
           const active = m === mode;
@@ -248,6 +253,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.lg,
     paddingBottom: Space.md,
     gap: Space.md,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   segment: {
     flexDirection: 'row',

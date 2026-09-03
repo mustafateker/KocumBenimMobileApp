@@ -6,6 +6,7 @@ import { nextStreak, Rules, sessionReward } from '@/lib/gamification';
 import {
   SUBJECT,
   type FocusSession,
+  type OnboardingInput,
   type Question,
   type QuestionStatus,
   type Role,
@@ -44,6 +45,99 @@ export async function createStudent(
   return res.lastInsertRowId;
 }
 
+/* ------------------------- e-posta / parola ile kayit ----------------------- */
+
+export async function getUserByEmail(db: SQLiteDatabase, email: string): Promise<User | null> {
+  return db.getFirstAsync<User>('SELECT * FROM users WHERE email = ?', email.trim().toLowerCase());
+}
+
+/**
+ * Dogrudan uygulama icinden ogrenci kaydi. Ad/soyad "Ilk Kurulum" sihirbazinda
+ * sorulur; kayit anda henuz bilinmedigi icin gecici olarak e-postanin basi
+ * kullanilir ve `completeOnboarding` ile uzerine yazilir.
+ */
+export async function createStudentAccount(
+  db: SQLiteDatabase,
+  input: { email: string; password: string }
+): Promise<User> {
+  const email = input.email.trim().toLowerCase();
+  const res = await db.runAsync(
+    `INSERT INTO users (role, name, pin, email, password, created_at)
+     VALUES ('student', ?, '', ?, ?, ?)`,
+    email.split('@')[0],
+    email,
+    input.password,
+    new Date().toISOString()
+  );
+  const user = await getUser(db, res.lastInsertRowId);
+  if (!user) throw new Error('Kullanıcı oluşturulamadı');
+  return user;
+}
+
+export async function updatePassword(db: SQLiteDatabase, userId: number, newPassword: string) {
+  await db.runAsync('UPDATE users SET password = ? WHERE id = ?', newPassword, userId);
+}
+
+/** Hesabi ve ona ait tum verileri siler — geri alinamaz. */
+export async function deleteAccount(db: SQLiteDatabase, userId: number) {
+  await db.runAsync('DELETE FROM focus_sessions WHERE student_id = ?', userId);
+  await db.runAsync('DELETE FROM questions WHERE student_id = ?', userId);
+  await db.runAsync('DELETE FROM tasks WHERE student_id = ?', userId);
+  await db.runAsync('DELETE FROM users WHERE id = ?', userId);
+}
+
+/** Hocanin atadigi gorevler — Bildirimler ekraninda "yeni gorev" olarak gosterilir. */
+export async function assignedTaskNotifications(
+  db: SQLiteDatabase,
+  studentId: number,
+  limit = 30
+): Promise<Task[]> {
+  return db.getAllAsync<Task>(
+    `SELECT * FROM tasks WHERE student_id = ? AND created_by IS NOT NULL
+     ORDER BY due_date DESC LIMIT ?`,
+    studentId,
+    limit
+  );
+}
+
+export async function verifyEmailPassword(
+  db: SQLiteDatabase,
+  email: string,
+  password: string
+): Promise<User | null> {
+  return db.getFirstAsync<User>(
+    'SELECT * FROM users WHERE email = ? AND password = ?',
+    email.trim().toLowerCase(),
+    password
+  );
+}
+
+/** "Ilk Kurulum" sihirbazinin son adiminda tum hedef profilini tek seferde yazar. */
+export async function completeOnboarding(db: SQLiteDatabase, studentId: number, input: OnboardingInput) {
+  await db.runAsync(
+    `UPDATE users SET
+       name = ?, surname = ?, grade = ?, goal = ?, career = ?,
+       target_high_school = ?, target_university = ?, target_department = ?,
+       math_topics = ?, daily_hours = ?, timeframe = ?, motivation_sources = ?,
+       onboarding_completed_at = ?
+     WHERE id = ?`,
+    `${input.firstName} ${input.lastName}`.trim(),
+    input.lastName,
+    input.grade,
+    input.goal,
+    input.career,
+    input.targetHighSchool,
+    input.targetUniversity,
+    input.targetDepartment,
+    JSON.stringify(input.mathTopics),
+    input.dailyHours,
+    input.timeframe,
+    JSON.stringify(input.motivation),
+    new Date().toISOString(),
+    studentId
+  );
+}
+
 /**
  * XP ekler ve gerekiyorsa streak'i ilerletir.
  * Streak yalnizca gunluk odak hedefi tutturuldugunda artar.
@@ -78,6 +172,21 @@ export async function tasksForDay(
     'SELECT * FROM tasks WHERE student_id = ? AND due_date = ? ORDER BY completed_at IS NOT NULL, id',
     studentId,
     day
+  );
+}
+
+/** Belirli tarih araligindaki gorevler — Gorevlerim ekraninin haftalik/aylik sekmeleri. */
+export async function tasksInRange(
+  db: SQLiteDatabase,
+  studentId: number,
+  fromDay: string,
+  toDay: string
+): Promise<Task[]> {
+  return db.getAllAsync<Task>(
+    'SELECT * FROM tasks WHERE student_id = ? AND due_date >= ? AND due_date <= ? ORDER BY due_date, completed_at IS NOT NULL, id',
+    studentId,
+    fromDay,
+    toDay
   );
 }
 
@@ -225,6 +334,33 @@ export async function recentSessions(
   );
 }
 
+/** Tum zamanlarda tamamlanan/toplam gorev sayisi — Istatistikler ekrani. */
+export async function taskStats(
+  db: SQLiteDatabase,
+  studentId: number
+): Promise<{ total: number; done: number }> {
+  const row = await db.getFirstAsync<{ total: number; done: number | null }>(
+    `SELECT COUNT(*) AS total, SUM(CASE WHEN completed_at IS NOT NULL THEN 1 ELSE 0 END) AS done
+     FROM tasks WHERE student_id = ?`,
+    studentId
+  );
+  return { total: row?.total ?? 0, done: row?.done ?? 0 };
+}
+
+/** En son tamamlanan gorevler — en yeniden eskiye. */
+export async function completedTasksForStudent(
+  db: SQLiteDatabase,
+  studentId: number,
+  limit = 30
+): Promise<Task[]> {
+  return db.getAllAsync<Task>(
+    `SELECT * FROM tasks WHERE student_id = ? AND completed_at IS NOT NULL
+     ORDER BY completed_at DESC LIMIT ?`,
+    studentId,
+    limit
+  );
+}
+
 /* --------------------------------- sorular --------------------------------- */
 
 export async function createQuestion(
@@ -305,8 +441,20 @@ export type LeaderboardRow = {
   xp: number;
 };
 
-/** Haftalik liderlik — gercek isim degil, takma ad ile. */
-export async function leaderboard(db: SQLiteDatabase, days = 7): Promise<LeaderboardRow[]> {
+/** Liderlik tablosu — gercek isim degil, takma ad ile. `days` verilmezse tum zamanlar. */
+export async function leaderboard(db: SQLiteDatabase, days?: number): Promise<LeaderboardRow[]> {
+  if (days == null) {
+    return db.getAllAsync<LeaderboardRow>(
+      `SELECT u.id, COALESCE(u.nickname, 'Gizli Kahraman') AS nickname, u.xp,
+              COALESCE(SUM(f.actual_sec), 0) / 60 AS minutes
+       FROM users u
+       LEFT JOIN focus_sessions f ON f.student_id = u.id
+       WHERE u.role = 'student'
+       GROUP BY u.id
+       ORDER BY minutes DESC, u.xp DESC`
+    );
+  }
+
   const since = lastNDays(days)[0];
   return db.getAllAsync<LeaderboardRow>(
     `SELECT u.id, COALESCE(u.nickname, 'Gizli Kahraman') AS nickname, u.xp,

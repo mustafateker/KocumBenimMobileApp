@@ -18,14 +18,13 @@ export default function Index() {
 
   if (!user) return <Redirect href="/login" />;
 
-  switch (user.role) {
-    case 'student':
-      return <Redirect href="/student" />;
-    case 'teacher':
-      return <Redirect href="/teacher" />;
-    case 'parent':
-      return <Redirect href="/parent" />;
+  if (user.role === 'student') {
+    if (!user.onboarding_completed_at) return <Redirect href="/onboarding" />;
+    return <Redirect href="/student" />;
   }
+
+  // Ogretmen/veli girisi su an bu mobil uygulamada yok (ayri web panel planlaniyor).
+  return <Redirect href="/login" />;
 }
 
 const styles = StyleSheet.create({

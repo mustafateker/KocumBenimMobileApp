@@ -3,7 +3,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 export const DATABASE_NAME = 'kocumbenim.db';
 
 /** Su anki sema surumu. Sema degistiginde artir ve asagiya bir blok ekle. */
-const LATEST_VERSION = 2;
+const LATEST_VERSION = 3;
 
 /**
  * PRAGMA user_version uzerinden artimli migration.
@@ -108,6 +108,31 @@ export async function migrate(db: SQLiteDatabase) {
       ALTER TABLE users DROP COLUMN avatar;
     `);
     version = 2;
+  }
+
+  if (version === 2) {
+    // E-posta/parola ile dogrudan kayit + "Ilk Kurulum" hedef belirleme
+    // sihirbazi icin ogrenci profili alanlari.
+    await db.execAsync(`
+      ALTER TABLE users ADD COLUMN email TEXT;
+      ALTER TABLE users ADD COLUMN password TEXT;
+      ALTER TABLE users ADD COLUMN surname TEXT;
+      ALTER TABLE users ADD COLUMN exam_type TEXT;
+      ALTER TABLE users ADD COLUMN goal TEXT;
+      ALTER TABLE users ADD COLUMN career TEXT;
+      ALTER TABLE users ADD COLUMN life_dream TEXT;
+      ALTER TABLE users ADD COLUMN target_high_school TEXT;
+      ALTER TABLE users ADD COLUMN target_university TEXT;
+      ALTER TABLE users ADD COLUMN target_department TEXT;
+      ALTER TABLE users ADD COLUMN math_topics TEXT NOT NULL DEFAULT '[]';
+      ALTER TABLE users ADD COLUMN daily_hours TEXT;
+      ALTER TABLE users ADD COLUMN timeframe TEXT;
+      ALTER TABLE users ADD COLUMN motivation_sources TEXT NOT NULL DEFAULT '[]';
+      ALTER TABLE users ADD COLUMN onboarding_completed_at TEXT;
+
+      CREATE UNIQUE INDEX idx_users_email ON users(email);
+    `);
+    version = 3;
   }
 
   await db.execAsync(`PRAGMA user_version = ${version}`);

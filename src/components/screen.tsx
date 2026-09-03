@@ -1,26 +1,19 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { ScrollView, StyleSheet, View, type ScrollViewProps, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Palette, Space } from '@/theme/tokens';
 
+import { IconButton } from './button';
 import { Txt } from './ui';
 
 /**
- * Tum ekranlarin ortak zemini: koyu lacivert taban ustune
- * ust kenardan asagi sonen hafif bir renk sizintisi.
+ * Tum ekranlarin ortak zemini: duz, neredeyse beyaz. Duolingo tarzinda
+ * renk zeminde degil bilesenlerde (kart kenarligi, buton dolgusu) yasar —
+ * `tint` parametresi artik yalnizca cagiran taraflarla uyumluluk icin
+ * tutulur, gorsel bir etkisi yok.
  */
-export function ScreenBackground({ tint = Palette.blue, children }: { tint?: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.root}>
-      <LinearGradient
-        colors={[tint + '26', Palette.bg, Palette.bg]}
-        locations={[0, 0.42, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      {children}
-    </View>
-  );
+export function ScreenBackground({ children }: { tint?: string; children: React.ReactNode }) {
+  return <View style={styles.root}>{children}</View>;
 }
 
 /** Kaydirilabilir ekran govdesi. Alt tab cubugunun altinda kalmayi onler. */
@@ -66,13 +59,17 @@ export function ScreenHeader({
   title,
   subtitle,
   right,
+  onBack,
 }: {
   title: string;
   subtitle?: string;
   right?: React.ReactNode;
+  /** Verilirse basligin solunda geri oku gosterir — ust seviye (yigin) sayfalarda. */
+  onBack?: () => void;
 }) {
   return (
     <View style={styles.header}>
+      {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : null}
       <View style={styles.headerText}>
         <Txt variant="title">{title}</Txt>
         {subtitle ? (

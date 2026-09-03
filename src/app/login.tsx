@@ -1,321 +1,168 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
-import * as Haptics from 'expo-haptics';
-import { useCallback, useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-  type SharedValue,
-} from 'react-native-reanimated';
+import { useCallback, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconButton, PressScale } from '@/components/button';
+import { NeonButton, PressScale } from '@/components/button';
 import { ScreenBackground } from '@/components/screen';
-import { Txt } from '@/components/ui';
-import { listUsers } from '@/db/repo';
-import { initials, type Role, type User } from '@/db/types';
+import { TextField, Txt } from '@/components/ui';
 import { useSession } from '@/lib/session';
-import { OnColor, Palette, Radius, Space, glow } from '@/theme/tokens';
+import { Border, OnColor, Palette, Radius, Space, glow } from '@/theme/tokens';
 
-const ROLES: { role: Role; label: string; icon: React.ComponentProps<typeof Ionicons>['name']; color: string }[] = [
-  { role: 'student', label: 'Öğrenci', icon: 'rocket', color: Palette.purple },
-  { role: 'teacher', label: 'Öğretmen', icon: 'school', color: Palette.orange },
-  { role: 'parent', label: 'Veli', icon: 'heart', color: Palette.pink },
-];
-
+/** Giris: e-posta + parola. Hesap yoksa kayit ekranina yonlendirir. */
 export default function Login() {
-  const db = useSQLiteContext();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signIn } = useSession();
 
-  const [role, setRole] = useState<Role>('student');
-  const [users, setUsers] = useState<User[]>([]);
-  const [selected, setSelected] = useState<User | null>(null);
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const shake = useSharedValue(0);
-
-  const accent = ROLES.find((r) => r.role === role)!.color;
-
-  useEffect(() => {
-    listUsers(db, role).then(setUsers);
-  }, [db, role]);
-
-  const changeRole = useCallback((next: Role) => {
-    setRole(next);
-    setSelected(null);
-    setPin('');
-    setError(false);
-  }, []);
-
-  const rejectPin = useCallback(() => {
-    setError(true);
-    setPin('');
-    // Reanimated paylasilan degerleri mutasyon icin tasarlandi; React
-    // Compiler'in degismezlik kurali bu kullanimi tanimiyor.
-    // eslint-disable-next-line react-hooks/immutability
-    shake.value = withSequence(
-      withTiming(-9, { duration: 55 }),
-      withTiming(9, { duration: 55 }),
-      withTiming(-6, { duration: 55 }),
-      withTiming(0, { duration: 55 })
-    );
-    if (Platform.OS !== 'web') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
+  const submit = useCallback(async () => {
+    if (submitting) return;
+    if (!email.trim() || !password) {
+      setError('E-posta ve parolanı gir.');
+      return;
     }
-  }, [shake]);
 
-  const submit = useCallback(
-    async (code: string) => {
-      if (!selected) return;
-      const ok = await signIn(selected.id, code);
+    setSubmitting(true);
+    setError(null);
+    try {
+      const ok = await signIn(email, password, remember);
       if (ok) {
         router.replace('/');
       } else {
-        rejectPin();
+        setError('E-posta veya parola hatalı.');
       }
-    },
-    [selected, signIn, router, rejectPin]
-  );
-
-  const press = useCallback(
-    (digit: string) => {
-      setError(false);
-      const next = (pin + digit).slice(0, 4);
-      setPin(next);
-      if (next.length === 4) submit(next);
-    },
-    [pin, submit]
-  );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [submitting, email, password, remember, signIn, router]);
 
   return (
-    <ScreenBackground tint={accent}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl },
-        ]}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+    <ScreenBackground tint={Palette.purple}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Marka */}
-        <View style={styles.brand}>
-          <LinearGradient
-            colors={[accent, Palette.purple]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={[styles.logo, glow(accent, 0.5)]}
-          >
-            <Ionicons name="flash" size={34} color={OnColor} />
-          </LinearGradient>
-          <Txt variant="hero" center>
-            Koçum Benim
-          </Txt>
-          <Txt variant="small" color={Palette.textDim} center>
-            Odaklan, seviye atla, kazandığını harca.
-          </Txt>
-        </View>
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.brand}>
+            <LinearGradient
+              colors={[Palette.purple, Palette.pink]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.logo, glow(Palette.purple, 0.5)]}
+            >
+              <Ionicons name="flash" size={34} color={OnColor} />
+            </LinearGradient>
+            <Txt variant="hero" center>
+              Koçum Benim
+            </Txt>
+            <Txt variant="small" color={Palette.textDim} center>
+              Odaklan, seviye atla, hedefine yaklaş.
+            </Txt>
+          </View>
 
-        {/* Rol secimi */}
-        <View style={styles.roles}>
-          {ROLES.map((r) => {
-            const active = r.role === role;
-            return (
-              <PressScale key={r.role} onPress={() => changeRole(r.role)} style={styles.roleWrap}>
-                <View
-                  style={[
-                    styles.role,
-                    active && {
-                      backgroundColor: r.color + '22',
-                      borderColor: r.color,
-                      ...glow(r.color, 0.28),
-                    },
-                  ]}
-                >
-                  <Ionicons name={r.icon} size={18} color={active ? r.color : Palette.textFaint} />
-                  <Txt variant="smallStrong" color={active ? r.color : Palette.textFaint}>
-                    {r.label}
-                  </Txt>
-                </View>
-              </PressScale>
-            );
-          })}
-        </View>
+          <View style={styles.form}>
+            <Field label="E-posta">
+              <TextField
+                value={email}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  setError(null);
+                }}
+                placeholder="ornek@eposta.com"
+                keyboardType="email-address"
+                autoComplete="email"
+                error={!!error}
+              />
+            </Field>
 
-        {selected ? (
-          <PinPad
-            user={selected}
-            pin={pin}
-            accent={accent}
-            error={error}
-            shake={shake}
-            onDigit={press}
-            onBack={() => {
-              setSelected(null);
-              setPin('');
-              setError(false);
-            }}
-            onErase={() => {
-              setError(false);
-              setPin((p) => p.slice(0, -1));
-            }}
-          />
-        ) : (
-          <UserGrid
-            users={users}
-            accent={accent}
-            onSelect={(u) => {
-              setSelected(u);
-              setPin('');
-            }}
-          />
-        )}
-      </ScrollView>
+            <Field label="Parola">
+              <TextField
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  setError(null);
+                }}
+                placeholder="Parolanı gir"
+                secureTextEntry
+                autoComplete="password"
+                error={!!error}
+              />
+            </Field>
+
+            <PressScale onPress={() => setRemember((r) => !r)} style={styles.rememberRow}>
+              <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
+                {remember ? <Ionicons name="checkmark" size={14} color={OnColor} /> : null}
+              </View>
+              <Txt variant="small" color={Palette.textDim}>
+                Beni hatırla
+              </Txt>
+            </PressScale>
+
+            {error ? (
+              <Txt variant="small" color={Palette.pink}>
+                {error}
+              </Txt>
+            ) : null}
+
+            <NeonButton
+              label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+              icon="log-in"
+              color={Palette.purple}
+              size="lg"
+              full
+              disabled={submitting}
+              onPress={submit}
+              style={styles.submit}
+            />
+          </View>
+
+          <PressScale onPress={() => router.push('/signup')}>
+            <Txt variant="small" color={Palette.textDim} center>
+              Hesabın yok mu?{' '}
+              <Txt variant="smallStrong" color={Palette.purple}>
+                Kayıt ol
+              </Txt>
+            </Txt>
+          </PressScale>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ScreenBackground>
   );
 }
 
-/* --------------------------- kullanici secim izgarasi --------------------------- */
-
-function UserGrid({
-  users,
-  accent,
-  onSelect,
-}: {
-  users: User[];
-  accent: string;
-  onSelect: (u: User) => void;
-}) {
-  if (users.length === 0) {
-    return (
-      <View style={styles.emptyUsers}>
-        <Txt variant="body" color={Palette.textDim} center>
-          Bu rolde henüz kayıtlı kimse yok.
-        </Txt>
-        <Txt variant="small" color={Palette.textFaint} center>
-          Öğretmen panelinden yeni öğrenci ekleyebilirsin.
-        </Txt>
-      </View>
-    );
-  }
-
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <View style={styles.grid}>
-      {users.map((u) => (
-        <PressScale key={u.id} onPress={() => onSelect(u)} style={styles.gridItem}>
-          <View style={styles.userCard}>
-            <View style={[styles.avatar, { backgroundColor: accent + '1F', borderColor: accent + '44' }]}>
-              <Txt variant="section" color={accent}>
-                {initials(u.name)}
-              </Txt>
-            </View>
-            <Txt variant="smallStrong" center numberOfLines={1}>
-              {u.name}
-            </Txt>
-            {u.grade ? (
-              <Txt variant="tiny" color={Palette.textFaint} center>
-                {u.grade}
-              </Txt>
-            ) : null}
-          </View>
-        </PressScale>
-      ))}
-    </View>
-  );
-}
-
-/* ---------------------------------- pin pad --------------------------------- */
-
-const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'];
-
-function PinPad({
-  user,
-  pin,
-  accent,
-  error,
-  shake,
-  onDigit,
-  onErase,
-  onBack,
-}: {
-  user: User;
-  pin: string;
-  accent: string;
-  error: boolean;
-  shake: SharedValue<number>;
-  onDigit: (d: string) => void;
-  onErase: () => void;
-  onBack: () => void;
-}) {
-  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
-
-  return (
-    <View style={styles.pinWrap}>
-      <View style={styles.pinHead}>
-        <IconButton icon="chevron-back" onPress={onBack} />
-        <View style={styles.pinWho}>
-          <Txt variant="section">{user.name}</Txt>
-          <Txt variant="small" color={error ? Palette.pink : Palette.textDim}>
-            {error ? 'Kod yanlış, tekrar dene' : '4 haneli kodunu gir'}
-          </Txt>
-        </View>
-      </View>
-
-      <Animated.View style={[styles.dots, shakeStyle]}>
-        {[0, 1, 2, 3].map((i) => {
-          const filled = i < pin.length;
-          const color = error ? Palette.pink : accent;
-          return (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                filled && { backgroundColor: color, borderColor: color, ...glow(color, 0.4) },
-                error && { borderColor: Palette.pink },
-              ]}
-            />
-          );
-        })}
-      </Animated.View>
-
-      <View style={styles.keypad}>
-        {KEYS.map((key, i) => {
-          if (key === '') return <View key={i} style={styles.key} />;
-
-          const isDelete = key === 'del';
-          return (
-            <Pressable
-              key={i}
-              onPress={() => (isDelete ? onErase() : onDigit(key))}
-              style={({ pressed }) => [
-                styles.key,
-                pressed && { backgroundColor: accent + '26', borderColor: accent + '66' },
-              ]}
-            >
-              {isDelete ? (
-                <Ionicons name="backspace-outline" size={22} color={Palette.textDim} />
-              ) : (
-                <Txt variant="section">{key}</Txt>
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+    <View style={styles.field}>
+      <Txt variant="smallStrong" color={Palette.textDim}>
+        {label}
+      </Txt>
+      {children}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   content: {
+    flexGrow: 1,
+    justifyContent: 'center',
     paddingHorizontal: Space.lg,
-    gap: Space.xl,
+    gap: Space.xxl,
   },
   brand: {
     alignItems: 'center',
@@ -329,91 +176,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: Space.sm,
   },
-  roles: {
-    flexDirection: 'row',
-    gap: Space.sm,
-  },
-  roleWrap: { flex: 1 },
-  role: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    height: 46,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.md,
-  },
-  gridItem: {
-    width: '31%',
-    flexGrow: 1,
-  },
-  userCard: {
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: Space.lg,
-    paddingHorizontal: Space.sm,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-  },
-  emptyUsers: {
-    gap: Space.sm,
-    paddingVertical: Space.xxl,
-  },
-  pinWrap: {
-    gap: Space.xl,
-  },
-  pinHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  pinWho: {
-    flex: 1,
-    gap: 2,
-  },
-  dots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  form: {
     gap: Space.lg,
   },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: Palette.border,
+  field: {
+    gap: 6,
   },
-  keypad: {
+  submit: {
+    marginTop: Space.sm,
+  },
+  rememberRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.md,
+    alignItems: 'center',
+    gap: Space.sm,
+    alignSelf: 'flex-start',
   },
-  key: {
-    width: '30%',
-    flexGrow: 1,
-    height: 62,
-    borderRadius: Radius.md,
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: Radius.sm,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+  },
+  checkboxChecked: {
+    backgroundColor: Palette.purple,
+    borderColor: Palette.purple,
   },
 });

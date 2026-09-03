@@ -2,16 +2,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSQLiteContext } from 'expo-sqlite';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { getUser, verifyPin } from '@/db/repo';
+import { createStudentAccount, getUser, getUserByEmail, verifyEmailPassword } from '@/db/repo';
 import type { User } from '@/db/types';
 
 const STORAGE_KEY = 'kocumbenim.session.userId';
+
+export type SignUpResult = { ok: true } | { ok: false; error: string };
 
 type SessionValue = {
   user: User | null;
   /** Ilk acilista kayitli oturum okunana kadar true. */
   loading: boolean;
-  signIn: (userId: number, pin: string) => Promise<boolean>;
+  signIn: (email: string, password: string, remember?: boolean) => Promise<boolean>;
+  signUp: (email: string, password: string) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   /** XP/coin degistikten sonra ust bardaki degerleri tazelemek icin. */
   refresh: () => Promise<void>;
@@ -47,13 +50,33 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [db]);
 
   const signIn = useCallback(
-    async (userId: number, pin: string) => {
-      const found = await verifyPin(db, userId, pin);
+    async (email: string, password: string, remember = true) => {
+      const found = await verifyEmailPassword(db, email, password);
       if (!found) return false;
 
       setUser(found);
-      await AsyncStorage.setItem(STORAGE_KEY, String(found.id));
+      // "Beni Hatirla" kapaliysa oturum sadece bu calisma boyunca surer —
+      // uygulama yeniden acildiginda tekrar giris istenir.
+      if (remember) {
+        await AsyncStorage.setItem(STORAGE_KEY, String(found.id));
+      } else {
+        await AsyncStorage.removeItem(STORAGE_KEY);
+      }
       return true;
+    },
+    [db]
+  );
+
+  const signUp = useCallback(
+    async (email: string, password: string): Promise<SignUpResult> => {
+      const trimmed = email.trim().toLowerCase();
+      const existing = await getUserByEmail(db, trimmed);
+      if (existing) return { ok: false, error: 'Bu e-posta ile zaten bir hesap var.' };
+
+      const created = await createStudentAccount(db, { email: trimmed, password });
+      setUser(created);
+      await AsyncStorage.setItem(STORAGE_KEY, String(created.id));
+      return { ok: true };
     },
     [db]
   );
@@ -70,8 +93,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [db, user]);
 
   const value = useMemo(
-    () => ({ user, loading, signIn, signOut, refresh }),
-    [user, loading, signIn, signOut, refresh]
+    () => ({ user, loading, signIn, signUp, signOut, refresh }),
+    [user, loading, signIn, signUp, signOut, refresh]
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

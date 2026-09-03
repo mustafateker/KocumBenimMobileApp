@@ -19,6 +19,39 @@ export type User = {
   streak: number;
   last_active: string | null;
   created_at: string;
+  email: string | null;
+  password: string | null;
+  surname: string | null;
+  exam_type: string | null;
+  goal: string | null;
+  career: string | null;
+  life_dream: string | null;
+  target_high_school: string | null;
+  target_university: string | null;
+  target_department: string | null;
+  /** JSON string dizisi */
+  math_topics: string;
+  daily_hours: string | null;
+  timeframe: string | null;
+  /** JSON string dizisi */
+  motivation_sources: string;
+  onboarding_completed_at: string | null;
+};
+
+/** "Ilk Kurulum" sihirbazinin sonunda tek seferde kaydedilen hedef profili. */
+export type OnboardingInput = {
+  firstName: string;
+  lastName: string;
+  grade: string;
+  goal: string;
+  career: string;
+  targetHighSchool: string;
+  targetUniversity: string;
+  targetDepartment: string;
+  mathTopics: string[];
+  dailyHours: string;
+  timeframe: string;
+  motivation: string[];
 };
 
 export type Task = {

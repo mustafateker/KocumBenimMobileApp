@@ -57,9 +57,10 @@ export function useFocusTimer({ onComplete }: Options) {
       progress.value = 0;
       setStatus('idle');
 
-      // Yanlislikla dokunmalari kayit altina almamak icin cok kisa
-      // oturumlar (30 sn alti) atilir.
-      if (startedAt && actual >= 30) {
+      // Yalnizca sure dolunca (reason 'done') kaydedilir. Elle durdurmak
+      // (reason 'cancel') "Odak süren durduruldu, süre kaydedilmedi" ekranina
+      // dusurur — yarim kalan oturumlar XP kazandirmaz.
+      if (reason === 'done' && startedAt && actual >= 30) {
         onComplete({ plannedSec: planned, actualSec: actual, startedAt });
       }
       return actual;

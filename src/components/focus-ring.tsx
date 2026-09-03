@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 
-import { Palette, glow } from '@/theme/tokens';
+import { Motion, Palette, glow } from '@/theme/tokens';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -42,7 +42,7 @@ export function FocusRing({
   const circumference = 2 * Math.PI * radius;
 
   // Yumusak gecis: her tik'te ani siçrama yerine kisa bir yaklasma.
-  const smooth = useDerivedValue(() => withTiming(progress.value, { duration: 320 }));
+  const smooth = useDerivedValue(() => withTiming(progress.value, { duration: Motion.duration.moderate }));
 
   const animatedProps = useAnimatedProps(() => ({
     strokeDashoffset: circumference * (1 - Math.max(0, Math.min(1, smooth.value))),

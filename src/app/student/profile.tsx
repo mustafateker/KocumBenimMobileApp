@@ -1,64 +1,62 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { GhostButton } from '@/components/button';
-import { HourStrip, peakWindow, WeekBars } from '@/components/charts';
+import { IconButton } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, IconBubble, Pill, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import {
-  dailyMinutes,
-  focusByHour,
-  leaderboard,
-  studentSummary,
-  type LeaderboardRow,
-} from '@/db/repo';
+import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
+import { leaderboard, studentSummary, type LeaderboardRow } from '@/db/repo';
 import { initials, type StudentSummary } from '@/db/types';
 import { humanDuration } from '@/lib/date';
-import { levelFromXp, Rules } from '@/lib/gamification';
-import { useSession, useStudent } from '@/lib/session';
-import { Palette, Radius, Space, glow } from '@/theme/tokens';
+import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
+import { useStudent } from '@/lib/session';
+import { Border, Palette, Radius, Space, glow } from '@/theme/tokens';
+
+type BoardRange = 'weekly' | 'monthly' | 'all';
+
+const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
+  { key: 'weekly', label: 'Haftalık' },
+  { key: 'monthly', label: 'Aylık' },
+  { key: 'all', label: 'Tüm Zamanlar' },
+];
+
+const BOARD_DAYS: Record<BoardRange, number | undefined> = { weekly: 7, monthly: 30, all: undefined };
 
 export default function Profile() {
   const db = useSQLiteContext();
   const student = useStudent();
-  const router = useRouter();
-  const { signOut } = useSession();
+  const { open: openMenu } = useHamburgerMenu();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
-  const [week, setWeek] = useState<{ day: string; minutes: number }[]>([]);
-  const [hours, setHours] = useState<number[]>([]);
+  const [boardRange, setBoardRange] = useState<BoardRange>('weekly');
   const [board, setBoard] = useState<LeaderboardRow[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([
-        studentSummary(db, student.id),
-        dailyMinutes(db, student.id, 7),
-        focusByHour(db, student.id),
-        leaderboard(db, 7),
-      ]).then(([s, w, h, lb]) => {
-        setSummary(s);
-        setWeek(w);
-        setHours(h);
-        setBoard(lb);
-      });
+      studentSummary(db, student.id).then(setSummary);
     }, [db, student.id])
   );
 
-  const level = levelFromXp(student.xp);
-  const peak = peakWindow(hours);
+  useFocusEffect(
+    useCallback(() => {
+      leaderboard(db, BOARD_DAYS[boardRange]).then(setBoard);
+    }, [db, boardRange])
+  );
 
   return (
     <Screen tint={Palette.purple}>
-      <ScreenHeader title="Profil" subtitle="Karakterin, serin ve rakiplerin." />
+      <ScreenHeader
+        title="Profil"
+        subtitle="Karakterin, hedeflerin ve rakiplerin."
+        right={<IconButton icon="menu" onPress={openMenu} />}
+      />
 
       {/* Karakter karti */}
       <Card accent={Palette.purple} style={styles.hero}>
         <View style={[styles.avatar, glow(Palette.purple, 0.3)]}>
-          <Txt variant="title" color={Palette.purple}>
+          <Txt variant="hero" color={Palette.purple}>
             {initials(student.name)}
           </Txt>
         </View>
@@ -66,101 +64,54 @@ export default function Profile() {
         <Txt variant="title" center>
           {student.nickname ?? student.name}
         </Txt>
-        <Pill label={`Seviye ${level.level} · ${level.title}`} color={Palette.purple} icon="sparkles" />
+        {student.grade ? <Pill label={student.grade} color={Palette.purple} icon="school" /> : null}
 
-        <View style={styles.xpBlock}>
-          <View style={styles.xpHead}>
-            <Txt variant="tiny" color={Palette.textDim}>
-              {student.xp} XP
-            </Txt>
-            <Txt variant="tiny" color={Palette.textDim}>
-              {level.nextTitle
-                ? `${level.xpForLevel - level.xpIntoLevel} XP sonra: ${level.nextTitle}`
-                : 'En üst seviye'}
-            </Txt>
-          </View>
-          <ProgressBar progress={level.progress} color={Palette.purple} />
+        <View style={styles.streakPill}>
+          <Ionicons name="flame" size={16} color={Palette.orange} />
+          <Txt variant="smallStrong" color={Palette.orange}>
+            {student.streak} günlük seri
+          </Txt>
         </View>
       </Card>
 
       {/* Istatistik doseme */}
       <View style={styles.tiles}>
-        <StatTile
-          icon="flame"
-          color={Palette.orange}
-          value={String(student.streak)}
-          label="günlük seri"
-        />
+        <StatTile icon="star" color={Palette.gold} value={String(student.xp)} label="Toplam XP" />
         <StatTile
           icon="time"
-          color={Palette.blue}
+          color={Palette.green}
           value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
-          label="bu hafta"
+          label="Bu Hafta"
         />
         <StatTile
           icon="checkmark-done"
-          color={Palette.green}
+          color={Palette.blue}
           value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
-          label="görev"
+          label="Tamamlanan Görev"
         />
       </View>
 
-      {/* Haftalik odak */}
-      <Card>
-        <View style={styles.cardHead}>
-          <Txt variant="section">Son 7 gün</Txt>
-          <Txt variant="tiny" color={Palette.textFaint}>
-            hedef {Rules.dailyGoalMinutes} dk
-          </Txt>
-        </View>
-        <WeekBars data={week} goalMinutes={Rules.dailyGoalMinutes} color={Palette.purple} />
-      </Card>
-
-      {/* Verimli saat analizi */}
-      <Card>
-        <Txt variant="section" style={styles.cardTitle}>
-          Ne zaman verimlisin?
-        </Txt>
-        <HourStrip buckets={hours} color={Palette.blue} />
-        {peak ? (
-          <View style={styles.insight}>
-            <Ionicons name="bulb" size={16} color={Palette.gold} />
-            <Txt variant="small" color={Palette.textDim} style={styles.flex}>
-              Genellikle{' '}
-              <Txt variant="smallStrong" color={Palette.text}>
-                {String(peak.start).padStart(2, '0')}:00 - {String(peak.end).padStart(2, '0')}:00
-              </Txt>{' '}
-              arası odaklanıyorsun. Zor dersleri bu saate almayı dene.
-            </Txt>
-          </View>
-        ) : (
-          <Txt variant="small" color={Palette.textFaint} style={styles.insight}>
-            Birkaç oturum sonra burada en verimli saatini göstereceğim.
-          </Txt>
-        )}
-      </Card>
-
-      {/* Liderlik */}
+      {/* Liderlik tablosu */}
       <View style={styles.section}>
-        <View style={styles.cardHead}>
-          <SectionLabel>Haftanın liderleri</SectionLabel>
-          <Txt variant="tiny" color={Palette.textFaint}>
-            takma adlarla
-          </Txt>
-        </View>
+        <Txt variant="smallStrong" color={Palette.textDim}>
+          Liderlik Tablosu
+        </Txt>
+        <Segmented options={BOARD_OPTIONS} value={boardRange} onChange={setBoardRange} color={Palette.purple} />
 
         <Card style={styles.boardCard}>
           {board.map((row, index) => {
             const isMe = row.id === student.id;
+            const isFirst = index === 0;
 
             return (
-              <View
-                key={row.id}
-                style={[styles.boardRow, isMe && styles.boardRowMe]}
-              >
-                <Txt variant="bodyStrong" color={Palette.textDim} style={styles.rank}>
-                  {index + 1}
-                </Txt>
+              <View key={row.id} style={[styles.boardRow, isMe && styles.boardRowMe]}>
+                {isFirst ? (
+                  <Ionicons name="trophy" size={18} color={Palette.gold} style={styles.rank} />
+                ) : (
+                  <Txt variant="bodyStrong" color={Palette.textDim} style={styles.rank}>
+                    {index + 1}
+                  </Txt>
+                )}
                 <View style={styles.flex}>
                   <Txt variant="smallStrong" numberOfLines={1}>
                     {row.nickname}
@@ -182,17 +133,6 @@ export default function Profile() {
           Tabloda gerçek isimler görünmez, sadece takma adlar.
         </Txt>
       </View>
-
-      <GhostButton
-        label="Çıkış yap"
-        icon="log-out-outline"
-        color={Palette.pink}
-        full
-        onPress={async () => {
-          await signOut();
-          router.replace('/login');
-        }}
-      />
     </Screen>
   );
 }
@@ -209,7 +149,7 @@ function StatTile({
   label: string;
 }) {
   return (
-    <View style={[styles.tile, { backgroundColor: color + '18', borderColor: color + '3A' }]}>
+    <View style={[styles.tile, { backgroundColor: color + '18', borderColor: color }]}>
       <IconBubble name={icon} color={color} size={36} />
       <Txt variant="section" color={color}>
         {value}
@@ -234,17 +174,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.purpleSoft,
-    borderWidth: 2,
-    borderColor: Palette.purple + '55',
+    borderWidth: Border.thick,
+    borderColor: Palette.purple,
   },
-  xpBlock: {
-    alignSelf: 'stretch',
-    marginTop: Space.sm,
-    gap: 6,
-  },
-  xpHead: {
+  streakPill: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: Space.xs,
+    paddingHorizontal: Space.md,
+    height: 34,
+    borderRadius: Radius.pill,
+    borderWidth: Border.thick,
+    borderColor: Palette.orange,
+    backgroundColor: Palette.orangeSoft,
   },
   tiles: {
     flexDirection: 'row',
@@ -258,22 +201,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: Space.lg,
     borderRadius: Radius.lg,
-    borderWidth: 1,
-  },
-  cardHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Space.md,
-  },
-  cardTitle: {
-    marginBottom: Space.md,
-  },
-  insight: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    alignItems: 'flex-start',
-    marginTop: Space.md,
+    borderWidth: Border.thick,
   },
   section: {
     gap: Space.sm,

@@ -1,20 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useEffect, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
-import { IconButton, NeonButton, PressScale } from '@/components/button';
+import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
 import { Screen } from '@/components/screen';
-import { Card, IconBubble, Pill, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { bumpTask, tasksForDay, todayMinutes } from '@/db/repo';
+import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
+import { tasksForDay } from '@/db/repo';
 import { initials, type Task } from '@/db/types';
-import { gameGate, levelFromXp, Rules } from '@/lib/gamification';
+import { clockFormat } from '@/lib/date';
+import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
-import { Palette, Radius, Space } from '@/theme/tokens';
+import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
 const DURATIONS = [
   { label: '25 dk', seconds: 25 * 60 },
@@ -22,23 +22,25 @@ const DURATIONS = [
   { label: '60 dk', seconds: 60 * 60 },
 ];
 
+const MIN_SECONDS = 5 * 60;
+const MAX_SECONDS = 180 * 60;
+
 export default function Home() {
   const db = useSQLiteContext();
   const router = useRouter();
   const student = useStudent();
   const { refresh } = useSession();
+  const { open: openMenu } = useHamburgerMenu();
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [minutesToday, setMinutesToday] = useState(0);
-
-  /** Halka bugunku hedefe ne kadar yaklasildigini gosterir. */
-  const goalProgress = useSharedValue(0);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [draft, setDraft] = useState(DURATIONS[0].seconds);
+  /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
+  const ringProgress = useSharedValue(1);
 
   const load = useCallback(async () => {
-    const [t, m] = await Promise.all([tasksForDay(db, student.id), todayMinutes(db, student.id)]);
-    setTasks(t);
-    setMinutesToday(m);
+    setTasks(await tasksForDay(db, student.id));
   }, [db, student.id]);
 
   useFocusEffect(
@@ -48,25 +50,29 @@ export default function Home() {
     }, [load, refresh])
   );
 
-  useEffect(() => {
-    goalProgress.value = Math.min(1, minutesToday / Rules.dailyGoalMinutes);
-  }, [minutesToday, goalProgress]);
+  const openPicker = useCallback(() => {
+    setDraft(duration);
+    setPickerOpen(true);
+  }, [duration]);
 
-  const level = levelFromXp(student.xp);
-  const gate = gameGate(minutesToday);
-  const goalReached = minutesToday >= Rules.dailyGoalMinutes;
+  const applyDraft = useCallback(() => {
+    setDuration(draft);
+    setPickerOpen(false);
+  }, [draft]);
 
-  const onBumpTask = useCallback(
-    async (task: Task, delta: number) => {
-      const step = task.target > 10 ? Math.max(1, Math.round(task.target / 10)) : 1;
-      await bumpTask(db, task.id, delta * step);
-      if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      }
-      await Promise.all([load(), refresh()]);
-    },
-    [db, load, refresh]
-  );
+  const bumpMinutes = useCallback((delta: number) => {
+    setDraft((d) => Math.max(MIN_SECONDS, Math.min(MAX_SECONDS, d + delta * 60)));
+  }, []);
+
+  const bumpSeconds = useCallback((delta: number) => {
+    setDraft((d) => {
+      const next = d + delta * 15;
+      return Math.max(MIN_SECONDS, Math.min(MAX_SECONDS, next));
+    });
+  }, []);
+
+  const draftMinutes = Math.floor(draft / 60);
+  const draftSeconds = draft % 60;
 
   return (
     <Screen tint={Palette.purple}>
@@ -80,38 +86,37 @@ export default function Home() {
           </View>
           <View style={styles.whoText}>
             <Txt variant="bodyStrong" numberOfLines={1}>
-              Selam {student.name.split(' ')[0]}
-            </Txt>
-            <Txt variant="tiny" color={Palette.textDim}>
-              Seviye {level.level} · {level.title}
+              Merhaba, {student.nickname ?? student.name.split(' ')[0]}
             </Txt>
           </View>
         </PressScale>
 
-        <View style={[styles.statChip, { borderColor: Palette.orange + '55' }]}>
-          <Ionicons name="flame" size={15} color={Palette.orange} />
-          <Txt variant="smallStrong" color={Palette.orange}>
-            {student.streak}
-          </Txt>
+        <View style={styles.topActions}>
+          <View style={[styles.statChip, { borderColor: Palette.orange }]}>
+            <Ionicons name="flame" size={15} color={Palette.orange} />
+            <Txt variant="smallStrong" color={Palette.orange}>
+              {student.streak}
+            </Txt>
+          </View>
+          <IconButton icon="menu" onPress={openMenu} />
         </View>
       </View>
 
-      {/* Bugunku ilerleme */}
-      <FocusRing
-        progress={goalProgress}
-        color={goalReached ? Palette.green : Palette.purple}
-        size={252}
-      >
-        <Txt variant="tiny" color={Palette.textFaint}>
-          BUGÜN
-        </Txt>
-        <Txt variant="timer" color={goalReached ? Palette.green : Palette.text}>
-          {minutesToday}
-        </Txt>
-        <Txt variant="small" color={Palette.textDim}>
-          / {Rules.dailyGoalMinutes} dakika
-        </Txt>
-      </FocusRing>
+      {/* Odak zamani secici */}
+      <PressScale onPress={openPicker} scaleTo={0.98}>
+        <FocusRing progress={ringProgress} color={Palette.purple} size={252}>
+          <Txt variant="tiny" color={Palette.textFaint}>
+            ODAK ZAMANI
+          </Txt>
+          <Txt variant="timer">{clockFormat(duration)}</Txt>
+          <View style={styles.editHint}>
+            <Ionicons name="pencil" size={12} color={Palette.textFaint} />
+            <Txt variant="small" color={Palette.textDim}>
+              dokun, değiştir
+            </Txt>
+          </View>
+        </FocusRing>
+      </PressScale>
 
       {/* Sure secimi ve baslatma */}
       <View style={styles.setup}>
@@ -128,6 +133,16 @@ export default function Home() {
               </PressScale>
             );
           })}
+          <PressScale onPress={openPicker} style={styles.flex}>
+            <View style={[styles.chip, !DURATIONS.some((d) => d.seconds === duration) && styles.chipActive]}>
+              <Txt
+                variant="smallStrong"
+                color={!DURATIONS.some((d) => d.seconds === duration) ? Palette.purple : Palette.textDim}
+              >
+                Özel
+              </Txt>
+            </View>
+          </PressScale>
         </View>
 
         <NeonButton
@@ -140,25 +155,15 @@ export default function Home() {
         />
       </View>
 
-      {/* Oyun kilidi */}
-      <PressScale onPress={() => router.push('/student/games')}>
-        <Card accent={gate.unlocked ? Palette.green : undefined} style={styles.gateCard}>
-          <IconBubble
-            name={gate.unlocked ? 'lock-open' : 'lock-closed'}
-            color={gate.unlocked ? Palette.green : Palette.textFaint}
-            size={40}
-          />
+      {/* Hizli soru sor */}
+      <PressScale onPress={() => router.push('/student/questions')}>
+        <Card accent={Palette.orange} style={styles.quickCard}>
+          <IconBubble name="camera" color={Palette.orange} size={48} />
           <View style={styles.flex}>
-            <Txt variant="bodyStrong" color={gate.unlocked ? Palette.green : Palette.text}>
-              {gate.unlocked ? 'Oyun odası açıldı' : `Oyun odasına ${gate.remainingMinutes} dk`}
+            <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
+            <Txt variant="tiny" color={Palette.textDim}>
+              Sorunu çek, üstüne çiz, hocana gönder!
             </Txt>
-            <View style={styles.gateBar}>
-              <ProgressBar
-                progress={gate.progress}
-                color={gate.unlocked ? Palette.green : Palette.purple}
-                height={6}
-              />
-            </View>
           </View>
           <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
         </Card>
@@ -167,10 +172,12 @@ export default function Home() {
       {/* Gunluk gorevler */}
       <View style={styles.section}>
         <View style={styles.sectionHead}>
-          <SectionLabel>Bugünün görevleri</SectionLabel>
-          <Txt variant="tiny" color={Palette.textFaint}>
-            {tasks.filter((t) => t.completed_at).length}/{tasks.length}
-          </Txt>
+          <SectionLabel>Günlük Görevler</SectionLabel>
+          <PressScale onPress={() => router.push('/student/tasks')}>
+            <Txt variant="tiny" color={Palette.purple}>
+              Tümünü Gör
+            </Txt>
+          </PressScale>
         </View>
 
         {tasks.length === 0 ? (
@@ -180,67 +187,84 @@ export default function Home() {
             </Txt>
           </Card>
         ) : (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.taskRow}
-          >
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onBump={onBumpTask} />
+          <View style={styles.taskGrid}>
+            {tasks.slice(0, 3).map((task) => (
+              <MiniTaskCard key={task.id} task={task} />
             ))}
-          </ScrollView>
+          </View>
         )}
       </View>
 
-      {/* Seri durumu */}
-      <Card>
-        <Txt variant="smallStrong">Günlük hedef</Txt>
-        <Txt variant="tiny" color={Palette.textFaint} style={styles.goalHint}>
-          {goalReached
-            ? 'Hedefi tutturdun, serin güvende.'
-            : `Seriyi korumak için ${Rules.dailyGoalMinutes - minutesToday} dk daha.`}
-        </Txt>
-      </Card>
+      {/* Manuel sure secici */}
+      <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalCard}>
+            <Txt variant="section" center>
+              Odak süresini ayarla
+            </Txt>
+
+            <View style={styles.stepperRow}>
+              <Stepper label="Dakika" value={String(draftMinutes).padStart(2, '0')} onDec={() => bumpMinutes(-1)} onInc={() => bumpMinutes(1)} />
+              <Txt variant="hero">:</Txt>
+              <Stepper
+                label="Saniye"
+                value={String(draftSeconds).padStart(2, '0')}
+                onDec={() => bumpSeconds(-1)}
+                onInc={() => bumpSeconds(1)}
+              />
+            </View>
+
+            <View style={styles.modalActions}>
+              <GhostButton label="Vazgeç" onPress={() => setPickerOpen(false)} style={styles.flex} full />
+              <NeonButton label="Uygula" color={Palette.purple} onPress={applyDraft} style={styles.flex} full />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
 
-/* ------------------------------- gorev karti ------------------------------- */
+function Stepper({
+  label,
+  value,
+  onDec,
+  onInc,
+}: {
+  label: string;
+  value: string;
+  onDec: () => void;
+  onInc: () => void;
+}) {
+  return (
+    <View style={styles.stepper}>
+      <Txt variant="tiny" color={Palette.textFaint}>
+        {label.toUpperCase()}
+      </Txt>
+      <View style={styles.stepperControls}>
+        <IconButton icon="remove" onPress={onDec} />
+        <Txt variant="title">{value}</Txt>
+        <IconButton icon="add" color={Palette.purple} onPress={onInc} />
+      </View>
+    </View>
+  );
+}
 
-function TaskCard({ task, onBump }: { task: Task; onBump: (t: Task, delta: number) => void }) {
+function MiniTaskCard({ task }: { task: Task }) {
   const done = task.completed_at !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
 
   return (
-    <Card accent={done ? Palette.green : Palette.purple} style={styles.taskCard}>
-      <View style={styles.taskHead}>
-        <Pill
-          label={done ? 'Tamamlandı' : 'Devam ediyor'}
-          color={done ? Palette.green : Palette.purple}
-        />
-        {done ? <Ionicons name="checkmark-circle" size={18} color={Palette.green} /> : null}
-      </View>
-
-      <Txt variant="bodyStrong" numberOfLines={2} style={styles.taskTitle}>
+    <View style={[styles.miniCard, done && { borderColor: Palette.green }]}>
+      <IconBubble name={done ? 'checkmark-circle' : 'flash'} color={done ? Palette.green : Palette.purple} size={32} />
+      <Txt variant="tiny" color={Palette.textDim} numberOfLines={2} style={styles.miniTitle}>
         {task.title}
       </Txt>
-
-      <Txt variant="tiny" color={Palette.textDim}>
-        {task.done} / {task.target} soru
+      <Txt variant="smallStrong" color={done ? Palette.green : Palette.text}>
+        {task.done}/{task.target}
       </Txt>
-      <ProgressBar progress={progress} color={done ? Palette.green : Palette.purple} height={6} />
-
-      <View style={styles.taskActions}>
-        <IconButton icon="remove" size={34} onPress={() => onBump(task, -1)} disabled={task.done === 0} />
-        <IconButton
-          icon="add"
-          size={34}
-          color={Palette.purple}
-          onPress={() => onBump(task, 1)}
-          disabled={done}
-        />
-      </View>
-    </Card>
+      <ProgressBar progress={progress} color={done ? Palette.green : Palette.purple} height={5} />
+    </View>
   );
 }
 
@@ -264,20 +288,31 @@ const styles = StyleSheet.create({
     borderRadius: 23,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Palette.purple + '55',
+    borderWidth: Border.thick,
+    borderColor: Palette.purple,
     backgroundColor: Palette.purpleSoft,
   },
   whoText: { flexShrink: 1 },
+  topActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+  },
   statChip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: Space.md,
-    height: 34,
+    height: 40,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     backgroundColor: Palette.surface,
+  },
+  editHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 2,
   },
   setup: {
     gap: Space.md,
@@ -289,7 +324,7 @@ const styles = StyleSheet.create({
   chip: {
     height: 42,
     borderRadius: Radius.pill,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     borderColor: Palette.border,
     backgroundColor: Palette.surface,
     alignItems: 'center',
@@ -299,14 +334,11 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.purpleSoft,
     borderColor: Palette.purple,
   },
-  gateCard: {
+  quickCard: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
     paddingVertical: Space.md,
-  },
-  gateBar: {
-    marginTop: 6,
   },
   section: {
     gap: Space.sm,
@@ -316,29 +348,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  taskRow: {
-    gap: Space.md,
-    paddingRight: Space.lg,
-  },
-  taskCard: {
-    width: 190,
+  taskGrid: {
+    flexDirection: 'row',
     gap: Space.sm,
-    padding: Space.md,
   },
-  taskHead: {
+  miniCard: {
+    flex: 1,
+    gap: 6,
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+  },
+  miniTitle: {
+    minHeight: 30,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: Palette.overlay,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Space.xl,
+  },
+  modalCard: {
+    width: '100%',
+    gap: Space.xl,
+    padding: Space.xl,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    gap: Space.lg,
+  },
+  stepper: {
+    alignItems: 'center',
+    gap: Space.sm,
+  },
+  stepperControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: Space.md,
   },
-  taskTitle: {
-    minHeight: 44,
-  },
-  taskActions: {
+  modalActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 2,
-  },
-  goalHint: {
-    marginTop: 4,
+    gap: Space.md,
   },
 });

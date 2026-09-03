@@ -1,12 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette, Radius, Space, glow } from '@/theme/tokens';
+import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
@@ -43,11 +42,6 @@ export function TabBar({
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, Space.md) }]}>
-      <LinearGradient
-        colors={['transparent', Palette.bg]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
       <View style={styles.bar}>
         {state.routes.map((route, index) => {
           const meta = tabs[route.name];
@@ -100,17 +94,11 @@ function TabButton({
 
   return (
     <Pressable onPress={onPress} style={styles.tab} hitSlop={6}>
-      <Animated.View
-        style={[
-          styles.iconSlot,
-          iconStyle,
-          focused && { backgroundColor: meta.color + '24', ...glow(meta.color, 0.4) },
-        ]}
-      >
+      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: meta.color }]}>
         <Ionicons
           name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
           size={21}
-          color={focused ? meta.color : Palette.textFaint}
+          color={focused ? OnColor : Palette.textFaint}
         />
       </Animated.View>
       <Txt variant="tiny" color={focused ? meta.color : Palette.textFaint}>
@@ -135,7 +123,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: Palette.surface,
     borderRadius: Radius.xl,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     borderColor: Palette.border,
     paddingVertical: Space.sm,
     paddingHorizontal: Space.sm,

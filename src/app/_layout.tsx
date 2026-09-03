@@ -77,9 +77,12 @@ export default function RootLayout() {
               >
                 <Stack.Screen name="index" />
                 <Stack.Screen name="login" />
+                <Stack.Screen name="signup" />
+                <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
                 <Stack.Screen name="student" />
-                <Stack.Screen name="teacher" />
-                <Stack.Screen name="parent" />
+                <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen
                   name="annotate"
                   options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
@@ -87,10 +90,6 @@ export default function RootLayout() {
                 <Stack.Screen
                   name="focus"
                   options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
-                />
-                <Stack.Screen
-                  name="game/[id]"
-                  options={{ presentation: 'card', animation: 'slide_from_bottom' }}
                 />
               </Stack>
             </ThemeProvider>

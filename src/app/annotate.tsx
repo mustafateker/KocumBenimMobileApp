@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
+import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -22,7 +23,7 @@ import { createQuestion } from '@/db/repo';
 import type { CanvasItem } from '@/db/types';
 import { localImageUri, persistQuestionPhoto } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
-import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
 const PENS = ['#FF3B5C', '#2B7FFF', '#12C46A', '#FFB020', '#111827'];
@@ -172,16 +173,14 @@ export default function Annotate() {
       {/* Ust bar */}
       <View style={styles.topBar}>
         <IconButton icon="close" onPress={() => router.back()} />
-        <Txt variant="section">Soruyu işaretle</Txt>
-        <View style={styles.topActions}>
-          <IconButton icon="arrow-undo" onPress={undo} disabled={items.length === 0} />
-          <IconButton
-            icon="trash"
-            color={Palette.pink}
-            onPress={clear}
-            disabled={items.length === 0}
-          />
-        </View>
+        <View style={styles.flex} />
+        <PressScale onPress={send} disabled={saving} hapticStyle={Haptics.ImpactFeedbackStyle.Medium}>
+          <View style={[styles.saveButton, saving && styles.saveButtonDisabled]}>
+            <Txt variant="bodyStrong" color={OnColor}>
+              {saving ? 'Gönderiliyor…' : 'Kaydet'}
+            </Txt>
+          </View>
+        </PressScale>
       </View>
 
       <View style={styles.stage}>
@@ -253,67 +252,44 @@ export default function Annotate() {
             ) : null}
           </Svg>
         </View>
+      </View>
 
-        {/* Sag arac cubugu */}
-        <View style={styles.toolbar}>
-          <ToolButton
-            icon="brush"
-            active={tool === 'pen'}
-            color={Palette.purple}
-            onPress={() => setTool('pen')}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/* Kalem renkleri */}
+        <View style={styles.swatchRow}>
+          {PENS.map((c) => (
+            <PressScale key={c} onPress={() => setColor(c)} scaleTo={0.85}>
+              <View style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]} />
+            </PressScale>
+          ))}
+        </View>
+
+        {/* Not alani */}
+        <View style={styles.noteRow}>
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={Palette.textFaint} />
+          <TextInput
+            value={note}
+            onChangeText={setNote}
+            placeholder="Nerede takıldın? (opsiyonel not)"
+            placeholderTextColor={Palette.textFaint}
+            style={styles.noteInput}
           />
+        </View>
+
+        {/* Alt arac cubugu */}
+        <View style={[styles.toolbar, { paddingBottom: insets.bottom + Space.sm }]}>
+          <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Palette.purple} onPress={() => setTool('pen')} />
           <ToolButton
             icon="color-fill"
+            label="Vurgula"
             active={tool === 'highlight'}
             color={Palette.gold}
             onPress={() => setTool('highlight')}
           />
-          <ToolButton
-            icon="text"
-            active={tool === 'text'}
-            color={Palette.blue}
-            onPress={() => setTool('text')}
-          />
-
-          <View style={styles.toolDivider} />
-
-          {PENS.map((c) => (
-            <PressScale key={c} onPress={() => setColor(c)} scaleTo={0.85}>
-              <View
-                style={[
-                  styles.swatch,
-                  { backgroundColor: c },
-                  color === c && styles.swatchActive,
-                ]}
-              />
-            </PressScale>
-          ))}
+          <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Palette.blue} onPress={() => setTool('text')} />
+          <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
+          <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
         </View>
-      </View>
-
-      {/* Alt panel */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={[styles.bottom, { paddingBottom: insets.bottom + Space.md }]}
-      >
-        <TextInput
-          value={note}
-          onChangeText={setNote}
-          placeholder="Hocam burada tam olarak nerede takıldın?"
-          placeholderTextColor={Palette.textFaint}
-          style={styles.noteInput}
-          multiline
-        />
-
-        <NeonButton
-          label={saving ? 'Gönderiliyor…' : 'Hocaya Gönder'}
-          icon="paper-plane"
-          color={Palette.purple}
-          size="lg"
-          full
-          disabled={saving}
-          onPress={send}
-        />
       </KeyboardAvoidingView>
 
       {/* Metin araci penceresi */}
@@ -347,20 +323,27 @@ export default function Annotate() {
 
 function ToolButton({
   icon,
+  label,
   active,
   color,
+  disabled,
   onPress,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
   active: boolean;
   color: string;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   return (
-    <PressScale onPress={onPress} scaleTo={0.88}>
-      <View style={[styles.tool, active && { backgroundColor: color, borderColor: color }]}>
-        <Ionicons name={icon} size={20} color={active ? OnColor : Palette.textDim} />
+    <PressScale onPress={onPress} disabled={disabled} scaleTo={0.9} style={styles.toolWrap}>
+      <View style={[styles.tool, active && { backgroundColor: color + '22', borderColor: color }]}>
+        <Ionicons name={icon} size={20} color={active ? color : Palette.textDim} />
       </View>
+      <Txt variant="tiny" color={active ? color : Palette.textFaint}>
+        {label}
+      </Txt>
     </PressScale>
   );
 }
@@ -378,15 +361,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.lg,
     paddingVertical: Space.sm,
   },
-  topActions: {
-    flexDirection: 'row',
-    gap: Space.sm,
+  saveButton: {
+    height: 40,
+    paddingHorizontal: Space.xl,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.purple,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   stage: {
     flex: 1,
-    flexDirection: 'row',
     paddingHorizontal: Space.md,
-    gap: Space.md,
   },
   canvas: {
     flex: 1,
@@ -404,31 +392,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: Space.sm,
   },
-  toolbar: {
-    width: 56,
-    alignItems: 'center',
-    gap: Space.sm,
-    paddingVertical: Space.md,
-    backgroundColor: Palette.surface,
-    borderRadius: Radius.xl,
-    borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  tool: {
-    width: 40,
-    height: 40,
-    borderRadius: Radius.md,
-    alignItems: 'center',
+  swatchRow: {
+    flexDirection: 'row',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surfaceHi,
-  },
-  toolDivider: {
-    width: 24,
-    height: 1,
-    backgroundColor: Palette.border,
-    marginVertical: 2,
+    gap: Space.md,
+    paddingVertical: Space.md,
   },
   swatch: {
     width: 28,
@@ -440,24 +408,46 @@ const styles = StyleSheet.create({
   swatchActive: {
     borderColor: Palette.text,
   },
-  bottom: {
+  noteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    marginHorizontal: Space.lg,
+    marginBottom: Space.sm,
     paddingHorizontal: Space.lg,
-    paddingTop: Space.md,
-    gap: Space.md,
-  },
-  noteInput: {
-    minHeight: 52,
-    maxHeight: 96,
+    height: 46,
     borderRadius: Radius.md,
-    borderWidth: 1,
+    borderWidth: Border.thick,
     borderColor: Palette.border,
     backgroundColor: Palette.surface,
-    paddingHorizontal: Space.lg,
-    paddingTop: Space.md,
-    paddingBottom: Space.md,
+  },
+  noteInput: {
+    flex: 1,
     color: Palette.text,
     fontFamily: 'Poppins_400Regular',
     fontSize: 14,
+  },
+  toolbar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingTop: Space.sm,
+    paddingHorizontal: Space.md,
+    borderTopWidth: 1,
+    borderTopColor: Palette.border,
+  },
+  toolWrap: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  tool: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surfaceHi,
   },
   modalBackdrop: {
     flex: 1,
