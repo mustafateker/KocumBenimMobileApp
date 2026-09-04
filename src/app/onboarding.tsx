@@ -1,0 +1,440 @@
+import { useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { GhostButton, NeonButton } from '@/components/button';
+import { IconBubble, ProgressBar, TextField, Txt } from '@/components/ui';
+import { completeOnboarding } from '@/lib/api';
+import {
+  ALL_STEPS,
+  CAREERS,
+  DAILY_HOURS,
+  DEPARTMENTS,
+  GOALS,
+  GRADES,
+  HIGH_SCHOOLS,
+  MATH_TOPICS,
+  MOTIVATIONS,
+  ORTAOKUL_GRADES,
+  STEP_META,
+  TIMEFRAMES,
+  UNIVERSITIES,
+  type StepKey,
+} from '@/features/onboarding/data';
+import { CheckList, OptionList, SearchPicker, StepHeader } from '@/features/onboarding/parts';
+import { useSession, useStudent } from '@/lib/session';
+import { Border, Palette, Radius, Space } from '@/theme/tokens';
+
+type FormState = {
+  firstName: string;
+  lastName: string;
+  grade: string;
+  goal: string;
+  career: string;
+  highSchool: string;
+  university: string;
+  department: string;
+  mathTopics: string[];
+  dailyHours: string;
+  timeframe: string;
+  motivation: string[];
+};
+
+const EMPTY_FORM: FormState = {
+  firstName: '',
+  lastName: '',
+  grade: '',
+  goal: '',
+  career: '',
+  highSchool: '',
+  university: '',
+  department: '',
+  mathTopics: [],
+  dailyHours: '',
+  timeframe: '',
+  motivation: [],
+};
+
+/** Bu adimlarda icerik ScrollView icinde dikeyde ortalanir. */
+const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
+
+/**
+ * "Ilk Kurulum" sihirbazi — kayittan hemen sonra ogrenciyi taniyip hedeflerini
+ * kaydeder. Tek ekran, adimlar arasinda index ile gezinir; lise/universite/
+ * bolum adimlari yalnizca ortaokul (5-8. sinif) icin gosterilir.
+ */
+export default function Onboarding() {
+  // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
+  useStudent();
+  const { refresh } = useSession();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [index, setIndex] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  const isOrtaokul = ORTAOKUL_GRADES.has(form.grade);
+
+  const steps = useMemo(
+    () =>
+      ALL_STEPS.filter((key) => {
+        if (key === 'highSchool' || key === 'university' || key === 'department') return isOrtaokul;
+        return true;
+      }),
+    [isOrtaokul]
+  );
+
+  const step = steps[Math.min(index, steps.length - 1)];
+  const meta = STEP_META[step];
+
+  const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
+    setForm((f) => ({ ...f, [key]: value }));
+  }, []);
+
+  const toggleMulti = useCallback((key: 'mathTopics' | 'motivation', value: string) => {
+    setForm((f) => {
+      const list = f[key];
+      const next = list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+      return { ...f, [key]: next };
+    });
+  }, []);
+
+  const valid = useMemo(() => {
+    switch (step) {
+      case 'welcome':
+        return true;
+      case 'name':
+        return form.firstName.trim().length > 0 && form.lastName.trim().length > 0;
+      case 'grade':
+        return form.grade !== '';
+      case 'goal':
+        return form.goal.trim().length > 0;
+      case 'career':
+        return form.career.trim().length > 0;
+      case 'highSchool':
+        return form.highSchool.trim().length > 0;
+      case 'university':
+        return form.university.trim().length > 0;
+      case 'department':
+        return form.department.trim().length > 0;
+      case 'mathTopics':
+        return form.mathTopics.length > 0;
+      case 'dailyHours':
+        return form.dailyHours !== '';
+      case 'timeframe':
+        return form.timeframe !== '';
+      case 'motivation':
+        return form.motivation.length > 0;
+      case 'summary':
+        return true;
+    }
+  }, [step, form]);
+
+  const finish = useCallback(async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      await completeOnboarding({
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        grade: form.grade,
+        goal: form.goal.trim(),
+        career: form.career.trim(),
+        targetHighSchool: form.highSchool.trim(),
+        targetUniversity: form.university.trim(),
+        targetDepartment: form.department.trim(),
+        mathTopics: form.mathTopics,
+        dailyHours: form.dailyHours,
+        timeframe: form.timeframe,
+        motivation: form.motivation,
+      });
+      await refresh();
+      router.replace('/student');
+    } finally {
+      setSaving(false);
+    }
+  }, [saving, form, refresh, router]);
+
+  const next = useCallback(() => {
+    if (!valid) return;
+    if (step === 'summary') {
+      finish();
+      return;
+    }
+    setIndex((i) => Math.min(steps.length - 1, i + 1));
+  }, [valid, step, finish, steps.length]);
+
+  const back = useCallback(() => {
+    setIndex((i) => Math.max(0, i - 1));
+  }, []);
+
+  return (
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      <View style={styles.progressWrap}>
+        <ProgressBar progress={(index + 1) / steps.length} color={Palette.purple} height={6} />
+        <Txt variant="tiny" color={Palette.textFaint}>
+          Adım {index + 1} / {steps.length}
+        </Txt>
+      </View>
+
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + Space.xl },
+            CENTERED_STEPS.has(step) && styles.contentCentered,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <StepHeader icon={meta.icon} color={meta.color} title={meta.title} subtitle={meta.subtitle} />
+
+          <View style={styles.body}>
+            {step === 'welcome' ? (
+              <Txt variant="body" color={Palette.textDim} center>
+                Sınıfını, hedeflerini ve çalışma tarzını öğrenip sana özel bir yolculuk
+                hazırlayacağız. Hazırsan başlayalım!
+              </Txt>
+            ) : null}
+
+            {step === 'name' ? (
+              <View style={styles.body}>
+                <View style={styles.field}>
+                  <Txt variant="smallStrong" color={Palette.textDim}>
+                    Adın
+                  </Txt>
+                  <TextField
+                    value={form.firstName}
+                    onChangeText={(v) => set('firstName', v)}
+                    placeholder="Adını yaz"
+                    autoCapitalize="words"
+                  />
+                </View>
+                <View style={styles.field}>
+                  <Txt variant="smallStrong" color={Palette.textDim}>
+                    Soyadın
+                  </Txt>
+                  <TextField
+                    value={form.lastName}
+                    onChangeText={(v) => set('lastName', v)}
+                    placeholder="Soyadını yaz"
+                    autoCapitalize="words"
+                  />
+                </View>
+              </View>
+            ) : null}
+
+            {step === 'grade' ? (
+              <OptionList options={GRADES} value={form.grade} onSelect={(v) => set('grade', v)} color={meta.color} />
+            ) : null}
+
+            {step === 'goal' ? (
+              <SearchPicker
+                value={form.goal}
+                onChangeText={(v) => set('goal', v)}
+                placeholder="Hedefini ara ya da yaz…"
+                popularLabel="Örnek hedefler"
+                options={GOALS}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'career' ? (
+              <SearchPicker
+                value={form.career}
+                onChangeText={(v) => set('career', v)}
+                placeholder="Meslek ara…"
+                popularLabel="Popüler meslekler"
+                options={CAREERS}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'highSchool' ? (
+              <SearchPicker
+                value={form.highSchool}
+                onChangeText={(v) => set('highSchool', v)}
+                placeholder="Lise ara…"
+                popularLabel="Seçkin liseler"
+                options={HIGH_SCHOOLS}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'university' ? (
+              <SearchPicker
+                value={form.university}
+                onChangeText={(v) => set('university', v)}
+                placeholder="Üniversite ara…"
+                popularLabel="Popüler üniversiteler"
+                options={UNIVERSITIES}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'department' ? (
+              <SearchPicker
+                value={form.department}
+                onChangeText={(v) => set('department', v)}
+                placeholder="Bölüm ara…"
+                popularLabel="Popüler bölümler"
+                options={DEPARTMENTS}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'mathTopics' ? (
+              <CheckList
+                options={MATH_TOPICS}
+                values={form.mathTopics}
+                onToggle={(v) => toggleMulti('mathTopics', v)}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'dailyHours' ? (
+              <OptionList
+                options={DAILY_HOURS}
+                value={form.dailyHours}
+                onSelect={(v) => set('dailyHours', v)}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'timeframe' ? (
+              <OptionList
+                options={TIMEFRAMES}
+                value={form.timeframe}
+                onSelect={(v) => set('timeframe', v)}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'motivation' ? (
+              <CheckList
+                options={MOTIVATIONS}
+                values={form.motivation}
+                onToggle={(v) => toggleMulti('motivation', v)}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'summary' ? (
+              <View style={styles.summaryCard}>
+                <SummaryRow icon="school" color={Palette.green} label="Sınıf" value={form.grade} />
+                <SummaryRow icon="trophy" color={Palette.gold} label="Hedefin" value={form.goal} />
+                <SummaryRow icon="briefcase" color={Palette.blue} label="Meslek Hayali" value={form.career} />
+                <SummaryRow
+                  icon="time"
+                  color={Palette.purple}
+                  label="Günlük Çalışma"
+                  value={form.dailyHours}
+                />
+                <SummaryRow icon="calendar" color={Palette.orange} label="Hedef Süre" value={form.timeframe} />
+              </View>
+            ) : null}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
+        <View style={styles.footerRow}>
+          {index > 0 ? (
+            <GhostButton label="Geri" icon="chevron-back" onPress={back} style={styles.flex} full />
+          ) : null}
+          <NeonButton
+            label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
+            icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
+            color={Palette.purple}
+            size="lg"
+            disabled={!valid || saving}
+            onPress={next}
+            style={styles.flex}
+            full
+          />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function SummaryRow({
+  icon,
+  color,
+  label,
+  value,
+}: {
+  icon: React.ComponentProps<typeof IconBubble>['name'];
+  color: string;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View style={styles.summaryRow}>
+      <IconBubble name={icon} color={color} size={44} />
+      <View style={styles.flex}>
+        <Txt variant="tiny" color={Palette.textFaint}>
+          {label.toUpperCase()}
+        </Txt>
+        <Txt variant="bodyStrong" numberOfLines={2}>
+          {value || '—'}
+        </Txt>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  root: {
+    flex: 1,
+    backgroundColor: Palette.bg,
+  },
+  progressWrap: {
+    gap: 4,
+    paddingHorizontal: Space.lg,
+    paddingTop: Space.sm,
+    paddingBottom: Space.sm,
+  },
+  content: {
+    paddingHorizontal: Space.lg,
+    paddingTop: Space.lg,
+    gap: Space.xl,
+  },
+  contentCentered: {
+    flexGrow: 1,
+    justifyContent: 'center',
+  },
+  body: {
+    gap: Space.md,
+  },
+  field: {
+    gap: 6,
+  },
+  footer: {
+    paddingHorizontal: Space.lg,
+    paddingTop: Space.md,
+    borderTopWidth: Border.thick,
+    borderTopColor: Palette.border,
+    backgroundColor: Palette.bg,
+  },
+  footerRow: {
+    flexDirection: 'row',
+    gap: Space.md,
+  },
+  summaryCard: {
+    gap: Space.sm,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
+  },
+});

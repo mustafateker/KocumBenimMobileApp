@@ -1,0 +1,204 @@
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { NeonButton, PressScale } from '@/components/button';
+import { ScreenBackground } from '@/components/screen';
+import { TextField, Txt } from '@/components/ui';
+import { useSession } from '@/lib/session';
+import { OnColor, Palette, Space, glow } from '@/theme/tokens';
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Kayit: e-posta + parola. Basarili olursa direkt "Ilk Kurulum" sihirbazina gecer. */
+export default function SignUp() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { signUp } = useSession();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = useCallback(async () => {
+    if (submitting) return;
+
+    if (!EMAIL_RE.test(email.trim())) {
+      setError('Geçerli bir e-posta adresi gir.');
+      return;
+    }
+    if (password.length < 4) {
+      setError('Parola en az 4 karakter olmalı.');
+      return;
+    }
+    if (password !== confirm) {
+      setError('Parolalar eşleşmiyor.');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    try {
+      const result = await signUp(email, password);
+      if (result.ok) {
+        router.replace('/onboarding');
+      } else {
+        setError(result.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [submitting, email, password, confirm, signUp, router]);
+
+  return (
+    <ScreenBackground tint={Palette.purple}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
+          ]}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.brand}>
+            <LinearGradient
+              colors={[Palette.purple, Palette.pink]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.logo, glow(Palette.purple, 0.5)]}
+            >
+              <Ionicons name="sparkles" size={32} color={OnColor} />
+            </LinearGradient>
+            <Txt variant="hero" center>
+              Hesap Oluştur
+            </Txt>
+            <Txt variant="small" color={Palette.textDim} center>
+              Birkaç adımda seni tanıyalım, sonra yolculuğa başlayalım.
+            </Txt>
+          </View>
+
+          <View style={styles.form}>
+            <Field label="E-posta">
+              <TextField
+                value={email}
+                onChangeText={(v) => {
+                  setEmail(v);
+                  setError(null);
+                }}
+                placeholder="ornek@eposta.com"
+                keyboardType="email-address"
+                autoComplete="email"
+                error={!!error}
+              />
+            </Field>
+
+            <Field label="Parola">
+              <TextField
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  setError(null);
+                }}
+                placeholder="En az 4 karakter"
+                secureTextEntry
+                autoComplete="password-new"
+                error={!!error}
+              />
+            </Field>
+
+            <Field label="Parola (tekrar)">
+              <TextField
+                value={confirm}
+                onChangeText={(v) => {
+                  setConfirm(v);
+                  setError(null);
+                }}
+                placeholder="Parolanı tekrar gir"
+                secureTextEntry
+                autoComplete="password-new"
+                error={!!error}
+              />
+            </Field>
+
+            {error ? (
+              <Txt variant="small" color={Palette.pink}>
+                {error}
+              </Txt>
+            ) : null}
+
+            <NeonButton
+              label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}
+              icon="arrow-forward"
+              color={Palette.purple}
+              size="lg"
+              full
+              disabled={submitting}
+              onPress={submit}
+              style={styles.submit}
+            />
+          </View>
+
+          <PressScale onPress={() => router.replace('/login')}>
+            <Txt variant="small" color={Palette.textDim} center>
+              Zaten hesabın var mı?{' '}
+              <Txt variant="smallStrong" color={Palette.purple}>
+                Giriş yap
+              </Txt>
+            </Txt>
+          </PressScale>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ScreenBackground>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.field}>
+      <Txt variant="smallStrong" color={Palette.textDim}>
+        {label}
+      </Txt>
+      {children}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  content: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: Space.lg,
+    gap: Space.xxl,
+  },
+  brand: {
+    alignItems: 'center',
+    gap: Space.sm,
+  },
+  logo: {
+    width: 74,
+    height: 74,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Space.sm,
+  },
+  form: {
+    gap: Space.lg,
+  },
+  field: {
+    gap: 6,
+  },
+  submit: {
+    marginTop: Space.sm,
+  },
+});
