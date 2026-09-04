@@ -2,18 +2,16 @@ import { Image } from 'expo-image';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
-import type { CanvasData } from '@/db/types';
-import { localImageUri } from '@/lib/photo-store';
+import type { CanvasData } from '@/lib/types';
 import { Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
 /**
- * Soru fotografi + uzerine yapilan cizim ve notlar.
+ * Soru fotografi (sunucudaki S3/MinIO URL'i) + uzerine yapilan cizim ve notlar.
  *
  * Cizimler olusturuldugu piksel uzayinda saklanir; viewBox sayesinde
  * kucuk onizlemede de tam ekranda da dogru olcekte gorunur.
- * Hem ogrencinin kanvasinda hem ogretmenin gelen kutusunda ayni bilesen.
  */
 export function CanvasView({
   imageUri,
@@ -32,11 +30,7 @@ export function CanvasView({
   return (
     <View style={[styles.wrap, style]}>
       {hasImage ? (
-        <Image
-          source={{ uri: localImageUri(imageUri) }}
-          style={StyleSheet.absoluteFill}
-          contentFit="contain"
-        />
+        <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
       ) : (
         <View style={styles.fallback}>
           <Txt variant="small" color={Palette.textDim}>

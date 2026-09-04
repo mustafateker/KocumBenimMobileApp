@@ -1,22 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { WeekBars } from '@/components/charts';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
-import { completedTasksForStudent, dailyMinutes, taskStats } from '@/db/repo';
-import type { Task } from '@/db/types';
+import { getCompletedTasks, getDailyMinutes, getStats } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
+import type { Task } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
 export default function Stats() {
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const router = useRouter();
 
   const [stats, setStats] = useState({ total: 0, done: 0 });
@@ -25,14 +23,16 @@ export default function Stats() {
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([taskStats(db, student.id), dailyMinutes(db, student.id, 7), completedTasksForStudent(db, student.id)]).then(
-        ([s, w, c]) => {
-          setStats(s);
+      Promise.all([getStats(), getDailyMinutes(7), getCompletedTasks()])
+        .then(([s, w, c]) => {
+          setStats({ total: s.totalTasks, done: s.doneTasks });
           setWeek(w);
           setCompleted(c);
-        }
-      );
-    }, [db, student.id])
+        })
+        .catch(() => {
+          // Aglama hatasi ekrani bozmasin.
+        });
+    }, [])
   );
 
   const rate = stats.total === 0 ? 0 : Math.round((stats.done / stats.total) * 100);
@@ -76,7 +76,7 @@ export default function Stats() {
                     {task.title}
                   </Txt>
                   <Txt variant="tiny" color={Palette.textFaint}>
-                    {task.target} soru · tamamlandı {relativeTime(task.completed_at ?? task.due_date)}
+                    {task.target} soru · tamamlandı {relativeTime(task.completedAt ?? task.dueDate)}
                   </Txt>
                 </View>
               </Card>

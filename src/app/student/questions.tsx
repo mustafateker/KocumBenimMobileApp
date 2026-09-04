@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,11 +9,11 @@ import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { CanvasView } from '@/components/canvas-view';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
-import { questionsForStudent } from '@/db/repo';
-import { parseCanvas, type Question, type QuestionStatus } from '@/db/types';
+import { getQuestions } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
+import type { Question, QuestionStatus } from '@/lib/types';
 import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
@@ -178,15 +177,18 @@ function CameraPane() {
 /* -------------------------------- soru listesi ------------------------------ */
 
 function QuestionList() {
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const insets = useSafeAreaInsets();
   const [questions, setQuestions] = useState<Question[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      questionsForStudent(db, student.id).then(setQuestions);
-    }, [db, student.id])
+      getQuestions()
+        .then(setQuestions)
+        .catch(() => {
+          // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+        });
+    }, [])
   );
 
   if (questions.length === 0) {
@@ -221,27 +223,23 @@ function QuestionCard({ question }: { question: Question }) {
         <Pill label={meta.label} color={meta.color} icon={meta.icon} />
       </View>
 
-      {question.image_uri ? (
-        <CanvasView
-          imageUri={question.image_uri}
-          canvas={parseCanvas(question.strokes)}
-          style={styles.thumb}
-        />
+      {question.imageUrl ? (
+        <CanvasView imageUri={question.imageUrl} canvas={question.strokes} style={styles.thumb} />
       ) : null}
 
       {question.note ? <Txt variant="small">{question.note}</Txt> : null}
 
-      {question.teacher_reply ? (
+      {question.teacherReply ? (
         <View style={styles.reply}>
           <Ionicons name="chatbubble-ellipses" size={15} color={Palette.green} />
           <Txt variant="small" color={Palette.text} style={styles.flex}>
-            {question.teacher_reply}
+            {question.teacherReply}
           </Txt>
         </View>
       ) : null}
 
       <Txt variant="tiny" color={Palette.textFaint}>
-        {relativeTime(question.created_at)}
+        {relativeTime(question.createdAt)}
       </Txt>
     </Card>
   );

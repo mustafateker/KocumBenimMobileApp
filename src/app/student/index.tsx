@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
@@ -9,11 +8,11 @@ import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/bu
 import { FocusRing } from '@/components/focus-ring';
 import { Screen } from '@/components/screen';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { tasksForDay } from '@/db/repo';
-import { initials, type Task } from '@/db/types';
+import { getTasks } from '@/lib/api';
 import { clockFormat } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
+import { initials, type Task } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
 const DURATIONS = [
@@ -26,7 +25,6 @@ const MIN_SECONDS = 5 * 60;
 const MAX_SECONDS = 180 * 60;
 
 export default function Home() {
-  const db = useSQLiteContext();
   const router = useRouter();
   const student = useStudent();
   const { refresh } = useSession();
@@ -40,8 +38,12 @@ export default function Home() {
   const ringProgress = useSharedValue(1);
 
   const load = useCallback(async () => {
-    setTasks(await tasksForDay(db, student.id));
-  }, [db, student.id]);
+    try {
+      setTasks(await getTasks('day'));
+    } catch {
+      // Aglama hatasi ekrani bozmasin; gorevler bos gorunur, sonraki focus'ta tekrar denenir.
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -251,7 +253,7 @@ function Stepper({
 }
 
 function MiniTaskCard({ task }: { task: Task }) {
-  const done = task.completed_at !== null;
+  const done = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
 
   return (

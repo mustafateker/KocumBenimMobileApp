@@ -7,7 +7,6 @@ import {
   useFonts,
 } from '@expo-google-fonts/poppins';
 import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import { SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback } from 'react';
@@ -15,8 +14,6 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { DATABASE_NAME, migrate } from '@/db/schema';
-import { seedIfEmpty } from '@/db/seed';
 import { SessionProvider } from '@/lib/session';
 import { Palette } from '@/theme/tokens';
 
@@ -34,11 +31,6 @@ const NavTheme = {
     primary: Palette.blue,
   },
 };
-
-async function initDatabase(db: SQLiteDatabase) {
-  await migrate(db);
-  await seedIfEmpty(db);
-}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -64,37 +56,35 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root} onLayout={onReady}>
       <SafeAreaProvider>
-        <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
-          <SessionProvider>
-            <ThemeProvider value={NavTheme}>
-              <StatusBar style="dark" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  contentStyle: { backgroundColor: Palette.bg },
-                  animation: 'fade',
-                }}
-              >
-                <Stack.Screen name="index" />
-                <Stack.Screen name="login" />
-                <Stack.Screen name="signup" />
-                <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-                <Stack.Screen name="student" />
-                <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen
-                  name="annotate"
-                  options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-                />
-                <Stack.Screen
-                  name="focus"
-                  options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
-                />
-              </Stack>
-            </ThemeProvider>
-          </SessionProvider>
-        </SQLiteProvider>
+        <SessionProvider>
+          <ThemeProvider value={NavTheme}>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: Palette.bg },
+                animation: 'fade',
+              }}
+            >
+              <Stack.Screen name="index" />
+              <Stack.Screen name="login" />
+              <Stack.Screen name="signup" />
+              <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+              <Stack.Screen name="student" />
+              <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen
+                name="annotate"
+                options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+              />
+              <Stack.Screen
+                name="focus"
+                options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
+              />
+            </Stack>
+          </ThemeProvider>
+        </SessionProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

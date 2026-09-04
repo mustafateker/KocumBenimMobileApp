@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -19,10 +18,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
-import { createQuestion } from '@/db/repo';
-import type { CanvasItem } from '@/db/types';
-import { localImageUri, persistQuestionPhoto } from '@/lib/photo-store';
+import { createQuestion } from '@/lib/api';
+import { localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
+import type { CanvasItem } from '@/lib/types';
 import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
@@ -32,8 +31,7 @@ type Tool = 'pen' | 'highlight' | 'text';
 
 export default function Annotate() {
   const router = useRouter();
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const { refresh } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -149,14 +147,12 @@ export default function Annotate() {
   const clear = useCallback(() => setItems([]), []);
 
   const send = useCallback(async () => {
-    if (saving) return;
+    if (saving || !uri) return;
     setSaving(true);
     try {
-      const storedUri = uri ? await persistQuestionPhoto(uri) : '';
-      await createQuestion(db, {
-        studentId: student.id,
-        imageUri: storedUri,
-        strokes: JSON.stringify({ w: frame.w, h: frame.h, items }),
+      await createQuestion({
+        imageUri: uri,
+        strokes: { w: frame.w, h: frame.h, items },
         note: note.trim(),
       });
       await refresh();
@@ -166,7 +162,7 @@ export default function Annotate() {
     } finally {
       setSaving(false);
     }
-  }, [saving, uri, db, student.id, frame.w, frame.h, items, note, refresh, router]);
+  }, [saving, uri, frame.w, frame.h, items, note, refresh, router]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>

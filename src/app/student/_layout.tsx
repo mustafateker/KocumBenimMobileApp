@@ -18,7 +18,7 @@ export default function StudentLayout() {
   if (loading) return null;
   if (!user) return <Redirect href="/login" />;
   if (user.role !== 'student') return <Redirect href="/" />;
-  if (!user.onboarding_completed_at) return <Redirect href="/onboarding" />;
+  if (!user.onboardingCompletedAt) return <Redirect href="/onboarding" />;
 
   return (
     <HamburgerMenuProvider>

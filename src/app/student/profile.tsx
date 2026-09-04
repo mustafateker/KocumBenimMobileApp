@@ -1,20 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
-import { leaderboard, studentSummary, type LeaderboardRow } from '@/db/repo';
-import { initials, type StudentSummary } from '@/db/types';
+import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
+import { initials, type LeaderboardRow, type StudentSummary } from '@/lib/types';
 import { Border, Palette, Radius, Space, glow } from '@/theme/tokens';
 
-type BoardRange = 'weekly' | 'monthly' | 'all';
+type BoardRange = LeaderboardRange;
 
 const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
   { key: 'weekly', label: 'Haftalık' },
@@ -22,10 +21,7 @@ const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
   { key: 'all', label: 'Tüm Zamanlar' },
 ];
 
-const BOARD_DAYS: Record<BoardRange, number | undefined> = { weekly: 7, monthly: 30, all: undefined };
-
 export default function Profile() {
-  const db = useSQLiteContext();
   const student = useStudent();
   const { open: openMenu } = useHamburgerMenu();
 
@@ -35,14 +31,22 @@ export default function Profile() {
 
   useFocusEffect(
     useCallback(() => {
-      studentSummary(db, student.id).then(setSummary);
-    }, [db, student.id])
+      getSummary()
+        .then(setSummary)
+        .catch(() => {
+          // Aglama hatasi ekrani bozmasin.
+        });
+    }, [])
   );
 
   useFocusEffect(
     useCallback(() => {
-      leaderboard(db, BOARD_DAYS[boardRange]).then(setBoard);
-    }, [db, boardRange])
+      getLeaderboard(boardRange)
+        .then(setBoard)
+        .catch(() => {
+          // Aglama hatasi ekrani bozmasin.
+        });
+    }, [boardRange])
   );
 
   return (

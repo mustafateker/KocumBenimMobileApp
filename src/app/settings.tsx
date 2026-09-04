@@ -1,28 +1,46 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, StyleSheet, Switch, View } from 'react-native';
 
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, TextField, Txt } from '@/components/ui';
-import { deleteAccount, updatePassword, verifyEmailPassword } from '@/db/repo';
-import { useLocalPref } from '@/lib/use-local-pref';
+import { ApiError } from '@/lib/api-client';
+import { changePassword, deleteAccount, getPreferences, patchPreferences } from '@/lib/api';
 import { useSession, useStudent } from '@/lib/session';
+import type { Preferences } from '@/lib/types';
 import { Palette, Space } from '@/theme/tokens';
 
+const DEFAULT_PREFS: Preferences = {
+  taskNotifs: true,
+  streakNotifs: true,
+  announcements: true,
+  sound: true,
+  haptics: true,
+};
+
 export default function Settings() {
-  const db = useSQLiteContext();
   const student = useStudent();
   const router = useRouter();
   const { signOut } = useSession();
 
-  const [taskNotifs, setTaskNotifs] = useLocalPref('notif.tasks', true);
-  const [streakNotifs, setStreakNotifs] = useLocalPref('notif.streak', true);
-  const [announceNotifs, setAnnounceNotifs] = useLocalPref('notif.announcements', true);
-  const [sound, setSound] = useLocalPref('app.sound', true);
-  const [haptics, setHaptics] = useLocalPref('app.haptics', true);
+  const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
+
+  useEffect(() => {
+    getPreferences()
+      .then(setPrefs)
+      .catch(() => {
+        // Aglama hatasi ekrani bozmasin; varsayilan degerler kalir.
+      });
+  }, []);
+
+  const togglePref = useCallback((key: keyof Preferences, value: boolean) => {
+    setPrefs((p) => ({ ...p, [key]: value }));
+    patchPreferences({ [key]: value }).catch(() => {
+      // Sunucuya yazilamadiysa bir sonraki acilista eski deger geri gelir.
+    });
+  }, []);
 
   const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -39,19 +57,16 @@ export default function Settings() {
     setSavingPassword(true);
     setPasswordError(null);
     try {
-      const ok = await verifyEmailPassword(db, student.email ?? '', currentPassword);
-      if (!ok) {
-        setPasswordError('Mevcut parola hatalı.');
-        return;
-      }
-      await updatePassword(db, student.id, newPassword);
+      await changePassword(currentPassword, newPassword);
       setChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
+    } catch (err) {
+      setPasswordError(err instanceof ApiError ? 'Mevcut parola hatalı.' : 'Bir hata oluştu, tekrar dene.');
     } finally {
       setSavingPassword(false);
     }
-  }, [savingPassword, newPassword, db, student.email, student.id, currentPassword]);
+  }, [savingPassword, newPassword, currentPassword]);
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -63,14 +78,14 @@ export default function Settings() {
           text: 'Hesabı Sil',
           style: 'destructive',
           onPress: async () => {
-            await deleteAccount(db, student.id);
+            await deleteAccount();
             await signOut();
             router.replace('/login');
           },
         },
       ]
     );
-  }, [db, student.id, signOut, router]);
+  }, [signOut, router]);
 
   return (
     <Screen tint={Palette.text}>
@@ -123,19 +138,37 @@ export default function Settings() {
             icon="clipboard-outline"
             color={Palette.gold}
             label="Görev bildirimleri"
-            control={<Switch value={taskNotifs} onValueChange={setTaskNotifs} trackColor={SWITCH_TRACK} />}
+            control={
+              <Switch
+                value={prefs.taskNotifs}
+                onValueChange={(v) => togglePref('taskNotifs', v)}
+                trackColor={SWITCH_TRACK}
+              />
+            }
           />
           <SettingRow
             icon="flame-outline"
             color={Palette.orange}
             label="Seri hatırlatmaları"
-            control={<Switch value={streakNotifs} onValueChange={setStreakNotifs} trackColor={SWITCH_TRACK} />}
+            control={
+              <Switch
+                value={prefs.streakNotifs}
+                onValueChange={(v) => togglePref('streakNotifs', v)}
+                trackColor={SWITCH_TRACK}
+              />
+            }
           />
           <SettingRow
             icon="megaphone-outline"
             color={Palette.green}
             label="Uygulama duyuruları"
-            control={<Switch value={announceNotifs} onValueChange={setAnnounceNotifs} trackColor={SWITCH_TRACK} />}
+            control={
+              <Switch
+                value={prefs.announcements}
+                onValueChange={(v) => togglePref('announcements', v)}
+                trackColor={SWITCH_TRACK}
+              />
+            }
           />
         </Card>
       </View>
@@ -150,13 +183,21 @@ export default function Settings() {
             icon="volume-high-outline"
             color={Palette.blue}
             label="Ses efektleri"
-            control={<Switch value={sound} onValueChange={setSound} trackColor={SWITCH_TRACK} />}
+            control={
+              <Switch value={prefs.sound} onValueChange={(v) => togglePref('sound', v)} trackColor={SWITCH_TRACK} />
+            }
           />
           <SettingRow
             icon="phone-portrait-outline"
             color={Palette.purple}
             label="Titreşim"
-            control={<Switch value={haptics} onValueChange={setHaptics} trackColor={SWITCH_TRACK} />}
+            control={
+              <Switch
+                value={prefs.haptics}
+                onValueChange={(v) => togglePref('haptics', v)}
+                trackColor={SWITCH_TRACK}
+              />
+            }
           />
         </Card>
       </View>

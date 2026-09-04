@@ -1,18 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Segmented, Txt } from '@/components/ui';
-import { tasksForDay, tasksInRange, todayMinutes } from '@/db/repo';
-import type { Task } from '@/db/types';
-import { monthRange, weekRange } from '@/lib/date';
+import { getSummary, getTasks } from '@/lib/api';
 import { Rules } from '@/lib/gamification';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
+import type { Task } from '@/lib/types';
 import { Palette, Space } from '@/theme/tokens';
 
 type RangeKey = 'daily' | 'weekly' | 'monthly';
@@ -23,9 +21,14 @@ const RANGE_OPTIONS: { key: RangeKey; label: string }[] = [
   { key: 'monthly', label: 'Aylık' },
 ];
 
+const API_RANGE: Record<RangeKey, 'day' | 'week' | 'month'> = {
+  daily: 'day',
+  weekly: 'week',
+  monthly: 'month',
+};
+
 export default function Tasks() {
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const { open: openMenu } = useHamburgerMenu();
 
   const [range, setRange] = useState<RangeKey>('daily');
@@ -33,15 +36,18 @@ export default function Tasks() {
   const [minutesToday, setMinutesToday] = useState(0);
 
   const load = useCallback(async () => {
-    if (range === 'daily') {
-      const [t, m] = await Promise.all([tasksForDay(db, student.id), todayMinutes(db, student.id)]);
-      setTasks(t);
-      setMinutesToday(m);
-      return;
+    try {
+      if (range === 'daily') {
+        const [t, summary] = await Promise.all([getTasks('day'), getSummary()]);
+        setTasks(t);
+        setMinutesToday(summary.todayMinutes);
+        return;
+      }
+      setTasks(await getTasks(API_RANGE[range]));
+    } catch {
+      // Aglama hatasi ekrani bozmasin; liste bos gorunur.
     }
-    const [from, to] = range === 'weekly' ? weekRange() : monthRange();
-    setTasks(await tasksInRange(db, student.id, from, to));
-  }, [db, student.id, range]);
+  }, [range]);
 
   useFocusEffect(
     useCallback(() => {
@@ -49,7 +55,7 @@ export default function Tasks() {
     }, [load])
   );
 
-  const doneCount = tasks.filter((t) => t.completed_at).length;
+  const doneCount = tasks.filter((t) => t.completedAt).length;
 
   const pomodoroRow = useMemo(
     () =>

@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NavigationBar } from 'expo-navigation-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -14,7 +13,7 @@ import { PressScale } from '@/components/button';
 import { Confetti } from '@/components/confetti';
 import { FocusRing } from '@/components/focus-ring';
 import { Txt } from '@/components/ui';
-import { logSession } from '@/db/repo';
+import { logFocusSession } from '@/lib/api';
 import { clockFormat } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
@@ -29,8 +28,7 @@ import { OnColor, Palette, Radius, Space, Type } from '@/theme/tokens';
  */
 export default function Focus() {
   const router = useRouter();
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const { refresh } = useSession();
   const insets = useSafeAreaInsets();
 
@@ -45,19 +43,20 @@ export default function Focus() {
 
   const handleComplete = useCallback(
     async (info: { plannedSec: number; actualSec: number; startedAt: string }) => {
-      const reward = await logSession(db, {
-        studentId: student.id,
-        plannedSec: info.plannedSec,
-        actualSec: info.actualSec,
-        startedAt: info.startedAt,
-      });
-      setResult(reward);
-      if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      try {
+        const reward = await logFocusSession(info);
+        setResult(reward);
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        }
+        await refresh();
+      } catch {
+        // Sunucu cok kisa oturumu reddettiyse (SESSION_TOO_SHORT) ya da aglama
+        // hatasi olduysa XP uydurmaktansa "kaydedilmedi" ekranini goster.
+        setDiscarded(true);
       }
-      await refresh();
     },
-    [db, student.id, refresh]
+    [refresh]
   );
 
   const timer = useFocusTimer({ onComplete: handleComplete });

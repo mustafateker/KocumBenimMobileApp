@@ -1,12 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, NeonButton } from '@/components/button';
 import { IconBubble, ProgressBar, TextField, Txt } from '@/components/ui';
-import { completeOnboarding } from '@/db/repo';
+import { completeOnboarding } from '@/lib/api';
 import {
   ALL_STEPS,
   CAREERS,
@@ -66,8 +65,8 @@ const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
  * bolum adimlari yalnizca ortaokul (5-8. sinif) icin gosterilir.
  */
 export default function Onboarding() {
-  const db = useSQLiteContext();
-  const student = useStudent();
+  // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
+  useStudent();
   const { refresh } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -137,7 +136,7 @@ export default function Onboarding() {
     if (saving) return;
     setSaving(true);
     try {
-      await completeOnboarding(db, student.id, {
+      await completeOnboarding({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         grade: form.grade,
@@ -156,7 +155,7 @@ export default function Onboarding() {
     } finally {
       setSaving(false);
     }
-  }, [saving, db, student.id, form, refresh, router]);
+  }, [saving, form, refresh, router]);
 
   const next = useCallback(() => {
     if (!valid) return;

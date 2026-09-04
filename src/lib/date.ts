@@ -11,34 +11,6 @@ export function todayKey(): string {
   return dayKey();
 }
 
-/** Bugun dahil, eskiden yeniye son n gunun anahtarlari. */
-export function lastNDays(n: number): string[] {
-  const out: string[] = [];
-  for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    out.push(dayKey(d));
-  }
-  return out;
-}
-
-/** Pazartesi baslangicli hafta araligi — Gorevlerim ekraninin "Haftalik" sekmesi icin. */
-export function weekRange(date: Date = new Date()): [string, string] {
-  const day = date.getDay();
-  const start = new Date(date);
-  start.setDate(date.getDate() + (day === 0 ? -6 : 1 - day));
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  return [dayKey(start), dayKey(end)];
-}
-
-/** Icinde bulunulan ayin ilk ve son gunu — "Aylik" sekmesi icin. */
-export function monthRange(date: Date = new Date()): [string, string] {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  return [dayKey(start), dayKey(end)];
-}
-
 const DAY_LABELS = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
 
 export function dayLabel(key: string): string {

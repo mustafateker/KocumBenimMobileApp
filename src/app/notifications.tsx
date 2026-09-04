@@ -1,85 +1,82 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useSQLiteContext } from 'expo-sqlite';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { assignedTaskNotifications } from '@/db/repo';
+import { PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
-import type { Task } from '@/db/types';
+import { getNotifications, markNotificationRead } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { useStudent } from '@/lib/session';
+import type { AppNotification, NotificationType } from '@/lib/types';
 import { Palette, Space } from '@/theme/tokens';
 
-/**
- * Uygulama-ici bildirimler: su an tek gercek kaynak hocanin atadigi
- * gorevler (tasks.created_by). Sistem bildirimleri (hos geldin, seri
- * hatirlatmasi) statik ornekler olarak listenin altina eklenir.
- */
+const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string }> = {
+  task_assigned: { icon: 'clipboard', color: Palette.gold },
+  question_answered: { icon: 'chatbubble-ellipses', color: Palette.green },
+  streak_reminder: { icon: 'flame', color: Palette.orange },
+  announcement: { icon: 'megaphone', color: Palette.blue },
+};
+
 export default function Notifications() {
-  const db = useSQLiteContext();
-  const student = useStudent();
+  useStudent();
   const router = useRouter();
-  const [assigned, setAssigned] = useState<Task[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      assignedTaskNotifications(db, student.id).then(setAssigned);
-    }, [db, student.id])
+      getNotifications()
+        .then((res) => setNotifications(res.data))
+        .catch(() => {
+          // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+        });
+    }, [])
   );
 
-  const hasAny = assigned.length > 0;
+  const markRead = useCallback((id: number) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    markNotificationRead(id).catch(() => {
+      // Sunucuya yazilamadiysa bir sonraki acilista tekrar "okunmadi" gorunur.
+    });
+  }, []);
 
   return (
     <Screen tint={Palette.gold}>
       <ScreenHeader title="Bildirimler" subtitle="Görevlerin ve uygulama duyuruların" onBack={() => router.back()} />
 
-      {!hasAny ? (
+      {notifications.length === 0 ? (
         <EmptyState
           icon="notifications-outline"
           title="Henüz bildirim yok"
-          subtitle="Hocan sana bir görev atadığında burada göreceksin."
+          subtitle="Hocan sana bir görev atadığında ya da bir sorunu cevapladığında burada göreceksin."
           color={Palette.gold}
         />
       ) : (
         <View style={styles.list}>
-          {assigned.map((task) => (
-            <Card key={task.id} style={styles.row} accent={task.completed_at ? Palette.green : Palette.gold}>
-              <IconBubble
-                name={task.completed_at ? 'checkmark-done' : 'clipboard'}
-                color={task.completed_at ? Palette.green : Palette.gold}
-                size={40}
-              />
-              <View style={styles.flex}>
-                <Txt variant="bodyStrong" numberOfLines={2}>
-                  {task.completed_at ? 'Görevi tamamladın' : 'Yeni görev atandı'}
-                </Txt>
-                <Txt variant="small" color={Palette.textDim} numberOfLines={2}>
-                  {task.title} · {task.target} soru
-                </Txt>
-                <Txt variant="tiny" color={Palette.textFaint}>
-                  Son tarih: {task.due_date}
-                </Txt>
-              </View>
-            </Card>
-          ))}
+          {notifications.map((n) => {
+            const meta = TYPE_META[n.type];
+            return (
+              <PressScale key={n.id} onPress={() => markRead(n.id)} disabled={n.read}>
+                <Card style={styles.row} accent={n.read ? undefined : meta.color}>
+                  <IconBubble name={meta.icon} color={meta.color} size={40} />
+                  <View style={styles.flex}>
+                    <Txt variant="bodyStrong" numberOfLines={2}>
+                      {n.title}
+                    </Txt>
+                    <Txt variant="small" color={Palette.textDim} numberOfLines={2}>
+                      {n.body}
+                    </Txt>
+                    <Txt variant="tiny" color={Palette.textFaint}>
+                      {relativeTime(n.createdAt)}
+                    </Txt>
+                  </View>
+                </Card>
+              </PressScale>
+            );
+          })}
         </View>
       )}
-
-      <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Uygulama
-        </Txt>
-        <Card style={styles.row}>
-          <IconBubble name="flame" color={Palette.orange} size={40} />
-          <View style={styles.flex}>
-            <Txt variant="bodyStrong">Serini korumayı unutma!</Txt>
-            <Txt variant="small" color={Palette.textDim}>
-              {relativeTime(new Date().toISOString())} · günlük hedefine ulaşınca serin devam eder.
-            </Txt>
-          </View>
-        </Card>
-      </View>
     </Screen>
   );
 }
@@ -88,9 +85,6 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   list: {
     gap: Space.md,
-  },
-  section: {
-    gap: Space.sm,
   },
   row: {
     flexDirection: 'row',
