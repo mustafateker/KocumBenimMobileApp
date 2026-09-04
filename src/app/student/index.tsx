@@ -8,11 +8,11 @@ import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/bu
 import { FocusRing } from '@/components/focus-ring';
 import { Screen } from '@/components/screen';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { getTasks } from '@/lib/api';
-import { clockFormat } from '@/lib/date';
+import { getTasks, getUpcomingLessons } from '@/lib/api';
+import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
-import { initials, type Task } from '@/lib/types';
+import { initials, type PrivateLesson, type Task } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
 const DURATIONS = [
@@ -32,6 +32,7 @@ export default function Home() {
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [nextLesson, setNextLesson] = useState<PrivateLesson | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(DURATIONS[0].seconds);
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
@@ -42,6 +43,12 @@ export default function Home() {
       setTasks(await getTasks('day'));
     } catch {
       // Aglama hatasi ekrani bozmasin; gorevler bos gorunur, sonraki focus'ta tekrar denenir.
+    }
+    try {
+      const upcoming = await getUpcomingLessons(1);
+      setNextLesson(upcoming[0] ?? null);
+    } catch {
+      // Aglama hatasi ekrani bozmasin; banner gorunmez.
     }
   }, []);
 
@@ -170,6 +177,22 @@ export default function Home() {
           <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
         </Card>
       </PressScale>
+
+      {/* Yaklasan ozel ders */}
+      {nextLesson ? (
+        <PressScale onPress={() => router.push('/lessons')}>
+          <Card accent={Palette.purple} style={styles.quickCard}>
+            <IconBubble name="calendar" color={Palette.purple} size={48} />
+            <View style={styles.flex}>
+              <Txt variant="bodyStrong">Yaklaşan Özel Ders</Txt>
+              <Txt variant="tiny" color={Palette.textDim}>
+                {formatLessonDateTime(nextLesson.scheduledAt)}
+              </Txt>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
+          </Card>
+        </PressScale>
+      ) : null}
 
       {/* Gunluk gorevler */}
       <View style={styles.section}>

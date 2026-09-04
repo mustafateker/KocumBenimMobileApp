@@ -14,6 +14,7 @@ export type Student = {
   surname: string | null;
   nickname: string | null;
   grade: string | null;
+  parentEmail: string | null;
   teacherId: number | null;
 
   goal: string | null;
@@ -121,7 +122,14 @@ export type Question = {
   answeredAt: string | null;
 };
 
-export type NotificationType = 'task_assigned' | 'question_answered' | 'streak_reminder' | 'announcement';
+export type NotificationType =
+  | 'task_assigned'
+  | 'question_answered'
+  | 'streak_reminder'
+  | 'announcement'
+  | 'lesson_scheduled'
+  | 'lesson_updated'
+  | 'lesson_cancelled';
 
 export type AppNotification = {
   id: number;
@@ -131,8 +139,24 @@ export type AppNotification = {
   body: string;
   relatedTaskId: number | null;
   relatedQuestionId: number | null;
+  relatedLessonId: number | null;
   read: boolean;
   createdAt: string;
+};
+
+export type LessonStatus = 'scheduled' | 'cancelled';
+
+/** Ogretmenin ogrenciyle birebir yapacagi ozel ders — gorev takviminden ayri bir kavram. */
+export type PrivateLesson = {
+  id: number;
+  studentId: number;
+  teacherId: number;
+  scheduledAt: string;
+  durationMinutes: number;
+  note: string | null;
+  status: LessonStatus;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LeaderboardRow = {

@@ -6,6 +6,7 @@ import type {
   LeaderboardRow,
   OnboardingInput,
   Preferences,
+  PrivateLesson,
   Question,
   Student,
   StudentSummary,
@@ -42,7 +43,7 @@ export function getMe() {
   return api.get<Student>('/me');
 }
 
-export function patchMe(input: { nickname?: string }) {
+export function patchMe(input: { nickname?: string; parentEmail?: string | null }) {
   return api.patch<Student>('/me', input);
 }
 
@@ -125,4 +126,14 @@ export function getNotifications(limit = 30) {
 
 export function markNotificationRead(id: number) {
   return api.patch<void>(`/notifications/${id}/read`);
+}
+
+export function registerPushToken(expoPushToken: string) {
+  return api.post<void>('/notifications/register-push', { expoPushToken });
+}
+
+/* ------------------------------------- ozel dersler ----------------------------------- */
+
+export function getUpcomingLessons(limit = 5) {
+  return api.get<PrivateLesson[]>(`/lessons/upcoming?limit=${limit}`);
 }

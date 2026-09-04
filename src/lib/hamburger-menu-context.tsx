@@ -48,6 +48,12 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
             onPress: () => router.push('/stats'),
           },
           {
+            icon: 'calendar-outline',
+            label: 'Özel Derslerim',
+            color: Palette.purple,
+            onPress: () => router.push('/lessons'),
+          },
+          {
             icon: 'settings-outline',
             label: 'Ayarlar',
             color: Palette.textDim,

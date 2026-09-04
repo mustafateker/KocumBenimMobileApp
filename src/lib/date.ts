@@ -36,6 +36,14 @@ export function clockFormat(seconds: number): string {
   return `${m}:${s}`;
 }
 
+/** Ozel ders gibi gelecek bir zaman icin: "5 Eylul Cuma · 16:00". */
+export function formatLessonDateTime(iso: string): string {
+  const d = new Date(iso);
+  const datePart = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+  const timePart = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  return `${datePart} · ${timePart}`;
+}
+
 /** "2 saat once" gibi kisa bagil zaman. */
 export function relativeTime(iso: string): string {
   const diffMs = Date.now() - Date.parse(iso);
