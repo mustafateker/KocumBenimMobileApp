@@ -146,3 +146,8 @@ export function registerPushToken(expoPushToken: string) {
 export function getUpcomingLessons(limit = 5) {
   return api.get<PrivateLesson[]>(`/lessons/upcoming?limit=${limit}`);
 }
+
+/** "Özel Derslerim" ekranı için TAM liste — gelecekteki VE geçmiş dersler dahil. */
+export function getLessons() {
+  return api.get<PrivateLesson[]>('/lessons');
+}

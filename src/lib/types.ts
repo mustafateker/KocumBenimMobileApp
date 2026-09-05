@@ -52,12 +52,15 @@ export type OnboardingInput = {
   motivation: string[];
 };
 
+export type TaskCategory = 'question' | 'topic' | 'focus';
+
 export type Task = {
   id: number;
   studentId: number;
   title: string;
   subject: string;
   target: number;
+  category: TaskCategory;
   done: number;
   correctCount: number;
   wrongCount: number;

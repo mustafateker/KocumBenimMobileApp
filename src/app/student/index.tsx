@@ -12,6 +12,7 @@ import { getTasks, getUpcomingLessons } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
+import { categoryColor, categoryIcon } from '@/lib/task-categories';
 import { initials, type PrivateLesson, type Task } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
@@ -278,17 +279,18 @@ function Stepper({
 function MiniTaskCard({ task }: { task: Task }) {
   const done = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
+  const color = done ? Palette.green : categoryColor(task.category);
 
   return (
     <View style={[styles.miniCard, done && { borderColor: Palette.green }]}>
-      <IconBubble name={done ? 'checkmark-circle' : 'book'} color={done ? Palette.green : Palette.purple} size={32} />
+      <IconBubble name={done ? 'checkmark-circle' : categoryIcon(task.category)} color={color} size={32} />
       <Txt variant="tiny" color={Palette.textDim} numberOfLines={2} style={styles.miniTitle}>
         {task.title}
       </Txt>
       <Txt variant="smallStrong" color={done ? Palette.green : Palette.text}>
         {task.done}/{task.target}
       </Txt>
-      <ProgressBar progress={progress} color={done ? Palette.green : Palette.purple} height={5} />
+      <ProgressBar progress={progress} color={color} height={5} />
     </View>
   );
 }

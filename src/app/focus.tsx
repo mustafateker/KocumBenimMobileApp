@@ -7,7 +7,6 @@ import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { PressScale } from '@/components/button';
@@ -34,7 +33,6 @@ export default function Focus() {
   const router = useRouter();
   useStudent();
   const { refresh } = useSession();
-  const insets = useSafeAreaInsets();
 
   const { seconds } = useLocalSearchParams<{ seconds?: string }>();
   const plannedSec = Math.max(60, Number(seconds) || 25 * 60);
@@ -107,10 +105,6 @@ export default function Focus() {
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
       <LinearGradient colors={[themeColor, deepOf(themeColor)]} style={StyleSheet.absoluteFill} />
-
-      <PressScale onPress={confirmEnd} style={[styles.close, { top: insets.top + Space.sm }]}>
-        <Ionicons name="close" size={22} color="rgba(255,255,255,0.7)" />
-      </PressScale>
 
       <View style={styles.center}>
         <View style={styles.pill}>
@@ -224,10 +218,9 @@ function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; o
 
 function DiscardedScreen({ onDone }: { onDone: () => void }) {
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: Palette.pink }]}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
-      <View style={[styles.root, { backgroundColor: Palette.pink }]} />
 
       <View style={styles.center}>
         <View style={styles.starCircle}>
@@ -273,12 +266,6 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: Palette.purple,
-  },
-  close: {
-    position: 'absolute',
-    left: Space.lg,
-    zIndex: 1,
-    padding: Space.sm,
   },
   center: {
     flex: 1,
