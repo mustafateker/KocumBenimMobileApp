@@ -79,20 +79,25 @@ export default function Profile() {
       </Card>
 
       {/* Istatistik doseme */}
-      <View style={styles.tiles}>
-        <StatTile icon="star" color={Palette.gold} value={String(student.xp)} label="Toplam XP" />
-        <StatTile
-          icon="time"
-          color={Palette.green}
-          value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
-          label="Bu Hafta"
-        />
-        <StatTile
-          icon="checkmark-done"
-          color={Palette.blue}
-          value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
-          label="Tamamlanan Görev"
-        />
+      <View style={styles.section}>
+        <Txt variant="smallStrong" color={Palette.textDim}>
+          Bu Hafta
+        </Txt>
+        <View style={styles.tiles}>
+          <StatTile icon="star" color={Palette.gold} value={String(student.xp)} label="Toplam XP" />
+          <StatTile
+            icon="time"
+            color={Palette.green}
+            value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
+            label="Odak Süresi"
+          />
+          <StatTile
+            icon="checkmark-done"
+            color={Palette.blue}
+            value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
+            label="Görev"
+          />
+        </View>
       </View>
 
       {/* Liderlik tablosu */}
@@ -132,10 +137,6 @@ export default function Profile() {
             );
           })}
         </Card>
-
-        <Txt variant="tiny" color={Palette.textFaint} center>
-          Tabloda gerçek isimler görünmez, sadece takma adlar.
-        </Txt>
       </View>
     </Screen>
   );
@@ -195,15 +196,14 @@ const styles = StyleSheet.create({
   },
   tiles: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Space.md,
   },
   tile: {
-    width: '47%',
-    flexGrow: 1,
+    flex: 1,
     alignItems: 'center',
     gap: 4,
     paddingVertical: Space.lg,
+    paddingHorizontal: Space.xs,
     borderRadius: Radius.lg,
     borderWidth: Border.thick,
   },

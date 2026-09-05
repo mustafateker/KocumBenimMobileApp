@@ -281,7 +281,7 @@ function MiniTaskCard({ task }: { task: Task }) {
 
   return (
     <View style={[styles.miniCard, done && { borderColor: Palette.green }]}>
-      <IconBubble name={done ? 'checkmark-circle' : 'flash'} color={done ? Palette.green : Palette.purple} size={32} />
+      <IconBubble name={done ? 'checkmark-circle' : 'book'} color={done ? Palette.green : Palette.purple} size={32} />
       <Txt variant="tiny" color={Palette.textDim} numberOfLines={2} style={styles.miniTitle}>
         {task.title}
       </Txt>

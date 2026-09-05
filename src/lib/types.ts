@@ -59,6 +59,8 @@ export type Task = {
   subject: string;
   target: number;
   done: number;
+  correctCount: number;
+  wrongCount: number;
   dueDate: string;
   createdBy: number | null;
   completedAt: string | null;
@@ -118,6 +120,7 @@ export type Question = {
   note: string | null;
   status: QuestionStatus;
   teacherReply: string | null;
+  resolvedByStudent: boolean;
   createdAt: string;
   answeredAt: string | null;
 };
@@ -174,6 +177,22 @@ export type StudentSummary = {
   tasksDone: number;
   pendingQuestions: number;
   isActive: boolean;
+};
+
+export type TopicBreakdown = {
+  title: string;
+  correct: number;
+  wrong: number;
+  attempts: number;
+};
+
+export type StudentStats = {
+  totalTasks: number;
+  doneTasks: number;
+  completionRate: number;
+  currentStreak: number;
+  last7Days: { day: string; minutes: number; tasksCompleted: number }[];
+  byTopic: TopicBreakdown[];
 };
 
 export type Preferences = {

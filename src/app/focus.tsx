@@ -6,8 +6,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { PressScale } from '@/components/button';
 import { Confetti } from '@/components/confetti';
@@ -17,11 +18,14 @@ import { logFocusSession } from '@/lib/api';
 import { clockFormat } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
-import { OnColor, Palette, Radius, Space, Type } from '@/theme/tokens';
+import { deepOf, OnColor, Palette, Radius, Space, Type } from '@/theme/tokens';
+
+const GOLD = '#FFD166';
 
 /**
- * Tam ekran odak modu — uc durum: calisiyor/duraklatildi (mor), tamamlandi
- * (mor->pembe, konfeti), elle durduruldu (pembe, kaydedilmez).
+ * Tam ekran odak modu — uc durum: calisiyor (mor), duraklatildi (turuncu —
+ * zemin, halka rengi ve mesaj hep birlikte degisir), tamamlandi (mor->pembe,
+ * konfeti), elle bitirildi (pembe, kaydedilmez).
  *
  * Calisma suresince ekranda dikkat dagitici hicbir sey yok; durum cubugu ve
  * Android gezinme cubugu gizlenir, ekran uyumaz.
@@ -68,13 +72,24 @@ export default function Focus() {
     start(plannedSec);
   }, [start, plannedSec]);
 
-  const stopEarly = useCallback(() => {
+  const endNow = useCallback(() => {
     timer.stop();
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     }
     setDiscarded(true);
   }, [timer]);
+
+  const confirmEnd = useCallback(() => {
+    Alert.alert(
+      'Odak süreni bitirmek istediğine emin misin?',
+      'Süreni şimdi bitirirsen bu oturum kaydedilmeyecek ve XP kazanamayacaksın.',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        { text: 'Odağı Bitir', style: 'destructive', onPress: endNow },
+      ]
+    );
+  }, [endNow]);
 
   if (result) {
     return <SuccessScreen minutes={result.minutes} xp={result.xp} onDone={() => router.back()} />;
@@ -85,53 +100,91 @@ export default function Focus() {
   }
 
   const paused = timer.status === 'paused';
+  const themeColor = paused ? Palette.orange : Palette.purple;
 
   return (
     <View style={styles.root}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
-      <LinearGradient colors={[Palette.purple, '#5C4699']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[themeColor, deepOf(themeColor)]} style={StyleSheet.absoluteFill} />
 
-      <PressScale onPress={stopEarly} style={[styles.close, { top: insets.top + Space.md }]}>
-        <View style={styles.closeCircle}>
-          <Ionicons name="close" size={20} color={OnColor} />
-        </View>
+      <PressScale onPress={confirmEnd} style={[styles.close, { top: insets.top + Space.sm }]}>
+        <Ionicons name="close" size={22} color="rgba(255,255,255,0.7)" />
       </PressScale>
 
       <View style={styles.center}>
         <View style={styles.pill}>
-          <Ionicons name="timer-outline" size={14} color={OnColor} />
+          <Ionicons name={paused ? 'cafe-outline' : 'timer-outline'} size={14} color={OnColor} />
           <Txt variant="tiny" color={OnColor}>
-            Pomodoro
+            {paused ? 'Mola' : 'Pomodoro'}
           </Txt>
         </View>
 
-        <FocusRing progress={timer.progress} color={OnColor} track="rgba(255,255,255,0.22)" size={280} strokeWidth={16}>
-          <Txt style={styles.bigTimer}>{clockFormat(timer.remainingSec)}</Txt>
-          {paused ? (
-            <Txt variant="small" color="rgba(255,255,255,0.75)">
-              duraklatıldı
+        <View style={styles.ringWrap}>
+          <PulseGlow color={paused ? GOLD : OnColor} />
+          <FocusRing
+            progress={timer.progress}
+            color={paused ? GOLD : OnColor}
+            track="rgba(255,255,255,0.22)"
+            size={280}
+            strokeWidth={16}
+          >
+            <Txt style={styles.bigTimer}>{clockFormat(timer.remainingSec)}</Txt>
+          </FocusRing>
+        </View>
+
+        {paused ? (
+          <View style={styles.pausedNotice}>
+            <Txt variant="bodyStrong" color={OnColor} center>
+              Odak süreniz duraklatıldı ☕
             </Txt>
-          ) : null}
-        </FocusRing>
-
-        <PressScale onPress={paused ? timer.resume : timer.pause} scaleTo={0.92}>
-          <View style={styles.pauseButton}>
-            <Ionicons name={paused ? 'play' : 'pause'} size={26} color={Palette.purple} />
+            <Txt variant="small" color="rgba(255,255,255,0.8)" center>
+              Çayınızı alıp gelebilirsiniz, sizi bekliyoruz.
+            </Txt>
           </View>
-        </PressScale>
+        ) : (
+          <Txt variant="small" color="rgba(255,255,255,0.75)" center>
+            Odak modundasın. Bildirimler devre dışı.
+          </Txt>
+        )}
 
-        <View style={styles.footerText}>
-          <Txt variant="small" color="rgba(255,255,255,0.75)" center>
-            Bildirimler devre dışı
-          </Txt>
-          <Txt variant="small" color="rgba(255,255,255,0.75)" center>
-            {paused ? 'Duraklatıldı.' : 'Odak modundasın.'}
-          </Txt>
+        <View style={styles.controls}>
+          <PressScale onPress={confirmEnd} scaleTo={0.92}>
+            <View style={styles.endButton}>
+              <Ionicons name="stop" size={20} color={OnColor} />
+              <Txt variant="tiny" color={OnColor}>
+                Bitir
+              </Txt>
+            </View>
+          </PressScale>
+
+          <PressScale onPress={paused ? timer.resume : timer.pause} scaleTo={0.92}>
+            <View style={styles.pauseButton}>
+              <Ionicons name={paused ? 'play' : 'pause'} size={30} color={themeColor} />
+            </View>
+          </PressScale>
+
+          <View style={styles.endButtonSpacer} />
         </View>
       </View>
     </View>
   );
+}
+
+/** Halkanin arkasinda yavasca nefes alan dekoratif parilti — "havali loop" hissi. */
+function PulseGlow({ color }: { color: string }) {
+  const pulse = useSharedValue(0);
+
+  useEffect(() => {
+    pulse.value = withRepeat(withSequence(withTiming(1, { duration: 1400 }), withTiming(0, { duration: 1400 })), -1, false);
+  }, [pulse]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: 0.15 + pulse.value * 0.2,
+    transform: [{ scale: 1 + pulse.value * 0.06 }],
+  }));
+
+  return <Animated.View pointerEvents="none" style={[styles.pulseGlow, { backgroundColor: color }, animatedStyle]} />;
 }
 
 /* ------------------------------- basari ekrani ------------------------------ */
@@ -181,7 +234,7 @@ function DiscardedScreen({ onDone }: { onDone: () => void }) {
           <Ionicons name="alarm" size={40} color={Palette.pink} />
         </View>
         <Txt variant="title" color={OnColor} center>
-          Odak süren durduruldu.
+          Odak süren bitirildi.
         </Txt>
         <Txt variant="body" color="rgba(255,255,255,0.85)" center>
           Süre kaydedilmedi.
@@ -225,14 +278,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: Space.lg,
     zIndex: 1,
-  },
-  closeCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.16)',
+    padding: Space.sm,
   },
   center: {
     flex: 1,
@@ -250,11 +296,29 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
+  ringWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pulseGlow: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+  },
   bigTimer: {
     ...Type.timer,
     fontSize: 64,
     lineHeight: 72,
     color: OnColor,
+  },
+  pausedNotice: {
+    gap: 2,
+  },
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xl,
   },
   pauseButton: {
     width: 68,
@@ -264,8 +328,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: OnColor,
   },
-  footerText: {
-    gap: 2,
+  endButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+  },
+  endButtonSpacer: {
+    width: 52,
   },
   starCircle: {
     width: 88,

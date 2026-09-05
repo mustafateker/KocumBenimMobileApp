@@ -9,6 +9,7 @@ import type {
   PrivateLesson,
   Question,
   Student,
+  StudentStats,
   StudentSummary,
   Task,
 } from './types';
@@ -64,7 +65,7 @@ export function patchPreferences(input: Partial<Preferences>) {
 }
 
 export function getStats() {
-  return api.get<{ totalTasks: number; doneTasks: number; completionRate: number }>('/me/stats');
+  return api.get<StudentStats>('/me/stats');
 }
 
 export function getCompletedTasks(limit = 30) {
@@ -90,6 +91,10 @@ export function getTasks(range: TaskRange = 'day', date?: string) {
   return api.get<Task[]>(`/tasks?${q.toString()}`);
 }
 
+export function completeTask(taskId: number, correct: number, wrong: number) {
+  return api.patch<Task>(`/tasks/${taskId}/complete`, { correct, wrong });
+}
+
 /* --------------------------------------- sorular ----------------------------------- */
 
 export function createQuestion(input: { imageUri: string; strokes: CanvasData; note: string }) {
@@ -108,6 +113,10 @@ export function createQuestion(input: { imageUri: string; strokes: CanvasData; n
 
 export function getQuestions() {
   return api.get<Question[]>('/questions');
+}
+
+export function resolveQuestion(id: number) {
+  return api.patch<Question>(`/questions/${id}/resolve`);
 }
 
 /* -------------------------------------- liderlik ------------------------------------ */
