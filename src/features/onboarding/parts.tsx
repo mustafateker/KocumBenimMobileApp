@@ -1,33 +1,131 @@
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { PressScale } from '@/components/button';
-import { IconBubble, TextField, Txt } from '@/components/ui';
-import { Border, Palette, Radius, Space } from '@/theme/tokens';
+import { Mascot, type MascotMood } from '@/components/mascot';
+import { TextField, Txt } from '@/components/ui';
+import { Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-/** Her adimin ust basligi: ikon kabarcigi + baslik + alt yazi. */
+/**
+ * Maskotun agzindan cikan konusma balonu. Kuyruk, kenarligi iki tarafindan
+ * devam eden 45 derece dondurulmus bir kare — boylece balonun konturuyla
+ * kesintisiz birlesir.
+ */
+export function SpeechBubble({
+  color = Palette.purple,
+  tail = 'left',
+  style,
+  children,
+}: {
+  color?: string;
+  tail?: 'left' | 'up';
+  style?: StyleProp<ViewStyle>;
+  children: React.ReactNode;
+}) {
+  const skin = { borderColor: color, backgroundColor: softOf(color) };
+
+  return (
+    <View style={[styles.bubble, skin, style]}>
+      <View style={[styles.tail, skin, tail === 'left' ? styles.tailLeft : styles.tailUp]} />
+      {children}
+    </View>
+  );
+}
+
+/**
+ * Adim basligi. Karsilama/kapanis adimlarinda (hero) buyuk maskot soruyu
+ * kendi balonunda soyler; diger adimlarda baslik ustte kalir, maskot yandan
+ * kisa bir yorum yapar. Boylece uzun secenek listeleri olan adimlarda ust
+ * bolum sismez.
+ */
 export function StepHeader({
-  icon,
   color,
   title,
   subtitle,
+  mood,
+  hero,
 }: {
-  icon: IconName;
   color: string;
   title: string;
   subtitle: string;
+  mood: MascotMood;
+  hero?: boolean;
 }) {
+  if (hero) {
+    return (
+      <View style={styles.heroHead}>
+        <Mascot width={150} mood={mood} />
+        <SpeechBubble color={color} tail="up" style={styles.stretch}>
+          <Txt variant="section" center>
+            {title}
+          </Txt>
+          <Txt variant="small" color={Palette.textDim} center style={styles.bubbleSub}>
+            {subtitle}
+          </Txt>
+        </SpeechBubble>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.head}>
-      <IconBubble name={icon} color={color} size={68} />
       <Txt variant="title" center>
         {title}
       </Txt>
-      <Txt variant="small" color={Palette.textDim} center>
-        {subtitle}
-      </Txt>
+      <View style={styles.saysRow}>
+        <Mascot width={74} mood={mood} />
+        <SpeechBubble color={color} style={styles.flex}>
+          <Txt variant="small" color={Palette.textDim}>
+            {subtitle}
+          </Txt>
+        </SpeechBubble>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Sihirbazin ust seridi: adim ikonu + tesvik metni + segmentli ilerleme.
+ * Tek bir dolan cubuk yerine adim sayisi kadar kati blok kullanilir; kac
+ * adim kaldigi tek bakista sayilabilsin diye.
+ */
+export function StepProgress({
+  index,
+  total,
+  color,
+  icon,
+  cheer,
+}: {
+  index: number;
+  total: number;
+  color: string;
+  icon: IconName;
+  cheer: string;
+}) {
+  return (
+    <View style={styles.progress}>
+      <View style={styles.progressTop}>
+        <View style={[styles.cheerChip, { borderColor: color, backgroundColor: softOf(color) }]}>
+          <Ionicons name={icon} size={13} color={color} />
+          <Txt variant="tiny" color={color}>
+            {cheer}
+          </Txt>
+        </View>
+        <Txt variant="tiny" color={Palette.textFaint}>
+          {index + 1} / {total}
+        </Txt>
+      </View>
+
+      <View style={styles.segments}>
+        {Array.from({ length: total }, (_, i) => (
+          <View
+            key={i}
+            style={[styles.segment, { backgroundColor: i <= index ? color : Palette.surfaceHi }]}
+          />
+        ))}
+      </View>
     </View>
   );
 }
@@ -241,8 +339,78 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   head: {
     alignItems: 'center',
-    gap: Space.sm,
+    gap: Space.md,
     paddingHorizontal: Space.md,
+  },
+  heroHead: {
+    alignItems: 'center',
+    gap: Space.lg,
+    paddingHorizontal: Space.sm,
+  },
+  stretch: {
+    alignSelf: 'stretch',
+  },
+  bubbleSub: {
+    marginTop: 4,
+  },
+  saysRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    alignSelf: 'stretch',
+  },
+  bubble: {
+    paddingHorizontal: Space.lg,
+    paddingVertical: Space.md,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thick,
+  },
+  tail: {
+    position: 'absolute',
+    width: 14,
+    height: 14,
+    transform: [{ rotate: '45deg' }],
+  },
+  tailLeft: {
+    left: -9,
+    top: '50%',
+    marginTop: -7,
+    borderLeftWidth: Border.thick,
+    borderBottomWidth: Border.thick,
+  },
+  tailUp: {
+    top: -9,
+    left: '50%',
+    marginLeft: -7,
+    borderLeftWidth: Border.thick,
+    borderTopWidth: Border.thick,
+  },
+  progress: {
+    gap: Space.sm,
+  },
+  progressTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Space.sm,
+  },
+  cheerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: Space.md,
+    paddingVertical: 5,
+    borderRadius: Radius.pill,
+    borderWidth: Border.thick,
+  },
+  segments: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  segment: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
   },
   list: {
     gap: Space.sm,

@@ -75,7 +75,7 @@ export default function Home() {
   const draftSeconds = draft % 60;
 
   return (
-    <Screen tint={Palette.purple}>
+    <Screen tint={Palette.purple} pattern>
       {/* Ust bar */}
       <View style={styles.topBar}>
         <PressScale onPress={() => router.push('/student/profile')} style={styles.who}>

@@ -10,17 +10,20 @@ import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { SQLiteProvider, type SQLiteDatabase } from 'expo-sqlite';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AnimatedSplash } from '@/components/animated-splash';
 import { DATABASE_NAME, migrate } from '@/db/schema';
 import { seedIfEmpty } from '@/db/seed';
 import { SessionProvider } from '@/lib/session';
-import { Palette } from '@/theme/tokens';
+import { Brand, Palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+// Native ekran, uzerine binen JS katmaniyla yumusak devrolsun.
+SplashScreen.setOptions({ fade: true, duration: 250 });
 
 /** Uygulama acik pastel tema uzerine kurulu; navigasyon temasini da ona esitle. */
 const NavTheme = {
@@ -49,16 +52,19 @@ export default function RootLayout() {
     Poppins_800ExtraBold,
   });
 
+  /** JS acilis katmani; kendi animasyonu bitince kendini kaldirir. */
+  const [splashVisible, setSplashVisible] = useState(true);
+
   const onReady = useCallback(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
+  const dismissSplash = useCallback(() => setSplashVisible(false), []);
+
   if (!fontsLoaded) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator color={Palette.blue} />
-      </View>
-    );
+    // Yazi tipleri gelene kadar native acilis ekrani ustte kalir; buradaki
+    // zemin onun rengiyle ayni olsun ki bir kare bile beyaz parlamasin.
+    return <View style={styles.booting} />;
   }
 
   return (
@@ -67,7 +73,7 @@ export default function RootLayout() {
         <SQLiteProvider databaseName={DATABASE_NAME} onInit={initDatabase}>
           <SessionProvider>
             <ThemeProvider value={NavTheme}>
-              <StatusBar style="dark" />
+              <StatusBar style={splashVisible ? 'light' : 'dark'} />
               <Stack
                 screenOptions={{
                   headerShown: false,
@@ -96,16 +102,13 @@ export default function RootLayout() {
           </SessionProvider>
         </SQLiteProvider>
       </SafeAreaProvider>
+
+      {splashVisible ? <AnimatedSplash onFinish={dismissSplash} /> : null}
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: Palette.bg },
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Palette.bg,
-  },
+  booting: { flex: 1, backgroundColor: Brand.bg },
 });

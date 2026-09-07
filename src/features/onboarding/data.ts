@@ -1,5 +1,6 @@
 import type { Ionicons } from '@expo/vector-icons';
 
+import type { MascotMood } from '@/components/mascot';
 import { Palette } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -38,87 +39,125 @@ export const ALL_STEPS: StepKey[] = [
 
 export const STEP_META: Record<
   StepKey,
-  { icon: IconName; color: string; title: string; subtitle: string }
+  {
+    icon: IconName;
+    color: string;
+    title: string;
+    /** Maskotun konusma balonuna dusen metin. */
+    subtitle: string;
+    /** Maskotun o adimdaki ifadesi. */
+    mood: MascotMood;
+    /** Buyuk maskotlu karsilama duzeni — yalnizca acilis ve kapanis adimlarinda. */
+    hero?: boolean;
+  }
 > = {
   welcome: {
     icon: 'hand-left',
     color: Palette.purple,
     title: 'Hadi seni tanıyalım! 👋',
     subtitle: 'Bu yolculukta seni daha iyi tanımak istiyoruz.',
+    mood: 'wink',
+    hero: true,
   },
   name: {
     icon: 'person',
     color: Palette.purple,
     title: 'Adın ne?',
     subtitle: 'Sana nasıl hitap etmemizi istersin?',
+    mood: 'happy',
+    hero: true,
   },
   grade: {
     icon: 'school',
     color: Palette.green,
     title: 'Hangi sınıftasın?',
     subtitle: 'Sana uygun bir program oluşturabilmemiz için.',
+    mood: 'happy',
   },
   goal: {
     icon: 'trophy',
     color: Palette.gold,
     title: 'En büyük hedefin ne?',
     subtitle: 'Bu hedef, seni motive edecek pusulan olacak.',
+    mood: 'cheer',
   },
   career: {
     icon: 'briefcase',
     color: Palette.blue,
     title: 'İlerde hangi mesleği seçmek istiyorsun?',
     subtitle: 'Hayalindeki mesleği seç ya da yazabilirsin.',
+    mood: 'think',
   },
   highSchool: {
     icon: 'business',
     color: Palette.orange,
     title: 'Hangi lisede okumak istiyorsun?',
     subtitle: 'Hedeflediğin lise seni bir adım öne taşır.',
+    mood: 'think',
   },
   university: {
     icon: 'library',
     color: Palette.purple,
     title: 'Hangi üniversitede okumak istiyorsun?',
     subtitle: 'Hayalindeki üniversiteyi seç ya da yaz.',
+    mood: 'think',
   },
   department: {
     icon: 'book',
     color: Palette.orange,
     title: 'Hangi bölümü hedefliyorsun?',
     subtitle: 'İlgilendiğin bölümü seç ya da yazabilirsin.',
+    mood: 'think',
   },
   mathTopics: {
     icon: 'calculator',
     color: Palette.purple,
     title: 'Matematikte seni en çok korkutan konular neler?',
-    subtitle: 'Birlikte çalışacağımız konuları seçebilirsin.',
+    subtitle: 'Korkma, birlikte çalışacağımız konuları seçelim.',
+    mood: 'think',
   },
   dailyHours: {
     icon: 'time',
     color: Palette.green,
     title: 'Günlük kaç saat çalışmayı planlıyorsun?',
     subtitle: 'Gerçekçi bir süre seçmek çok önemli!',
+    mood: 'happy',
   },
   timeframe: {
     icon: 'calendar',
     color: Palette.orange,
     title: 'Hedeflerine ne kadar sürede ulaşmak istiyorsun?',
     subtitle: 'Sabırlı ol, istikrarlı ilerle!',
+    mood: 'happy',
   },
   motivation: {
     icon: 'star',
     color: Palette.gold,
     title: 'Motivasyon kaynağın nedir?',
     subtitle: 'Seni motive eden şeyleri seçebilirsin.',
+    mood: 'cheer',
   },
   summary: {
     icon: 'checkmark-circle',
     color: Palette.purple,
     title: 'Hazırsın!',
     subtitle: 'Hedeflerine ulaşmak için harika bir yolculuğa çıkıyoruz.',
+    mood: 'cheer',
+    hero: true,
   },
 };
+
+/**
+ * Ilerlemeye gore degisen tesvik metni — sihirbazin ustunde durur, kullanici
+ * kac adim kaldigini hissetsin diye. `ratio` 0-1 arasi.
+ */
+export function progressCheer(ratio: number): string {
+  if (ratio >= 0.99) return 'Her şey hazır!';
+  if (ratio >= 0.75) return 'Az kaldı, sonuna geldin!';
+  if (ratio >= 0.5) return 'Yarıyı geçtin, harikasın!';
+  if (ratio >= 0.25) return 'Güzel gidiyor, devam!';
+  return 'Hadi başlayalım!';
+}
 
 export const GRADES = [
   '1. Sınıf',
