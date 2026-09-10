@@ -8,11 +8,12 @@ import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/bu
 import { FocusRing } from '@/components/focus-ring';
 import { Screen } from '@/components/screen';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { getTasks } from '@/lib/api';
-import { clockFormat } from '@/lib/date';
+import { getTasks, getUpcomingLessons } from '@/lib/api';
+import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
-import { initials, type Task } from '@/lib/types';
+import { categoryColor, categoryIcon } from '@/lib/task-categories';
+import { initials, type PrivateLesson, type Task } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
 const DURATIONS = [
@@ -32,6 +33,7 @@ export default function Home() {
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [nextLesson, setNextLesson] = useState<PrivateLesson | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(DURATIONS[0].seconds);
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
@@ -42,6 +44,12 @@ export default function Home() {
       setTasks(await getTasks('day'));
     } catch {
       // Aglama hatasi ekrani bozmasin; gorevler bos gorunur, sonraki focus'ta tekrar denenir.
+    }
+    try {
+      const upcoming = await getUpcomingLessons(1);
+      setNextLesson(upcoming[0] ?? null);
+    } catch {
+      // Aglama hatasi ekrani bozmasin; banner gorunmez.
     }
   }, []);
 
@@ -77,7 +85,7 @@ export default function Home() {
   const draftSeconds = draft % 60;
 
   return (
-    <Screen tint={Palette.purple}>
+    <Screen tint={Palette.purple} pattern>
       {/* Ust bar */}
       <View style={styles.topBar}>
         <PressScale onPress={() => router.push('/student/profile')} style={styles.who}>
@@ -171,6 +179,22 @@ export default function Home() {
         </Card>
       </PressScale>
 
+      {/* Yaklasan ozel ders */}
+      {nextLesson ? (
+        <PressScale onPress={() => router.push('/lessons')}>
+          <Card accent={Palette.purple} style={styles.quickCard}>
+            <IconBubble name="calendar" color={Palette.purple} size={48} />
+            <View style={styles.flex}>
+              <Txt variant="bodyStrong">Yaklaşan Özel Ders</Txt>
+              <Txt variant="tiny" color={Palette.textDim}>
+                {formatLessonDateTime(nextLesson.scheduledAt)}
+              </Txt>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
+          </Card>
+        </PressScale>
+      ) : null}
+
       {/* Gunluk gorevler */}
       <View style={styles.section}>
         <View style={styles.sectionHead}>
@@ -255,17 +279,18 @@ function Stepper({
 function MiniTaskCard({ task }: { task: Task }) {
   const done = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
+  const color = done ? Palette.green : categoryColor(task.category);
 
   return (
     <View style={[styles.miniCard, done && { borderColor: Palette.green }]}>
-      <IconBubble name={done ? 'checkmark-circle' : 'flash'} color={done ? Palette.green : Palette.purple} size={32} />
+      <IconBubble name={done ? 'checkmark-circle' : categoryIcon(task.category)} color={color} size={32} />
       <Txt variant="tiny" color={Palette.textDim} numberOfLines={2} style={styles.miniTitle}>
         {task.title}
       </Txt>
       <Txt variant="smallStrong" color={done ? Palette.green : Palette.text}>
         {task.done}/{task.target}
       </Txt>
-      <ProgressBar progress={progress} color={done ? Palette.green : Palette.purple} height={5} />
+      <ProgressBar progress={progress} color={color} height={5} />
     </View>
   );
 }

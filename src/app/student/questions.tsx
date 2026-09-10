@@ -9,7 +9,7 @@ import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { CanvasView } from '@/components/canvas-view';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
-import { getQuestions } from '@/lib/api';
+import { getQuestions, resolveQuestion } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
@@ -191,6 +191,10 @@ function QuestionList() {
     }, [])
   );
 
+  const handleResolved = useCallback((updated: Question) => {
+    setQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
+  }, []);
+
   if (questions.length === 0) {
     return (
       <EmptyState
@@ -208,19 +212,33 @@ function QuestionList() {
       showsVerticalScrollIndicator={false}
     >
       {questions.map((q) => (
-        <QuestionCard key={q.id} question={q} />
+        <QuestionCard key={q.id} question={q} onResolved={handleResolved} />
       ))}
     </ScrollView>
   );
 }
 
-function QuestionCard({ question }: { question: Question }) {
+function QuestionCard({ question, onResolved }: { question: Question; onResolved: (q: Question) => void }) {
   const meta = STATUS_META[question.status];
+  const [busy, setBusy] = useState(false);
+
+  const markResolved = useCallback(async () => {
+    setBusy(true);
+    try {
+      const updated = await resolveQuestion(question.id);
+      onResolved(updated);
+    } catch {
+      // Aglama hatasi karti bozmasin; kullanici tekrar deneyebilir.
+    } finally {
+      setBusy(false);
+    }
+  }, [question.id, onResolved]);
 
   return (
     <Card accent={meta.color} style={styles.questionCard}>
       <View style={styles.questionHead}>
         <Pill label={meta.label} color={meta.color} icon={meta.icon} />
+        {question.resolvedByStudent ? <Pill label="Kendim Çözdüm" color={Palette.green} icon="checkmark-circle" /> : null}
       </View>
 
       {question.imageUrl ? (
@@ -238,9 +256,21 @@ function QuestionCard({ question }: { question: Question }) {
         </View>
       ) : null}
 
-      <Txt variant="tiny" color={Palette.textFaint}>
-        {relativeTime(question.createdAt)}
-      </Txt>
+      <View style={styles.questionFoot}>
+        <Txt variant="tiny" color={Palette.textFaint}>
+          {relativeTime(question.createdAt)}
+        </Txt>
+        {!question.resolvedByStudent && (
+          <PressScale onPress={markResolved} disabled={busy}>
+            <View style={styles.resolveButton}>
+              <Ionicons name="checkmark-circle-outline" size={14} color={Palette.green} />
+              <Txt variant="tiny" color={Palette.green}>
+                {busy ? 'İşaretleniyor…' : 'Kendim Çözdüm'}
+              </Txt>
+            </View>
+          </PressScale>
+        )}
+      </View>
     </Card>
   );
 }
@@ -337,9 +367,23 @@ const styles = StyleSheet.create({
   },
   questionHead: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
     alignItems: 'center',
     gap: Space.sm,
+  },
+  questionFoot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  resolveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: Space.sm,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.greenSoft,
   },
   thumb: {
     height: 180,

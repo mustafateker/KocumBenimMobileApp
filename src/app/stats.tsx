@@ -5,28 +5,35 @@ import { StyleSheet, View } from 'react-native';
 
 import { WeekBars } from '@/components/charts';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
-import { getCompletedTasks, getDailyMinutes, getStats } from '@/lib/api';
+import { Card, EmptyState, IconBubble, ProgressBar, Txt } from '@/components/ui';
+import { getCompletedTasks, getStats } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
-import type { Task } from '@/lib/types';
+import type { StudentStats, Task, TopicBreakdown } from '@/lib/types';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
+
+const EMPTY_STATS: StudentStats = {
+  totalTasks: 0,
+  doneTasks: 0,
+  completionRate: 0,
+  currentStreak: 0,
+  last7Days: [],
+  byTopic: [],
+};
 
 export default function Stats() {
   useStudent();
   const router = useRouter();
 
-  const [stats, setStats] = useState({ total: 0, done: 0 });
-  const [week, setWeek] = useState<{ day: string; minutes: number }[]>([]);
+  const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
   const [completed, setCompleted] = useState<Task[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      Promise.all([getStats(), getDailyMinutes(7), getCompletedTasks()])
-        .then(([s, w, c]) => {
-          setStats({ total: s.totalTasks, done: s.doneTasks });
-          setWeek(w);
+      Promise.all([getStats(), getCompletedTasks()])
+        .then(([s, c]) => {
+          setStats(s);
           setCompleted(c);
         })
         .catch(() => {
@@ -35,24 +42,37 @@ export default function Stats() {
     }, [])
   );
 
-  const rate = stats.total === 0 ? 0 : Math.round((stats.done / stats.total) * 100);
+  const rate = Math.round(stats.completionRate * 100);
 
   return (
     <Screen tint={Palette.blue}>
       <ScreenHeader title="İstatistiklerin" subtitle="Görev tamamlama geçmişin" onBack={() => router.back()} />
 
       <View style={styles.tiles}>
-        <StatTile icon="checkmark-done" color={Palette.blue} value={String(stats.done)} label="Tamamlanan" />
-        <StatTile icon="list" color={Palette.purple} value={String(stats.total)} label="Toplam Görev" />
-        <StatTile icon="trending-up" color={Palette.green} value={`%${rate}`} label="Tamamlama Oranı" />
+        <StatTile icon="flame" color={Palette.orange} value={String(stats.currentStreak)} label="Seri" />
+        <StatTile icon="checkmark-done" color={Palette.blue} value={String(stats.doneTasks)} label="Tamamlanan" />
+        <StatTile icon="trending-up" color={Palette.green} value={`%${rate}`} label="Tamamlama" />
       </View>
 
       <Card>
         <Txt variant="section" style={styles.cardTitle}>
           Son 7 gün odak süren
         </Txt>
-        <WeekBars data={week} goalMinutes={Rules.dailyGoalMinutes} color={Palette.blue} />
+        <WeekBars data={stats.last7Days} goalMinutes={Rules.dailyGoalMinutes} color={Palette.blue} />
       </Card>
+
+      {stats.byTopic.length > 0 ? (
+        <View style={styles.section}>
+          <Txt variant="smallStrong" color={Palette.textDim}>
+            Konu Bazlı Doğru / Yanlış
+          </Txt>
+          <View style={styles.list}>
+            {stats.byTopic.map((topic) => (
+              <TopicRow key={topic.title} topic={topic} />
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <Txt variant="smallStrong" color={Palette.textDim}>
@@ -76,7 +96,10 @@ export default function Stats() {
                     {task.title}
                   </Txt>
                   <Txt variant="tiny" color={Palette.textFaint}>
-                    {task.target} soru · tamamlandı {relativeTime(task.completedAt ?? task.dueDate)}
+                    {task.correctCount + task.wrongCount > 0
+                      ? `${task.correctCount} doğru · ${task.wrongCount} yanlış · `
+                      : ''}
+                    tamamlandı {relativeTime(task.completedAt ?? task.dueDate)}
                   </Txt>
                 </View>
               </Card>
@@ -85,6 +108,33 @@ export default function Stats() {
         )}
       </View>
     </Screen>
+  );
+}
+
+function TopicRow({ topic }: { topic: TopicBreakdown }) {
+  const total = topic.correct + topic.wrong;
+  const rate = total === 0 ? 0 : topic.correct / total;
+
+  return (
+    <Card style={styles.topicRow}>
+      <View style={styles.topicHead}>
+        <Txt variant="bodyStrong" numberOfLines={1} style={styles.flex}>
+          {topic.title}
+        </Txt>
+        <Txt variant="smallStrong" color={Palette.green}>
+          %{Math.round(rate * 100)}
+        </Txt>
+      </View>
+      <ProgressBar progress={rate} color={Palette.green} height={7} />
+      <View style={styles.topicFoot}>
+        <Txt variant="tiny" color={Palette.green}>
+          {topic.correct} doğru
+        </Txt>
+        <Txt variant="tiny" color={Palette.pink}>
+          {topic.wrong} yanlış
+        </Txt>
+      </View>
+    </Card>
   );
 }
 
@@ -116,15 +166,14 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   tiles: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: Space.md,
   },
   tile: {
-    width: '30%',
-    flexGrow: 1,
+    flex: 1,
     alignItems: 'center',
     gap: 4,
     paddingVertical: Space.lg,
+    paddingHorizontal: Space.xs,
     borderRadius: Radius.lg,
     borderWidth: Border.thick,
   },
@@ -141,5 +190,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
+  },
+  topicRow: {
+    gap: Space.sm,
+  },
+  topicHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+  },
+  topicFoot: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
 });

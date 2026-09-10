@@ -1,15 +1,14 @@
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NeonButton, PressScale } from '@/components/button';
+import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
 import { useSession } from '@/lib/session';
-import { OnColor, Palette, Space, glow } from '@/theme/tokens';
+import { Palette, Space } from '@/theme/tokens';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -70,14 +69,7 @@ export default function SignUp() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.brand}>
-            <LinearGradient
-              colors={[Palette.purple, Palette.pink]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={[styles.logo, glow(Palette.purple, 0.5)]}
-            >
-              <Ionicons name="sparkles" size={32} color={OnColor} />
-            </LinearGradient>
+            <Mascot width={118} mood="cheer" />
             <Txt variant="hero" center>
               Hesap Oluştur
             </Txt>
@@ -183,14 +175,6 @@ const styles = StyleSheet.create({
   brand: {
     alignItems: 'center',
     gap: Space.sm,
-  },
-  logo: {
-    width: 74,
-    height: 74,
-    borderRadius: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Space.sm,
   },
   form: {
     gap: Space.lg,

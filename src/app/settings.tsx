@@ -7,7 +7,7 @@ import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, TextField, Txt } from '@/components/ui';
 import { ApiError } from '@/lib/api-client';
-import { changePassword, deleteAccount, getPreferences, patchPreferences } from '@/lib/api';
+import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
 import { Palette, Space } from '@/theme/tokens';
@@ -23,7 +23,7 @@ const DEFAULT_PREFS: Preferences = {
 export default function Settings() {
   const student = useStudent();
   const router = useRouter();
-  const { signOut } = useSession();
+  const { signOut, refresh } = useSession();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
 
@@ -68,6 +68,26 @@ export default function Settings() {
     }
   }, [savingPassword, newPassword, currentPassword]);
 
+  const [editingParentEmail, setEditingParentEmail] = useState(false);
+  const [parentEmailInput, setParentEmailInput] = useState(student.parentEmail ?? '');
+  const [parentEmailError, setParentEmailError] = useState<string | null>(null);
+  const [savingParentEmail, setSavingParentEmail] = useState(false);
+
+  const submitParentEmail = useCallback(async () => {
+    if (savingParentEmail) return;
+    setSavingParentEmail(true);
+    setParentEmailError(null);
+    try {
+      await patchMe({ parentEmail: parentEmailInput.trim() || null });
+      await refresh();
+      setEditingParentEmail(false);
+    } catch {
+      setParentEmailError('Kaydedilemedi, tekrar dene.');
+    } finally {
+      setSavingParentEmail(false);
+    }
+  }, [savingParentEmail, parentEmailInput, refresh]);
+
   const confirmDelete = useCallback(() => {
     Alert.alert(
       'Hesabını silmek istediğine emin misin?',
@@ -98,6 +118,44 @@ export default function Settings() {
         </Txt>
         <Card style={styles.list}>
           <SettingRow icon="mail-outline" color={Palette.purple} label="E-posta" trailing={student.email ?? '—'} />
+          <PressScale onPress={() => setEditingParentEmail((c) => !c)}>
+            <SettingRow
+              icon="people-outline"
+              color={Palette.green}
+              label="Veli E-postası"
+              trailing={editingParentEmail ? undefined : (student.parentEmail ?? 'Ekle')}
+              chevron
+            />
+          </PressScale>
+
+          {editingParentEmail ? (
+            <View style={styles.passwordForm}>
+              <TextField
+                value={parentEmailInput}
+                onChangeText={setParentEmailInput}
+                placeholder="veli@ornek.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              {parentEmailError ? (
+                <Txt variant="small" color={Palette.pink}>
+                  {parentEmailError}
+                </Txt>
+              ) : (
+                <Txt variant="small" color={Palette.textDim}>
+                  İlerleme raporların bu adrese gönderilebilir.
+                </Txt>
+              )}
+              <NeonButton
+                label={savingParentEmail ? 'Kaydediliyor…' : 'Kaydet'}
+                color={Palette.green}
+                disabled={savingParentEmail}
+                onPress={submitParentEmail}
+                full
+              />
+            </View>
+          ) : null}
+
           <PressScale onPress={() => setChangingPassword((c) => !c)}>
             <SettingRow icon="lock-closed-outline" color={Palette.blue} label="Parolayı Değiştir" chevron />
           </PressScale>

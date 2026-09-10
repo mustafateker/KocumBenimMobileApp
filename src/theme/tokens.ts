@@ -51,6 +51,22 @@ export const Palette = {
 /** Uygulamanin birincil vurgu rengi. */
 export const Accent = Palette.purple;
 
+/**
+ * Maskot logosunun sabit renkleri. assets/images/icon.png ve kardeslerini
+ * ureten betikle birebir ayni degerler — biri degisirse digeri de degismeli,
+ * yoksa acilis ekraninda native gorsel ile JS katmani arasinda renk atlar.
+ */
+export const Brand = {
+  /** Ikon zemini ve acilis ekrani rengi. */
+  bg: Palette.purple,
+  skin: '#FFFFFF',
+  cap: Palette.gold,
+  /** Kasket siperi — kubbeden ayrissin diye bir tik koyu. */
+  capBrim: '#F0A81E',
+  ink: Palette.text,
+  cheek: '#FFC7D2',
+} as const;
+
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */
 export const SoftOf: Record<string, string> = {
   [Palette.purple]: Palette.purpleSoft,

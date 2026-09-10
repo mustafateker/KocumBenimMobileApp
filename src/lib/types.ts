@@ -14,6 +14,7 @@ export type Student = {
   surname: string | null;
   nickname: string | null;
   grade: string | null;
+  parentEmail: string | null;
   teacherId: number | null;
 
   goal: string | null;
@@ -51,13 +52,18 @@ export type OnboardingInput = {
   motivation: string[];
 };
 
+export type TaskCategory = 'question' | 'topic' | 'focus';
+
 export type Task = {
   id: number;
   studentId: number;
   title: string;
   subject: string;
   target: number;
+  category: TaskCategory;
   done: number;
+  correctCount: number;
+  wrongCount: number;
   dueDate: string;
   createdBy: number | null;
   completedAt: string | null;
@@ -117,11 +123,19 @@ export type Question = {
   note: string | null;
   status: QuestionStatus;
   teacherReply: string | null;
+  resolvedByStudent: boolean;
   createdAt: string;
   answeredAt: string | null;
 };
 
-export type NotificationType = 'task_assigned' | 'question_answered' | 'streak_reminder' | 'announcement';
+export type NotificationType =
+  | 'task_assigned'
+  | 'question_answered'
+  | 'streak_reminder'
+  | 'announcement'
+  | 'lesson_scheduled'
+  | 'lesson_updated'
+  | 'lesson_cancelled';
 
 export type AppNotification = {
   id: number;
@@ -131,8 +145,24 @@ export type AppNotification = {
   body: string;
   relatedTaskId: number | null;
   relatedQuestionId: number | null;
+  relatedLessonId: number | null;
   read: boolean;
   createdAt: string;
+};
+
+export type LessonStatus = 'scheduled' | 'cancelled';
+
+/** Ogretmenin ogrenciyle birebir yapacagi ozel ders — gorev takviminden ayri bir kavram. */
+export type PrivateLesson = {
+  id: number;
+  studentId: number;
+  teacherId: number;
+  scheduledAt: string;
+  durationMinutes: number;
+  note: string | null;
+  status: LessonStatus;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LeaderboardRow = {
@@ -150,6 +180,22 @@ export type StudentSummary = {
   tasksDone: number;
   pendingQuestions: number;
   isActive: boolean;
+};
+
+export type TopicBreakdown = {
+  title: string;
+  correct: number;
+  wrong: number;
+  attempts: number;
+};
+
+export type StudentStats = {
+  totalTasks: number;
+  doneTasks: number;
+  completionRate: number;
+  currentStreak: number;
+  last7Days: { day: string; minutes: number; tasksCompleted: number }[];
+  byTopic: TopicBreakdown[];
 };
 
 export type Preferences = {

@@ -4,7 +4,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, NeonButton } from '@/components/button';
-import { IconBubble, ProgressBar, TextField, Txt } from '@/components/ui';
+import { PatternBackground } from '@/components/pattern-background';
+import { IconBubble, TextField, Txt } from '@/components/ui';
 import { completeOnboarding } from '@/lib/api';
 import {
   ALL_STEPS,
@@ -20,9 +21,16 @@ import {
   STEP_META,
   TIMEFRAMES,
   UNIVERSITIES,
+  progressCheer,
   type StepKey,
 } from '@/features/onboarding/data';
-import { CheckList, OptionList, SearchPicker, StepHeader } from '@/features/onboarding/parts';
+import {
+  CheckList,
+  OptionList,
+  SearchPicker,
+  StepHeader,
+  StepProgress,
+} from '@/features/onboarding/parts';
 import { useSession, useStudent } from '@/lib/session';
 import { Border, Palette, Radius, Space } from '@/theme/tokens';
 
@@ -170,13 +178,21 @@ export default function Onboarding() {
     setIndex((i) => Math.max(0, i - 1));
   }, []);
 
+  // Root'ta padding yok: dekoratif zemin mutlak konumlu ve mutlak cocuklar
+  // ebeveynin padding kutusuna gore yerlesir; padding burada olsaydi desen
+  // durum cubugu kadar asagi kayardi. Guvenli alan boslugunu ilk cocuk verir.
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      <View style={styles.progressWrap}>
-        <ProgressBar progress={(index + 1) / steps.length} color={Palette.purple} height={6} />
-        <Txt variant="tiny" color={Palette.textFaint}>
-          Adım {index + 1} / {steps.length}
-        </Txt>
+    <View style={styles.root}>
+      <PatternBackground color={meta.color} />
+
+      <View style={[styles.progressWrap, { paddingTop: insets.top + Space.sm }]}>
+        <StepProgress
+          index={index}
+          total={steps.length}
+          color={meta.color}
+          icon={meta.icon}
+          cheer={progressCheer((index + 1) / steps.length)}
+        />
       </View>
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -189,7 +205,13 @@ export default function Onboarding() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <StepHeader icon={meta.icon} color={meta.color} title={meta.title} subtitle={meta.subtitle} />
+          <StepHeader
+            color={meta.color}
+            title={meta.title}
+            subtitle={meta.subtitle}
+            mood={meta.mood}
+            hero={meta.hero}
+          />
 
           <View style={styles.body}>
             {step === 'welcome' ? (
@@ -393,9 +415,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   progressWrap: {
-    gap: 4,
     paddingHorizontal: Space.lg,
-    paddingTop: Space.sm,
     paddingBottom: Space.sm,
   },
   content: {

@@ -9,6 +9,7 @@ import {
   setTokens as persistTokens,
 } from './api-client';
 import { getMe, login as apiLogin, logout as apiLogout, studentSignup } from './api';
+import { registerForPushNotifications } from './push-notifications';
 import type { Student } from './types';
 
 export type SignUpResult = { ok: true } | { ok: false; error: string };
@@ -51,6 +52,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    // Sadece oturum acan/degisen kullanicida bir kez calissin diye id'ye bagli —
+    // refresh() sonrasi ayni kullanici icin yeni obje referansi geldiginde tekrar tetiklenmemeli.
+    if (user) registerForPushNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string, remember = true) => {
     try {

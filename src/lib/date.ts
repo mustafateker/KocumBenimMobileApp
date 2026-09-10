@@ -36,6 +36,20 @@ export function clockFormat(seconds: number): string {
   return `${m}:${s}`;
 }
 
+/** "YYYY-MM-DD" ya da tam ISO string'i "5 Eylül" bicimine cevirir. */
+export function formatShortDate(dateKeyOrIso: string): string {
+  const d = dateKeyOrIso.includes('T') ? new Date(dateKeyOrIso) : new Date(dateKeyOrIso + 'T00:00:00');
+  return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' });
+}
+
+/** Ozel ders gibi gelecek bir zaman icin: "5 Eylul Cuma · 16:00". */
+export function formatLessonDateTime(iso: string): string {
+  const d = new Date(iso);
+  const datePart = d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+  const timePart = d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  return `${datePart} · ${timePart}`;
+}
+
 /** "2 saat once" gibi kisa bagil zaman. */
 export function relativeTime(iso: string): string {
   const diffMs = Date.now() - Date.parse(iso);

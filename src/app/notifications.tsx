@@ -17,6 +17,9 @@ const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Io
   question_answered: { icon: 'chatbubble-ellipses', color: Palette.green },
   streak_reminder: { icon: 'flame', color: Palette.orange },
   announcement: { icon: 'megaphone', color: Palette.blue },
+  lesson_scheduled: { icon: 'calendar', color: Palette.purple },
+  lesson_updated: { icon: 'calendar', color: Palette.purple },
+  lesson_cancelled: { icon: 'calendar-outline', color: Palette.pink },
 };
 
 export default function Notifications() {
