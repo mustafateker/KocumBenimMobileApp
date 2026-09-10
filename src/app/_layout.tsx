@@ -19,8 +19,6 @@ import { SessionProvider } from '@/lib/session';
 import { Brand, Palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
-// Native ekran, uzerine binen JS katmaniyla yumusak devrolsun.
-SplashScreen.setOptions({ fade: true, duration: 250 });
 
 /** Uygulama acik pastel tema uzerine kurulu; navigasyon temasini da ona esitle. */
 const NavTheme = {

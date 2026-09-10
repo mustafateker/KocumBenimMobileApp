@@ -65,6 +65,8 @@ export const Brand = {
   capBrim: '#F0A81E',
   ink: Palette.text,
   cheek: '#FFC7D2',
+  /** Kutlama ifadesinde acik agizdaki dil. */
+  tongue: '#FF7A93',
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */

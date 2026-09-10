@@ -1,5 +1,5 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
 
 import { Border, Brand, Palette, Space, softOf } from '@/theme/tokens';
 
@@ -20,11 +20,11 @@ const VIEW_BOX = '15.5 24 94 80';
 export const MASCOT_ASPECT = 94 / 80;
 
 export type MascotMood =
-  /** Varsayilan: acik gozler, hafif gulumseme. */
+  /** Varsayilan: parlak acik gozler, kedi agzi. */
   | 'happy'
-  /** Kutlama: gozler kapali yay, agiz acik kahkaha. */
+  /** Kutlama: gozler kapali yay, dil gorunen acik agiz. */
   | 'cheer'
-  /** Dusunuyor: gozbebekleri yana kaymis, agiz duz. */
+  /** Dusunuyor: bakis sag-yukari kaymis, kucuk "o" agiz. */
   | 'think'
   /** Goz kirpma — selamlama anlarinda. */
   | 'wink';
@@ -35,26 +35,49 @@ type MascotProps = {
   style?: StyleProp<ViewStyle>;
 };
 
+/*
+ * Yuz oranlari "bebek semasi"na gore: gozler buyuk ve yuzun alt yarisinda,
+ * agiz kucuk ve gozlere yakin, yanaklar oval. Gozlerde iki parlama noktasi
+ * (buyuk + kucuk) bakisi canli gosterir.
+ */
+const EYE_L = 42;
+const EYE_R = 66;
+const EYE_Y = 80;
+const EYE_SIZE = 7.5;
+
+/** Kasket onundeki bes koseli yildiz — basari/rozet cagrisimi. */
+const CAP_STAR = starPath(54, 39.5, 5.6);
+
+function starPath(cx: number, cy: number, outer: number, inner = outer * 0.46): string {
+  const points = Array.from({ length: 10 }, (_, i) => {
+    const radius = i % 2 === 0 ? outer : inner;
+    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    return `${(cx + radius * Math.cos(angle)).toFixed(2)} ${(cy + radius * Math.sin(angle)).toFixed(2)}`;
+  });
+  return `M${points.join(' L')} Z`;
+}
+
 export function Mascot({ width = 96, mood = 'happy', style }: MascotProps) {
   return (
     <View style={style}>
       <Svg width={width} height={width / MASCOT_ASPECT} viewBox={VIEW_BOX}>
         {/* kulaklar */}
-        <Circle cx={23} cy={80} r={7.5} fill={Brand.skin} />
-        <Circle cx={85} cy={80} r={7.5} fill={Brand.skin} />
+        <Circle cx={24} cy={83} r={6} fill={Brand.skin} />
+        <Circle cx={84} cy={83} r={6} fill={Brand.skin} />
 
-        {/* bas */}
-        <Rect x={24} y={44} width={60} height={60} rx={21} fill={Brand.skin} />
+        {/* bas — neredeyse yuvarlak */}
+        <Rect x={24} y={44} width={60} height={60} rx={27} fill={Brand.skin} />
 
         {/* kasket: siper once, band ustune biner */}
         <Path d="M80 48 C 94 46, 108 49, 109 56 C 110 63, 93 62, 80 59 Z" fill={Brand.capBrim} />
         <Path d="M23 53 C 23 18, 85 18, 85 53 Z" fill={Brand.cap} />
         <Rect x={21} y={48} width={66} height={10} rx={5} fill={Brand.cap} />
         <Circle cx={54} cy={27} r={3} fill={Brand.skin} />
+        <Path d={CAP_STAR} fill={Brand.skin} stroke={Brand.skin} strokeWidth={1} strokeLinejoin="round" />
 
         {/* yanaklar */}
-        <Circle cx={34} cy={87} r={5} fill={Brand.cheek} />
-        <Circle cx={74} cy={87} r={5} fill={Brand.cheek} />
+        <Ellipse cx={32.5} cy={90} rx={6} ry={4} fill={Brand.cheek} />
+        <Ellipse cx={75.5} cy={90} rx={6} ry={4} fill={Brand.cheek} />
 
         <Eyes mood={mood} />
         <Mouth mood={mood} />
@@ -63,25 +86,35 @@ export function Mascot({ width = 96, mood = 'happy', style }: MascotProps) {
   );
 }
 
+function OpenEye({ cx, cy }: { cx: number; cy: number }) {
+  return (
+    <>
+      <Circle cx={cx} cy={cy} r={EYE_SIZE} fill={Brand.ink} />
+      <Circle cx={cx + 2.6} cy={cy - 2.6} r={2.8} fill={Brand.skin} />
+      <Circle cx={cx - 2.4} cy={cy + 2.8} r={1.2} fill={Brand.skin} />
+    </>
+  );
+}
+
+/** Kapali, yukari kavisli mutlu goz. */
+function ClosedEye({ cx }: { cx: number }) {
+  return (
+    <Path
+      d={`M${cx - 7} ${EYE_Y + 2} Q${cx} ${EYE_Y - 7} ${cx + 7} ${EYE_Y + 2}`}
+      stroke={Brand.ink}
+      strokeWidth={3.8}
+      strokeLinecap="round"
+      fill="none"
+    />
+  );
+}
+
 function Eyes({ mood }: { mood: MascotMood }) {
   if (mood === 'cheer') {
-    // Kapali, yukari kavisli mutlu gozler.
     return (
       <>
-        <Path
-          d="M38 79 Q44 71 50 79"
-          stroke={Brand.ink}
-          strokeWidth={4}
-          strokeLinecap="round"
-          fill="none"
-        />
-        <Path
-          d="M58 79 Q64 71 70 79"
-          stroke={Brand.ink}
-          strokeWidth={4}
-          strokeLinecap="round"
-          fill="none"
-        />
+        <ClosedEye cx={EYE_L} />
+        <ClosedEye cx={EYE_R} />
       </>
     );
   }
@@ -89,55 +122,52 @@ function Eyes({ mood }: { mood: MascotMood }) {
   if (mood === 'wink') {
     return (
       <>
-        <Circle cx={44} cy={76} r={6} fill={Brand.ink} />
-        <Circle cx={46} cy={74} r={2} fill={Brand.skin} />
-        <Path
-          d="M58 78 Q64 70 70 78"
-          stroke={Brand.ink}
-          strokeWidth={4}
-          strokeLinecap="round"
-          fill="none"
-        />
+        <OpenEye cx={EYE_L} cy={EYE_Y} />
+        <ClosedEye cx={EYE_R} />
       </>
     );
   }
 
-  // 'think' halinde gozbebekleri hafifce yana kayar.
-  const shift = mood === 'think' ? 2 : 0;
+  // 'think' halinde bakis hafifce sag-yukari kayar.
+  const shift = mood === 'think' ? 1.5 : 0;
 
   return (
     <>
-      <Circle cx={44 + shift} cy={76} r={6} fill={Brand.ink} />
-      <Circle cx={64 + shift} cy={76} r={6} fill={Brand.ink} />
-      <Circle cx={46 + shift} cy={74} r={2} fill={Brand.skin} />
-      <Circle cx={66 + shift} cy={74} r={2} fill={Brand.skin} />
+      <OpenEye cx={EYE_L + shift} cy={EYE_Y - shift} />
+      <OpenEye cx={EYE_R + shift} cy={EYE_Y - shift} />
     </>
   );
 }
 
 function Mouth({ mood }: { mood: MascotMood }) {
   if (mood === 'cheer') {
-    return <Path d="M45 88 Q54 103 63 88 Z" fill={Brand.ink} />;
-  }
-
-  if (mood === 'think') {
     return (
-      <Path
-        d="M48 92 Q54 89 60 92"
-        stroke={Brand.ink}
-        strokeWidth={4.5}
-        strokeLinecap="round"
-        fill="none"
-      />
+      <>
+        <Path
+          d="M48 87 Q54 98 60 87 Z"
+          fill={Brand.ink}
+          stroke={Brand.ink}
+          strokeWidth={1.5}
+          strokeLinejoin="round"
+        />
+        <Circle cx={54} cy={92.4} r={2.5} fill={Brand.tongue} />
+      </>
     );
   }
 
+  if (mood === 'think') {
+    // Kucuk "o" — "hmm?" ifadesi.
+    return <Circle cx={55.5} cy={90} r={2.1} stroke={Brand.ink} strokeWidth={2.8} fill="none" />;
+  }
+
+  // Kedi agzi (ω) — happy ve wink icin.
   return (
     <Path
-      d="M46 90 Q54 98 62 90"
+      d="M49 88 Q51.5 91.5 54 88 Q56.5 91.5 59 88"
       stroke={Brand.ink}
-      strokeWidth={4.5}
+      strokeWidth={3.6}
       strokeLinecap="round"
+      strokeLinejoin="round"
       fill="none"
     />
   );

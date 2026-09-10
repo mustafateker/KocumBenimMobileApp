@@ -1,19 +1,33 @@
-import Constants, { AppOwnership } from 'expo-constants';
+import { isRunningInExpoGo, requireOptionalNativeModule } from 'expo';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 import { registerPushToken } from './api';
 
 /**
- * SDK 53'ten itibaren Expo Go, remote push (uzak bildirim) ozelligini kaldirdi —
- * `expo-notifications` paketini import etmek bile Expo Go'da senkron bir hataya
- * yol aciyor (bkz. warnOfExpoGoPushUsage). Bu yuzden paketi STATIK import etmiyoruz;
- * sadece gercek bir development/production build'de, dinamik olarak yukluyoruz.
- * Expo Go'da bu fonksiyon hicbir sey yapmadan geri doner.
+ * `expo-notifications` paketini import etmek bile yan etkili modullerini
+ * (DevicePushTokenAutoRegistration.fx, PushTokenManager) calistirir. Gelistirme
+ * modunda Metro bu modul-yukleme hatalarini try/catch'e dusmeden fatal olarak
+ * raporlar, bu yuzden push'un calisamayacagi ortamlarda paketi hic yuklemiyoruz.
+ * Iki ayri durum var, ikisi de ayri kontrol ister:
+ *
+ *  1. Expo Go: SDK 53'ten beri Android'de remote push yok. Native modul
+ *     mevcut ama paket `isRunningInExpoGo()` gorunce bilerek firlatiyor
+ *     (bkz. expo-notifications/build/warnOfExpoGoPushUsage.js). Ayni kontrolu
+ *     burada yapiyoruz. `Constants.appOwnership` kullanimdan kalkti ve Expo Go
+ *     57'de 'expo' donmuyor, ona guvenilemez.
+ *  2. Native kabugu expo-notifications eklenmeden once derlenmis bir build:
+ *     'ExpoPushTokenManager' modulu hic yok, paket `requireNativeModule` ile
+ *     arayip bulamayinca firlatiyor. `requireOptionalNativeModule` ayni aramanin
+ *     firlatmayan hali.
  */
-const isExpoGo = Constants.appOwnership === AppOwnership.Expo;
+function canRegisterPush(): boolean {
+  if (isRunningInExpoGo()) return false;
+  return requireOptionalNativeModule('ExpoPushTokenManager') != null;
+}
 
 export async function registerForPushNotifications(): Promise<void> {
-  if (isExpoGo) return;
+  if (!canRegisterPush()) return;
 
   try {
     const Notifications = await import('expo-notifications');
