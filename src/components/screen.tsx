@@ -4,29 +4,46 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Palette, Space } from '@/theme/tokens';
 
 import { IconButton } from './button';
+import { PatternBackground } from './pattern-background';
 import { Txt } from './ui';
 
 /**
- * Tum ekranlarin ortak zemini: duz, neredeyse beyaz. Duolingo tarzinda
- * renk zeminde degil bilesenlerde (kart kenarligi, buton dolgusu) yasar —
- * `tint` parametresi artik yalnizca cagiran taraflarla uyumluluk icin
- * tutulur, gorsel bir etkisi yok.
+ * Tum ekranlarin ortak zemini: duz, neredeyse beyaz. Duolingo tarzinda renk
+ * zeminde degil bilesenlerde (kart kenarligi, buton dolgusu) yasar.
+ *
+ * `pattern` verilen ekranlar bunun yerine dekoratif ama yine gradyansiz bir
+ * zemin alir (defter izgarasi + pastel tepe bandi); `tint` o bandin rengini
+ * belirler. Varsayilan kapalidir ki icerik yogun ekranlar sade kalsin.
  */
-export function ScreenBackground({ children }: { tint?: string; children: React.ReactNode }) {
-  return <View style={styles.root}>{children}</View>;
+export function ScreenBackground({
+  tint,
+  pattern,
+  children,
+}: {
+  tint?: string;
+  pattern?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <View style={styles.root}>
+      {pattern ? <PatternBackground color={tint ?? Palette.purple} /> : null}
+      {children}
+    </View>
+  );
 }
 
 /** Kaydirilabilir ekran govdesi. Alt tab cubugunun altinda kalmayi onler. */
 export function Screen({
   tint,
+  pattern,
   contentContainerStyle,
   children,
   ...rest
-}: ScrollViewProps & { tint?: string }) {
+}: ScrollViewProps & { tint?: string; pattern?: boolean }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScreenBackground tint={tint}>
+    <ScreenBackground tint={tint} pattern={pattern}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
@@ -43,11 +60,17 @@ export function Screen({
 }
 
 /** Kaydirmayan ekranlar icin (kamera, oyun tahtasi). */
-export function FixedScreen({ tint, style, children, ...rest }: ViewProps & { tint?: string }) {
+export function FixedScreen({
+  tint,
+  pattern,
+  style,
+  children,
+  ...rest
+}: ViewProps & { tint?: string; pattern?: boolean }) {
   const insets = useSafeAreaInsets();
 
   return (
-    <ScreenBackground tint={tint}>
+    <ScreenBackground tint={tint} pattern={pattern}>
       <View style={[styles.fixed, { paddingTop: insets.top, paddingBottom: insets.bottom }, style]} {...rest}>
         {children}
       </View>
