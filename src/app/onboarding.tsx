@@ -32,7 +32,7 @@ import {
   StepProgress,
 } from '@/features/onboarding/parts';
 import { useSession, useStudent } from '@/lib/session';
-import { Border, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space } from '@/theme/tokens';
 
 type FormState = {
   firstName: string;
@@ -75,7 +75,7 @@ const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
 export default function Onboarding() {
   // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
   useStudent();
-  const { refresh } = useSession();
+  const { setUser } = useSession();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -144,7 +144,7 @@ export default function Onboarding() {
     if (saving) return;
     setSaving(true);
     try {
-      await completeOnboarding({
+      const updated = await completeOnboarding({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         grade: form.grade,
@@ -158,12 +158,16 @@ export default function Onboarding() {
         timeframe: form.timeframe,
         motivation: form.motivation,
       });
-      await refresh();
+      // updated.onboardingCompletedAt burada dolu gelir; ayri bir GET /me
+      // atmiyoruz ki o istegin sessizce yutulan bir hatasi (bkz session.tsx
+      // refresh()) zaten basarili olmus bu islemi geciktirip kullaniciyi
+      // /student -> onboarding yonlendirme dongusune sokmasin.
+      setUser(updated);
       router.replace('/student');
     } finally {
       setSaving(false);
     }
-  }, [saving, form, refresh, router]);
+  }, [saving, form, setUser, router]);
 
   const next = useCallback(() => {
     if (!valid) return;
@@ -369,7 +373,7 @@ export default function Onboarding() {
           <NeonButton
             label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
             icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
-            color={Palette.purple}
+            color={Accent}
             size="lg"
             disabled={!valid || saving}
             onPress={next}

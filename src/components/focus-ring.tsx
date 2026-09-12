@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
 
-import { Motion, Palette, glow } from '@/theme/tokens';
+import { Accent, Motion, Palette, glow } from '@/theme/tokens';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -34,7 +34,7 @@ export function FocusRing({
   progress,
   size = 264,
   strokeWidth = 16,
-  color = Palette.purple,
+  color = Accent,
   track = Palette.bgDeep,
   children,
 }: Props) {
@@ -54,7 +54,7 @@ export function FocusRing({
         <Defs>
           <SvgGradient id="focusRing" x1="0" y1="0" x2="1" y2="1">
             <Stop offset="0" stopColor={color} stopOpacity="1" />
-            <Stop offset="1" stopColor={Palette.purple} stopOpacity="1" />
+            <Stop offset="1" stopColor={Accent} stopOpacity="1" />
           </SvgGradient>
         </Defs>
 

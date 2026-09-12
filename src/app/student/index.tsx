@@ -14,7 +14,7 @@ import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon } from '@/lib/task-categories';
 import { initials, type PrivateLesson, type Task } from '@/lib/types';
-import { Border, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
 
 const DURATIONS = [
   { label: '25 dk', seconds: 25 * 60 },
@@ -85,12 +85,12 @@ export default function Home() {
   const draftSeconds = draft % 60;
 
   return (
-    <Screen tint={Palette.purple} pattern>
+    <Screen tint={Accent} pattern>
       {/* Ust bar */}
       <View style={styles.topBar}>
         <PressScale onPress={() => router.push('/student/profile')} style={styles.who}>
           <View style={styles.avatar}>
-            <Txt variant="smallStrong" color={Palette.purple}>
+            <Txt variant="smallStrong" color={Accent}>
               {initials(student.name)}
             </Txt>
           </View>
@@ -114,7 +114,7 @@ export default function Home() {
 
       {/* Odak zamani secici */}
       <PressScale onPress={openPicker} scaleTo={0.98}>
-        <FocusRing progress={ringProgress} color={Palette.purple} size={252}>
+        <FocusRing progress={ringProgress} color={Accent} size={252}>
           <Txt variant="tiny" color={Palette.textFaint}>
             ODAK ZAMANI
           </Txt>
@@ -136,7 +136,7 @@ export default function Home() {
             return (
               <PressScale key={d.seconds} onPress={() => setDuration(d.seconds)} style={styles.flex}>
                 <View style={[styles.chip, selected && styles.chipActive]}>
-                  <Txt variant="smallStrong" color={selected ? Palette.purple : Palette.textDim}>
+                  <Txt variant="smallStrong" color={selected ? Accent : Palette.textDim}>
                     {d.label}
                   </Txt>
                 </View>
@@ -147,7 +147,7 @@ export default function Home() {
             <View style={[styles.chip, !DURATIONS.some((d) => d.seconds === duration) && styles.chipActive]}>
               <Txt
                 variant="smallStrong"
-                color={!DURATIONS.some((d) => d.seconds === duration) ? Palette.purple : Palette.textDim}
+                color={!DURATIONS.some((d) => d.seconds === duration) ? Accent : Palette.textDim}
               >
                 Özel
               </Txt>
@@ -158,7 +158,7 @@ export default function Home() {
         <NeonButton
           label="Çalışmaya Başla"
           icon="play"
-          color={Palette.purple}
+          color={Accent}
           size="lg"
           full
           onPress={() => router.push({ pathname: '/focus', params: { seconds: String(duration) } })}
@@ -200,7 +200,7 @@ export default function Home() {
         <View style={styles.sectionHead}>
           <SectionLabel>Günlük Görevler</SectionLabel>
           <PressScale onPress={() => router.push('/student/tasks')}>
-            <Txt variant="tiny" color={Palette.purple}>
+            <Txt variant="tiny" color={Accent}>
               Tümünü Gör
             </Txt>
           </PressScale>
@@ -242,7 +242,7 @@ export default function Home() {
 
             <View style={styles.modalActions}>
               <GhostButton label="Vazgeç" onPress={() => setPickerOpen(false)} style={styles.flex} full />
-              <NeonButton label="Uygula" color={Palette.purple} onPress={applyDraft} style={styles.flex} full />
+              <NeonButton label="Uygula" color={Accent} onPress={applyDraft} style={styles.flex} full />
             </View>
           </View>
         </View>
@@ -270,7 +270,7 @@ function Stepper({
       <View style={styles.stepperControls}>
         <IconButton icon="remove" onPress={onDec} />
         <Txt variant="title">{value}</Txt>
-        <IconButton icon="add" color={Palette.purple} onPress={onInc} />
+        <IconButton icon="add" color={Accent} onPress={onInc} />
       </View>
     </View>
   );
@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: Border.thick,
-    borderColor: Palette.purple,
-    backgroundColor: Palette.purpleSoft,
+    borderColor: Accent,
+    backgroundColor: softOf(Accent),
   },
   whoText: { flexShrink: 1 },
   topActions: {
@@ -358,8 +358,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipActive: {
-    backgroundColor: Palette.purpleSoft,
-    borderColor: Palette.purple,
+    backgroundColor: softOf(Accent),
+    borderColor: Accent,
   },
   quickCard: {
     flexDirection: 'row',

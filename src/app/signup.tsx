@@ -8,7 +8,7 @@ import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
 import { useSession } from '@/lib/session';
-import { Palette, Space } from '@/theme/tokens';
+import { Accent, Palette, Space } from '@/theme/tokens';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -55,7 +55,7 @@ export default function SignUp() {
   }, [submitting, email, password, confirm, signUp, router]);
 
   return (
-    <ScreenBackground tint={Palette.purple}>
+    <ScreenBackground tint={Accent}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -130,7 +130,7 @@ export default function SignUp() {
             <NeonButton
               label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}
               icon="arrow-forward"
-              color={Palette.purple}
+              color={Accent}
               size="lg"
               full
               disabled={submitting}
@@ -142,7 +142,7 @@ export default function SignUp() {
           <PressScale onPress={() => router.replace('/login')}>
             <Txt variant="small" color={Palette.textDim} center>
               Zaten hesabın var mı?{' '}
-              <Txt variant="smallStrong" color={Palette.purple}>
+              <Txt variant="smallStrong" color={Accent}>
                 Giriş yap
               </Txt>
             </Txt>

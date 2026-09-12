@@ -10,7 +10,7 @@ import { ApiError } from '@/lib/api-client';
 import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
-import { Palette, Space } from '@/theme/tokens';
+import { Accent, Palette, Space } from '@/theme/tokens';
 
 const DEFAULT_PREFS: Preferences = {
   taskNotifs: true,
@@ -23,7 +23,7 @@ const DEFAULT_PREFS: Preferences = {
 export default function Settings() {
   const student = useStudent();
   const router = useRouter();
-  const { signOut, refresh } = useSession();
+  const { signOut, setUser } = useSession();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
 
@@ -78,15 +78,15 @@ export default function Settings() {
     setSavingParentEmail(true);
     setParentEmailError(null);
     try {
-      await patchMe({ parentEmail: parentEmailInput.trim() || null });
-      await refresh();
+      const updated = await patchMe({ parentEmail: parentEmailInput.trim() || null });
+      setUser(updated);
       setEditingParentEmail(false);
     } catch {
       setParentEmailError('Kaydedilemedi, tekrar dene.');
     } finally {
       setSavingParentEmail(false);
     }
-  }, [savingParentEmail, parentEmailInput, refresh]);
+  }, [savingParentEmail, parentEmailInput, setUser]);
 
   const confirmDelete = useCallback(() => {
     Alert.alert(
@@ -293,7 +293,7 @@ export default function Settings() {
   );
 }
 
-const SWITCH_TRACK = { false: Palette.border, true: Palette.purple };
+const SWITCH_TRACK = { false: Palette.border, true: Accent };
 
 function SettingRow({
   icon,

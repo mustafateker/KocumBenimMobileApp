@@ -2,7 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
 import { dayLabel, todayKey } from '@/lib/date';
-import { Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
@@ -61,7 +61,7 @@ export function WeekBars({
  * 24 saatlik odak yogunlugu seridi. Ogrencinin ne zaman verimli oldugunu
  * gorsel olarak gosterir; metin analizi `peakWindow` ile uretilir.
  */
-export function HourStrip({ buckets, color = Palette.purple }: { buckets: number[]; color?: string }) {
+export function HourStrip({ buckets, color = Accent }: { buckets: number[]; color?: string }) {
   const peak = Math.max(1, ...buckets);
 
   return (

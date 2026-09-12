@@ -4,7 +4,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { PressScale } from '@/components/button';
 import { Mascot, type MascotMood } from '@/components/mascot';
 import { TextField, Txt } from '@/components/ui';
-import { Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -14,7 +14,7 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
  * kesintisiz birlesir.
  */
 export function SpeechBubble({
-  color = Palette.purple,
+  color = Accent,
   tail = 'left',
   style,
   children,
@@ -135,7 +135,7 @@ export function OptionRow({
   label,
   selected,
   onPress,
-  color = Palette.purple,
+  color = Accent,
 }: {
   label: string;
   selected: boolean;
@@ -168,7 +168,7 @@ export function CheckRow({
   label,
   checked,
   onPress,
-  color = Palette.purple,
+  color = Accent,
 }: {
   label: string;
   checked: boolean;
@@ -277,7 +277,7 @@ export function SearchPicker({
   placeholder,
   popularLabel,
   options,
-  color = Palette.purple,
+  color = Accent,
 }: {
   value: string;
   onChangeText: (v: string) => void;

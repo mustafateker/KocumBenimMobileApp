@@ -11,7 +11,7 @@ import { humanDuration } from '@/lib/date';
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
 import { initials, type LeaderboardRow, type StudentSummary } from '@/lib/types';
-import { Border, Palette, Radius, Space, glow } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space, glow, softOf } from '@/theme/tokens';
 
 type BoardRange = LeaderboardRange;
 
@@ -50,7 +50,7 @@ export default function Profile() {
   );
 
   return (
-    <Screen tint={Palette.purple}>
+    <Screen tint={Accent}>
       <ScreenHeader
         title="Profil"
         subtitle="Karakterin, hedeflerin ve rakiplerin."
@@ -58,9 +58,9 @@ export default function Profile() {
       />
 
       {/* Karakter karti */}
-      <Card accent={Palette.purple} style={styles.hero}>
-        <View style={[styles.avatar, glow(Palette.purple, 0.3)]}>
-          <Txt variant="hero" color={Palette.purple}>
+      <Card accent={Accent} style={styles.hero}>
+        <View style={[styles.avatar, glow(Accent, 0.3)]}>
+          <Txt variant="hero" color={Accent}>
             {initials(student.name)}
           </Txt>
         </View>
@@ -68,7 +68,7 @@ export default function Profile() {
         <Txt variant="title" center>
           {student.nickname ?? student.name}
         </Txt>
-        {student.grade ? <Pill label={student.grade} color={Palette.purple} icon="school" /> : null}
+        {student.grade ? <Pill label={student.grade} color={Accent} icon="school" /> : null}
 
         <View style={styles.streakPill}>
           <Ionicons name="flame" size={16} color={Palette.orange} />
@@ -105,7 +105,7 @@ export default function Profile() {
         <Txt variant="smallStrong" color={Palette.textDim}>
           Liderlik Tablosu
         </Txt>
-        <Segmented options={BOARD_OPTIONS} value={boardRange} onChange={setBoardRange} color={Palette.purple} />
+        <Segmented options={BOARD_OPTIONS} value={boardRange} onChange={setBoardRange} color={Accent} />
 
         <Card style={styles.boardCard}>
           {board.map((row, index) => {
@@ -130,7 +130,7 @@ export default function Profile() {
                     {row.xp} XP
                   </Txt>
                 </View>
-                <Txt variant="bodyStrong" color={isMe ? Palette.purple : Palette.textDim}>
+                <Txt variant="bodyStrong" color={isMe ? Accent : Palette.textDim}>
                   {row.minutes} dk
                 </Txt>
               </View>
@@ -178,9 +178,9 @@ const styles = StyleSheet.create({
     borderRadius: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Palette.purpleSoft,
+    backgroundColor: softOf(Accent),
     borderWidth: Border.thick,
-    borderColor: Palette.purple,
+    borderColor: Accent,
   },
   streakPill: {
     flexDirection: 'row',
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
   },
   boardRowMe: {
-    backgroundColor: Palette.purpleSoft,
+    backgroundColor: softOf(Accent),
   },
   rank: {
     width: 26,

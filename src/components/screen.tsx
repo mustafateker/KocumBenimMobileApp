@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, View, type ScrollViewProps, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Palette, Space } from '@/theme/tokens';
+import { Accent, Palette, Space } from '@/theme/tokens';
 
 import { IconButton } from './button';
 import { PatternBackground } from './pattern-background';
@@ -26,7 +26,7 @@ export function ScreenBackground({
 }) {
   return (
     <View style={styles.root}>
-      {pattern ? <PatternBackground color={tint ?? Palette.purple} /> : null}
+      {pattern ? <PatternBackground color={tint ?? Accent} /> : null}
       {children}
     </View>
   );

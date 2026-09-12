@@ -1,7 +1,7 @@
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
-import { Palette, softOf } from '@/theme/tokens';
+import { Accent, Palette, softOf } from '@/theme/tokens';
 
 /**
  * Ekran zemininin dekoratif katmani — tamamen gradyansiz.
@@ -34,7 +34,7 @@ const CONFETTI = [
 
 export function PatternBackground({
   /** Tepe bandinin rengi — pastel tonu kullanilir. */
-  color = Palette.purple,
+  color = Accent,
   /** Tepe bandinin ekran yuksekligine orani. 0 verilirse band cizilmez. */
   bandRatio = 0.28,
 }: {

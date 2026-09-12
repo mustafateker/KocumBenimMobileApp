@@ -17,7 +17,7 @@ import { Txt } from './ui';
 /**
  * Native acilis ekraninin uzerine binen JS katmani.
  *
- * app.json'daki expo-splash-screen eklentisi ayni maskotu ayni mor zemine,
+ * app.json'daki expo-splash-screen eklentisi ayni maskotu ayni amber zemine,
  * ayni genislikte basar. Native ekran gizlendigi anda bu bilesen tipatip
  * ayni kareyi gosterdigi icin gecis gorunmez; sonrasinda maskot bir zipla,
  * kelime isareti asagidan gelir ve katman silinir.
@@ -25,7 +25,7 @@ import { Txt } from './ui';
  * MASCOT_WIDTH degisirse app.json > expo-splash-screen > imageWidth de
  * ayni degere cekilmeli, yoksa devir teslim aninda gorsel siçrar.
  */
-const MASCOT_WIDTH = 180;
+const MASCOT_WIDTH = 220;
 
 /** Katmanin toplam omru — _layout bu sureden sonra bilesen kaldirilir. */
 export const SPLASH_DURATION = 1700;

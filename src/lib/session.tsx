@@ -23,6 +23,13 @@ type SessionValue = {
   signOut: () => Promise<void>;
   /** XP/coin degistikten sonra ust bardaki degerleri tazelemek icin. */
   refresh: () => Promise<void>;
+  /**
+   * Bir mutasyon endpoint'i (ornegin /me/onboarding, /me) zaten guncel
+   * Student'i donduruyorsa, ayri bir GET /me atmak yerine dogrudan bunu
+   * kullan. Boylece refresh()'in sessizce yuttugu bir aglama hatasi,
+   * zaten basarili olmus bir islemin sonucunu geciktirmez.
+   */
+  setUser: (user: Student) => void;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -109,7 +116,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const value = useMemo(
-    () => ({ user, loading, signIn, signUp, signOut, refresh }),
+    () => ({ user, loading, signIn, signUp, signOut, refresh, setUser }),
     [user, loading, signIn, signUp, signOut, refresh]
   );
 

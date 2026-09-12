@@ -28,7 +28,10 @@ export const Palette = {
   textDim: '#6E6390',
   textFaint: '#A79FC0',
 
-  /** Birincil mor — ana aksiyon, XP, seviye */
+  /** Birincil vurgu — ana aksiyon, marka rengi */
+  amber: '#FFBD67',
+  amberSoft: '#FFF2E1',
+  /** Ikincil vurgu — XP, seviye, secili ozellik ekranlari (odaklanma, ozel dersler) */
   purple: '#8257E5',
   purpleSoft: '#EDE6FB',
   /** Sari — coin, odul, enerji */
@@ -49,26 +52,20 @@ export const Palette = {
 } as const;
 
 /** Uygulamanin birincil vurgu rengi. */
-export const Accent = Palette.purple;
+export const Accent = Palette.amber;
 
 /**
- * Maskot logosunun sabit renkleri. assets/images/icon.png ve kardeslerini
- * ureten betikle birebir ayni degerler — biri degisirse digeri de degismeli,
- * yoksa acilis ekraninda native gorsel ile JS katmani arasinda renk atlar.
+ * Native acilis ekrani ve Android adaptif ikon zemini — app.json'daki
+ * expo-splash-screen ve android.adaptiveIcon degerleriyle birebir ayni
+ * olmali, yoksa devir teslim aninda renk atlar.
  */
 export const Brand = {
-  /** Ikon zemini ve acilis ekrani rengi. */
-  bg: Palette.purple,
-  skin: '#FFFFFF',
-  cap: Palette.gold,
-  /** Kasket siperi — kubbeden ayrissin diye bir tik koyu. */
-  capBrim: '#F0A81E',
-  ink: Palette.text,
-  cheek: '#FFC7D2',
+  bg: Palette.amber,
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */
 export const SoftOf: Record<string, string> = {
+  [Palette.amber]: Palette.amberSoft,
   [Palette.purple]: Palette.purpleSoft,
   [Palette.gold]: Palette.goldSoft,
   [Palette.orange]: Palette.orangeSoft,
@@ -96,6 +93,7 @@ export function shade(hex: string, amount = 0.74): string {
 
 /** Her vurgu renginin "3D basma" seridi icin koyu tonu. */
 export const DeepOf: Record<string, string> = {
+  [Palette.amber]: shade(Palette.amber),
   [Palette.purple]: shade(Palette.purple),
   [Palette.gold]: shade(Palette.gold),
   [Palette.orange]: shade(Palette.orange),
@@ -140,7 +138,7 @@ export const Border = {
  * hamburger menu) kullanilir. Kartlarda ve butonlarda hiyerarsiyi kalin
  * kenarlik tasir, golge degil.
  */
-export function glow(color: string = '#8257E5', intensity = 0.45) {
+export function glow(color: string = Palette.amber, intensity = 0.45) {
   return {
     shadowColor: color,
     shadowOpacity: intensity * 0.42,

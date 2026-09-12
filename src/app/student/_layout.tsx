@@ -3,10 +3,10 @@ import { Redirect, Tabs } from 'expo-router';
 import { TabBar, type TabBarState, type TabMeta } from '@/components/tab-bar';
 import { HamburgerMenuProvider } from '@/lib/hamburger-menu-context';
 import { useSession } from '@/lib/session';
-import { Palette } from '@/theme/tokens';
+import { Accent, Palette } from '@/theme/tokens';
 
 const TABS: Record<string, TabMeta> = {
-  index: { label: 'Ana Sayfa', icon: 'home', color: Palette.purple },
+  index: { label: 'Ana Sayfa', icon: 'home', color: Accent },
   tasks: { label: 'Görevlerim', icon: 'checkmark-done', color: Palette.green },
   questions: { label: 'Sorularım', icon: 'camera', color: Palette.orange },
   profile: { label: 'Profil', icon: 'person', color: Palette.blue },

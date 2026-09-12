@@ -9,7 +9,7 @@ import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
 import { useSession } from '@/lib/session';
-import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 /** Giris: e-posta + parola. Hesap yoksa kayit ekranina yonlendirir. */
 export default function Login() {
@@ -45,7 +45,7 @@ export default function Login() {
   }, [submitting, email, password, remember, signIn, router]);
 
   return (
-    <ScreenBackground tint={Palette.purple}>
+    <ScreenBackground tint={Accent}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -115,7 +115,7 @@ export default function Login() {
             <NeonButton
               label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}
               icon="log-in"
-              color={Palette.purple}
+              color={Accent}
               size="lg"
               full
               disabled={submitting}
@@ -127,7 +127,7 @@ export default function Login() {
           <PressScale onPress={() => router.push('/signup')}>
             <Txt variant="small" color={Palette.textDim} center>
               Hesabın yok mu?{' '}
-              <Txt variant="smallStrong" color={Palette.purple}>
+              <Txt variant="smallStrong" color={Accent}>
                 Kayıt ol
               </Txt>
             </Txt>
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Palette.purple,
-    borderColor: Palette.purple,
+    backgroundColor: Accent,
+    borderColor: Accent,
   },
 });

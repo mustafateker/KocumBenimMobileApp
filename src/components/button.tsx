@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-import { Border, deepOf, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
+import { Accent, Border, deepOf, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -79,7 +79,7 @@ type ChunkyButtonProps = {
 function ChunkyButton({
   label,
   onPress,
-  color = Palette.purple,
+  color = Accent,
   icon,
   disabled,
   size = 'md',
@@ -153,7 +153,7 @@ function ChunkyButton({
 
 /** Birincil aksiyon — vurgu renginde duz dolgu, chunky 3D basma. */
 export function NeonButton(props: ChunkyButtonProps) {
-  const color = props.color ?? Palette.purple;
+  const color = props.color ?? Accent;
   return <ChunkyButton {...props} fill={color} textColor={OnColor} />;
 }
 
