@@ -54,7 +54,7 @@ export function FocusRing({
         <Defs>
           <SvgGradient id="focusRing" x1="0" y1="0" x2="1" y2="1">
             <Stop offset="0" stopColor={color} stopOpacity="1" />
-            <Stop offset="1" stopColor={Accent} stopOpacity="1" />
+            <Stop offset="1" stopColor={Palette.purple} stopOpacity="1" />
           </SvgGradient>
         </Defs>
 

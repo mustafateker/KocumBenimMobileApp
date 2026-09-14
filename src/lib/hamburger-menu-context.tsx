@@ -63,7 +63,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
             icon: 'help-circle-outline',
             label: 'Yardım & Destek',
             color: Palette.green,
-            onPress: () => {},
+            onPress: () => router.push('/help'),
           },
           {
             icon: 'log-out-outline',

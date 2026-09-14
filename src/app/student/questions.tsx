@@ -42,7 +42,7 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
   return (
     <View style={[styles.header, { paddingTop: insets.top + Space.md }]}>
       <View style={styles.titleRow}>
-        <Txt variant="title">Kurtar Beni</Txt>
+        <Txt variant="title">Şipşak Soru</Txt>
         <IconButton icon="menu" onPress={openMenu} />
       </View>
       <View style={styles.segment}>

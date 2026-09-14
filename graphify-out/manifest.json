@@ -1,0 +1,1322 @@
+{
+  ".claude/settings.json": {
+    "mtime": 1787532043.447544,
+    "seen": 1789424329.063193,
+    "ast_hash": "dc580fca35a0e98ed20777ede5e545a1",
+    "semantic_hash": "dc580fca35a0e98ed20777ede5e545a1"
+  },
+  ".vscode/extensions.json": {
+    "mtime": 1787532009.6333733,
+    "seen": 1789424329.063196,
+    "ast_hash": "b2354ba0225f5689d13651ec0fac0de0",
+    "semantic_hash": "b2354ba0225f5689d13651ec0fac0de0"
+  },
+  ".vscode/settings.json": {
+    "mtime": 1787532009.6344357,
+    "seen": 1789424329.063197,
+    "ast_hash": "6b9302c1f72c315e90233c7539c48c9f",
+    "semantic_hash": "6b9302c1f72c315e90233c7539c48c9f"
+  },
+  "app.json": {
+    "mtime": 1789165482.899358,
+    "seen": 1789424329.063197,
+    "ast_hash": "fefa790e83e20fe2e8bb193493f2756d",
+    "semantic_hash": "fefa790e83e20fe2e8bb193493f2756d"
+  },
+  "assets/expo.icon/icon.json": {
+    "mtime": 1787532009.6338456,
+    "seen": 1789424329.0631979,
+    "ast_hash": "35cb915a0bebbebbe69cf7815e174462",
+    "semantic_hash": "35cb915a0bebbebbe69cf7815e174462"
+  },
+  "eslint.config.js": {
+    "mtime": 1789070974.2476165,
+    "seen": 1789424329.0631979,
+    "ast_hash": "b713dd66aa3ad59ed5098d7b9f8dc202",
+    "semantic_hash": "b713dd66aa3ad59ed5098d7b9f8dc202"
+  },
+  "metro.config.js": {
+    "mtime": 1789070974.2477016,
+    "seen": 1789424329.063199,
+    "ast_hash": "0ab7bc6be6c7800668ffe9a480c60660",
+    "semantic_hash": "0ab7bc6be6c7800668ffe9a480c60660"
+  },
+  "package.json": {
+    "mtime": 1789070974.2486527,
+    "seen": 1789424329.063199,
+    "ast_hash": "3ff0f280fe40378fe0fa65272876a0b3",
+    "semantic_hash": "3ff0f280fe40378fe0fa65272876a0b3"
+  },
+  "scripts/reset-project.js": {
+    "mtime": 1787532009.6326325,
+    "seen": 1789424329.063199,
+    "ast_hash": "ca9d75cf60f51e7a2d67fd08ddfb8275",
+    "semantic_hash": "ca9d75cf60f51e7a2d67fd08ddfb8275"
+  },
+  "src/app/_layout.tsx": {
+    "mtime": 1789070974.2487855,
+    "seen": 1789424329.063199,
+    "ast_hash": "02fb0597504816375ea1480590892e69",
+    "semantic_hash": "02fb0597504816375ea1480590892e69"
+  },
+  "src/app/annotate.tsx": {
+    "mtime": 1789070974.2489252,
+    "seen": 1789424329.0632,
+    "ast_hash": "41d74119c8b5f7e1f5bc17fb26ed5dd7",
+    "semantic_hash": "41d74119c8b5f7e1f5bc17fb26ed5dd7"
+  },
+  "src/app/explore.tsx": {
+    "mtime": 1789070974.2490413,
+    "seen": 1789424329.0632,
+    "ast_hash": "264a1ff72aa82f39c117561f090a983c",
+    "semantic_hash": "264a1ff72aa82f39c117561f090a983c"
+  },
+  "src/app/focus.tsx": {
+    "mtime": 1789070974.2491553,
+    "seen": 1789424329.0632,
+    "ast_hash": "c72e10f5aceaf0c31dcb37d00043708b",
+    "semantic_hash": "c72e10f5aceaf0c31dcb37d00043708b"
+  },
+  "src/app/index.tsx": {
+    "mtime": 1789070974.2492576,
+    "seen": 1789424329.063201,
+    "ast_hash": "4ed091492d89aeb16a0bd1835bf324b1",
+    "semantic_hash": "4ed091492d89aeb16a0bd1835bf324b1"
+  },
+  "src/app/lessons.tsx": {
+    "mtime": 1789070974.2493377,
+    "seen": 1789424329.063201,
+    "ast_hash": "780ca9afcb2c80ffe9e97a75fad98985",
+    "semantic_hash": "780ca9afcb2c80ffe9e97a75fad98985"
+  },
+  "src/app/login.tsx": {
+    "mtime": 1789165721.7525702,
+    "seen": 1789424329.063201,
+    "ast_hash": "7c92ac8bf0055f6354a8995eb8b86fc9",
+    "semantic_hash": "7c92ac8bf0055f6354a8995eb8b86fc9"
+  },
+  "src/app/notifications.tsx": {
+    "mtime": 1789070974.24952,
+    "seen": 1789424329.0632021,
+    "ast_hash": "a3a94057069132cab1f29b38d7887843",
+    "semantic_hash": "a3a94057069132cab1f29b38d7887843"
+  },
+  "src/app/onboarding.tsx": {
+    "mtime": 1789166742.0915847,
+    "seen": 1789424329.0632021,
+    "ast_hash": "9465f945337d30284445d409a6e26485",
+    "semantic_hash": "9465f945337d30284445d409a6e26485"
+  },
+  "src/app/settings.tsx": {
+    "mtime": 1789166754.393295,
+    "seen": 1789424329.0632021,
+    "ast_hash": "3dfa126c7d675afb0cb7483737912cc2",
+    "semantic_hash": "3dfa126c7d675afb0cb7483737912cc2"
+  },
+  "src/app/signup.tsx": {
+    "mtime": 1789165742.2381954,
+    "seen": 1789424329.063203,
+    "ast_hash": "33d65847f2f42f82aad671ffdcfb660b",
+    "semantic_hash": "33d65847f2f42f82aad671ffdcfb660b"
+  },
+  "src/app/stats.tsx": {
+    "mtime": 1789070974.2499678,
+    "seen": 1789424329.063203,
+    "ast_hash": "39974d1628c67b4272225572fab0f8b1",
+    "semantic_hash": "39974d1628c67b4272225572fab0f8b1"
+  },
+  "src/app/student/_layout.tsx": {
+    "mtime": 1789165781.836355,
+    "seen": 1789424329.063203,
+    "ast_hash": "4ee24127f2107f7a283767a35217265f",
+    "semantic_hash": "4ee24127f2107f7a283767a35217265f"
+  },
+  "src/app/student/index.tsx": {
+    "mtime": 1789165888.3266976,
+    "seen": 1789424329.063204,
+    "ast_hash": "50504c6658e3c4c97bd1dba7614eacb8",
+    "semantic_hash": "50504c6658e3c4c97bd1dba7614eacb8"
+  },
+  "src/app/student/profile.tsx": {
+    "mtime": 1789165944.3982854,
+    "seen": 1789424329.063204,
+    "ast_hash": "a171832d7af7ce0e8f590e3ab31f79b4",
+    "semantic_hash": "a171832d7af7ce0e8f590e3ab31f79b4"
+  },
+  "src/app/student/questions.tsx": {
+    "mtime": 1789070974.2504537,
+    "seen": 1789424329.063204,
+    "ast_hash": "72cb91c4af99a5adb33b6235876684e2",
+    "semantic_hash": "72cb91c4af99a5adb33b6235876684e2"
+  },
+  "src/app/student/tasks.tsx": {
+    "mtime": 1789070974.2505553,
+    "seen": 1789424329.063204,
+    "ast_hash": "252d6712c5bf63658ea4cf9032801f9f",
+    "semantic_hash": "252d6712c5bf63658ea4cf9032801f9f"
+  },
+  "src/components/animated-splash.tsx": {
+    "mtime": 1789165474.3026865,
+    "seen": 1789424329.063205,
+    "ast_hash": "3efed92df5241176eed2202f56b3b340",
+    "semantic_hash": "3efed92df5241176eed2202f56b3b340"
+  },
+  "src/components/button.tsx": {
+    "mtime": 1789165543.579736,
+    "seen": 1789424329.063205,
+    "ast_hash": "a34232305e9895296b012d7d32eccc33",
+    "semantic_hash": "a34232305e9895296b012d7d32eccc33"
+  },
+  "src/components/canvas-view.tsx": {
+    "mtime": 1789070974.2508466,
+    "seen": 1789424329.063205,
+    "ast_hash": "32987ca1003210245cdeef5499bdb4cb",
+    "semantic_hash": "32987ca1003210245cdeef5499bdb4cb"
+  },
+  "src/components/charts.tsx": {
+    "mtime": 1789165640.34602,
+    "seen": 1789424329.063206,
+    "ast_hash": "d1c676814901fcf2bc74b47d68234dca",
+    "semantic_hash": "d1c676814901fcf2bc74b47d68234dca"
+  },
+  "src/components/confetti.tsx": {
+    "mtime": 1789070974.251002,
+    "seen": 1789424329.063206,
+    "ast_hash": "0a506e255eeb2e30f434676d72546155",
+    "semantic_hash": "0a506e255eeb2e30f434676d72546155"
+  },
+  "src/components/focus-ring.tsx": {
+    "mtime": 1789165621.7243836,
+    "seen": 1789424329.063206,
+    "ast_hash": "e6975ea95500f6794953173ca700b0ce",
+    "semantic_hash": "e6975ea95500f6794953173ca700b0ce"
+  },
+  "src/components/hamburger-menu.tsx": {
+    "mtime": 1789070974.2512727,
+    "seen": 1789424329.063206,
+    "ast_hash": "54d1bc1ff79e12fd31b2bae317791532",
+    "semantic_hash": "54d1bc1ff79e12fd31b2bae317791532"
+  },
+  "src/components/mascot.tsx": {
+    "mtime": 1789165458.5201223,
+    "seen": 1789424329.063207,
+    "ast_hash": "79381620e00519ceffdc9d70d43186e2",
+    "semantic_hash": "79381620e00519ceffdc9d70d43186e2"
+  },
+  "src/components/pattern-background.tsx": {
+    "mtime": 1789165562.992673,
+    "seen": 1789424329.063207,
+    "ast_hash": "401d1ed0d4793213090d26f69b7f4118",
+    "semantic_hash": "401d1ed0d4793213090d26f69b7f4118"
+  },
+  "src/components/screen.tsx": {
+    "mtime": 1789165553.369076,
+    "seen": 1789424329.063207,
+    "ast_hash": "735a09723f0a06629d4eec0351958b2a",
+    "semantic_hash": "735a09723f0a06629d4eec0351958b2a"
+  },
+  "src/components/tab-bar.tsx": {
+    "mtime": 1789070974.2516167,
+    "seen": 1789424329.0632079,
+    "ast_hash": "009dcb9ca7b790105cb4d5eccb5ee8ca",
+    "semantic_hash": "009dcb9ca7b790105cb4d5eccb5ee8ca"
+  },
+  "src/components/ui.tsx": {
+    "mtime": 1789070974.2517061,
+    "seen": 1789424329.0632079,
+    "ast_hash": "d9490617600644362caf60fdec8ca55e",
+    "semantic_hash": "d9490617600644362caf60fdec8ca55e"
+  },
+  "src/features/onboarding/data.ts": {
+    "mtime": 1789070974.251884,
+    "seen": 1789424329.0632079,
+    "ast_hash": "0bea306d17a05da34911e33518dd3bb6",
+    "semantic_hash": "0bea306d17a05da34911e33518dd3bb6"
+  },
+  "src/features/onboarding/parts.tsx": {
+    "mtime": 1789165692.757151,
+    "seen": 1789424329.0632079,
+    "ast_hash": "40c705823c7a1e94cae2a0f7fc2792b2",
+    "semantic_hash": "40c705823c7a1e94cae2a0f7fc2792b2"
+  },
+  "src/lib/api-client.ts": {
+    "mtime": 1789070974.2521665,
+    "seen": 1789424329.063209,
+    "ast_hash": "1c71a233aa8dbb0da5b085cbe5b7c1f5",
+    "semantic_hash": "1c71a233aa8dbb0da5b085cbe5b7c1f5"
+  },
+  "src/lib/api.ts": {
+    "mtime": 1789070974.252276,
+    "seen": 1789424329.063209,
+    "ast_hash": "c79f5f07f21555910b7dab2b7eb76cfc",
+    "semantic_hash": "c79f5f07f21555910b7dab2b7eb76cfc"
+  },
+  "src/lib/date.ts": {
+    "mtime": 1789070974.252372,
+    "seen": 1789424329.063209,
+    "ast_hash": "8ebda2b9b50d9d1754dabf3d808c9a38",
+    "semantic_hash": "8ebda2b9b50d9d1754dabf3d808c9a38"
+  },
+  "src/lib/gamification.ts": {
+    "mtime": 1789070974.2524695,
+    "seen": 1789424329.06321,
+    "ast_hash": "97f28c9e7abfb234fae10335bff785b1",
+    "semantic_hash": "97f28c9e7abfb234fae10335bff785b1"
+  },
+  "src/lib/hamburger-menu-context.tsx": {
+    "mtime": 1789070974.2525663,
+    "seen": 1789424329.06321,
+    "ast_hash": "d4837a58aa19523f00ac993b95116019",
+    "semantic_hash": "d4837a58aa19523f00ac993b95116019"
+  },
+  "src/lib/photo-store.ts": {
+    "mtime": 1789070974.252659,
+    "seen": 1789424329.06321,
+    "ast_hash": "519c1a383c77a4047cf001b30a39952b",
+    "semantic_hash": "519c1a383c77a4047cf001b30a39952b"
+  },
+  "src/lib/push-notifications.ts": {
+    "mtime": 1789070974.2527444,
+    "seen": 1789424329.06321,
+    "ast_hash": "46fb7b1e49b8ad4dd6227fdc5c0fec4a",
+    "semantic_hash": "46fb7b1e49b8ad4dd6227fdc5c0fec4a"
+  },
+  "src/lib/session.tsx": {
+    "mtime": 1789166719.4063642,
+    "seen": 1789424329.063211,
+    "ast_hash": "d0403e339d3a5ef633a46bf274b547dd",
+    "semantic_hash": "d0403e339d3a5ef633a46bf274b547dd"
+  },
+  "src/lib/task-categories.ts": {
+    "mtime": 1789070974.2529097,
+    "seen": 1789424329.063211,
+    "ast_hash": "76d3d04c1429dd178e8bbb14e9ab9937",
+    "semantic_hash": "76d3d04c1429dd178e8bbb14e9ab9937"
+  },
+  "src/lib/types.ts": {
+    "mtime": 1789070974.2529993,
+    "seen": 1789424329.063211,
+    "ast_hash": "c61d9e62ef3614333f6861ee022828ee",
+    "semantic_hash": "c61d9e62ef3614333f6861ee022828ee"
+  },
+  "src/lib/use-focus-timer.ts": {
+    "mtime": 1789070974.253089,
+    "seen": 1789424329.063212,
+    "ast_hash": "d052e918c9b181da23b417866472e032",
+    "semantic_hash": "d052e918c9b181da23b417866472e032"
+  },
+  "src/theme/tokens.ts": {
+    "mtime": 1789165384.9927938,
+    "seen": 1789424329.063212,
+    "ast_hash": "2358d7fa471ad9058a696ce8de1fbbc3",
+    "semantic_hash": "2358d7fa471ad9058a696ce8de1fbbc3"
+  },
+  "tokens/blur.json": {
+    "mtime": 1789070974.2536519,
+    "seen": 1789424329.063212,
+    "ast_hash": "88c21f2ea638628ea9cf1e5e59904623",
+    "semantic_hash": "88c21f2ea638628ea9cf1e5e59904623"
+  },
+  "tokens/borders.json": {
+    "mtime": 1789070974.2537215,
+    "seen": 1789424329.063212,
+    "ast_hash": "b1687e82be9fd2e558f776f4464d34a6",
+    "semantic_hash": "b1687e82be9fd2e558f776f4464d34a6"
+  },
+  "tokens/breakpoints.json": {
+    "mtime": 1789070974.2538023,
+    "seen": 1789424329.063213,
+    "ast_hash": "788128f3a9a33766b9f6c3904e70a3d6",
+    "semantic_hash": "788128f3a9a33766b9f6c3904e70a3d6"
+  },
+  "tokens/colors.json": {
+    "mtime": 1789070974.253938,
+    "seen": 1789424329.063213,
+    "ast_hash": "3d3540c0007ec2dbe6a633712f7bcabc",
+    "semantic_hash": "3d3540c0007ec2dbe6a633712f7bcabc"
+  },
+  "tokens/data-viz.json": {
+    "mtime": 1789070974.2540267,
+    "seen": 1789424329.063213,
+    "ast_hash": "c92b2612a61c1c47c17bd0d8dd57312c",
+    "semantic_hash": "c92b2612a61c1c47c17bd0d8dd57312c"
+  },
+  "tokens/gradients.json": {
+    "mtime": 1789070974.2540975,
+    "seen": 1789424329.063213,
+    "ast_hash": "bb5a92721f4b77a299cf137ca05daf5f",
+    "semantic_hash": "bb5a92721f4b77a299cf137ca05daf5f"
+  },
+  "tokens/motion.json": {
+    "mtime": 1789070974.25418,
+    "seen": 1789424329.063214,
+    "ast_hash": "0cc9d100b2e7efc2e319615529ea2c6f",
+    "semantic_hash": "0cc9d100b2e7efc2e319615529ea2c6f"
+  },
+  "tokens/opacity.json": {
+    "mtime": 1789070974.254247,
+    "seen": 1789424329.063214,
+    "ast_hash": "0ff44a7cfb400a9080924858361462fb",
+    "semantic_hash": "0ff44a7cfb400a9080924858361462fb"
+  },
+  "tokens/shadows.json": {
+    "mtime": 1789070974.2543182,
+    "seen": 1789424329.063214,
+    "ast_hash": "7242f0e99ecf823d93afea3df6c31028",
+    "semantic_hash": "7242f0e99ecf823d93afea3df6c31028"
+  },
+  "tokens/sizing.json": {
+    "mtime": 1789070974.254386,
+    "seen": 1789424329.063215,
+    "ast_hash": "6b4c89709499866f45665305304f70e8",
+    "semantic_hash": "6b4c89709499866f45665305304f70e8"
+  },
+  "tokens/spacing.json": {
+    "mtime": 1789070974.2544653,
+    "seen": 1789424329.063215,
+    "ast_hash": "5f06a959050310527b4811553baae90d",
+    "semantic_hash": "5f06a959050310527b4811553baae90d"
+  },
+  "tokens/states.json": {
+    "mtime": 1789070974.2545357,
+    "seen": 1789424329.063215,
+    "ast_hash": "7233712a755fb945d93366f99b8c8c00",
+    "semantic_hash": "7233712a755fb945d93366f99b8c8c00"
+  },
+  "tokens/theming.json": {
+    "mtime": 1789070974.2546031,
+    "seen": 1789424329.063215,
+    "ast_hash": "5d2d9fd56691b551efec0b267f61be59",
+    "semantic_hash": "5d2d9fd56691b551efec0b267f61be59"
+  },
+  "tokens/typography.json": {
+    "mtime": 1789070974.2546864,
+    "seen": 1789424329.0632162,
+    "ast_hash": "9affad6238e9f51e7bc9f9fa2eb66fc8",
+    "semantic_hash": "9affad6238e9f51e7bc9f9fa2eb66fc8"
+  },
+  "tsconfig.json": {
+    "mtime": 1787532009.635201,
+    "seen": 1789424329.0632162,
+    "ast_hash": "6794be22dd9dd00003515895d3b4ff06",
+    "semantic_hash": "6794be22dd9dd00003515895d3b4ff06"
+  },
+  "AGENTS.md": {
+    "mtime": 1787532043.4473894,
+    "seen": 1789424329.0632162,
+    "ast_hash": "963888ec05f17b13375386f058dd621e",
+    "semantic_hash": "963888ec05f17b13375386f058dd621e"
+  },
+  "CLAUDE.md": {
+    "mtime": 1787532043.4474685,
+    "seen": 1789424329.0632162,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "README.md": {
+    "mtime": 1789070974.2254763,
+    "seen": 1789424329.063217,
+    "ast_hash": "a6b6844b337fef992fd4b66d8bc71b87",
+    "semantic_hash": "a6b6844b337fef992fd4b66d8bc71b87"
+  },
+  "design-systems/crosswalk.md": {
+    "mtime": 1789070974.227912,
+    "seen": 1789424329.063217,
+    "ast_hash": "58cf2b31152e59f82014637f0815bd14",
+    "semantic_hash": "58cf2b31152e59f82014637f0815bd14"
+  },
+  "design-systems/interop-protocol.md": {
+    "mtime": 1789070974.2280285,
+    "seen": 1789424329.063217,
+    "ast_hash": "b445317d8fe7d2f702d3c644f48ff910",
+    "semantic_hash": "b445317d8fe7d2f702d3c644f48ff910"
+  },
+  "design-systems/library/agentic/DESIGN.md": {
+    "mtime": 1789070974.22821,
+    "seen": 1789424329.063217,
+    "ast_hash": "bf51466c8159ef1bc1dff6e7ef9d42e2",
+    "semantic_hash": "bf51466c8159ef1bc1dff6e7ef9d42e2"
+  },
+  "design-systems/library/airbnb/DESIGN.md": {
+    "mtime": 1789070974.2283707,
+    "seen": 1789424329.0632179,
+    "ast_hash": "e12939c6eca9ac5039d2daf7f8a4f919",
+    "semantic_hash": "e12939c6eca9ac5039d2daf7f8a4f919"
+  },
+  "design-systems/library/airtable/DESIGN.md": {
+    "mtime": 1789070974.2285306,
+    "seen": 1789424329.0632179,
+    "ast_hash": "1ed69887f3149166cd623bec12019cdb",
+    "semantic_hash": "1ed69887f3149166cd623bec12019cdb"
+  },
+  "design-systems/library/ant/DESIGN.md": {
+    "mtime": 1789070974.2286568,
+    "seen": 1789424329.0632179,
+    "ast_hash": "dd0b82dd0e6cf8a3468c3c5d28bd3a9a",
+    "semantic_hash": "dd0b82dd0e6cf8a3468c3c5d28bd3a9a"
+  },
+  "design-systems/library/apple/DESIGN.md": {
+    "mtime": 1789070974.2287977,
+    "seen": 1789424329.0632188,
+    "ast_hash": "89054342efd701a11947bd0b37871bc6",
+    "semantic_hash": "89054342efd701a11947bd0b37871bc6"
+  },
+  "design-systems/library/application/DESIGN.md": {
+    "mtime": 1789070974.228947,
+    "seen": 1789424329.0632188,
+    "ast_hash": "b8f29583692b786b7db1b805e3414af5",
+    "semantic_hash": "b8f29583692b786b7db1b805e3414af5"
+  },
+  "design-systems/library/arc/DESIGN.md": {
+    "mtime": 1789070974.2290971,
+    "seen": 1789424329.0632188,
+    "ast_hash": "8e37b77a5a777a2b7d77449a77a1a3f8",
+    "semantic_hash": "8e37b77a5a777a2b7d77449a77a1a3f8"
+  },
+  "design-systems/library/artistic/DESIGN.md": {
+    "mtime": 1789070974.2292361,
+    "seen": 1789424329.06322,
+    "ast_hash": "74cbcdd01e7dfaf056ccfc64ab11f7a8",
+    "semantic_hash": "74cbcdd01e7dfaf056ccfc64ab11f7a8"
+  },
+  "design-systems/library/atelier-zero/DESIGN.md": {
+    "mtime": 1789070974.2294447,
+    "seen": 1789424329.06322,
+    "ast_hash": "28f0a8a5eac175a692754080dce25d86",
+    "semantic_hash": "28f0a8a5eac175a692754080dce25d86"
+  },
+  "design-systems/library/bento/DESIGN.md": {
+    "mtime": 1789070974.2295883,
+    "seen": 1789424329.06322,
+    "ast_hash": "f46df986a4956388dba4d903fda0acf9",
+    "semantic_hash": "f46df986a4956388dba4d903fda0acf9"
+  },
+  "design-systems/library/binance/DESIGN.md": {
+    "mtime": 1789070974.2297475,
+    "seen": 1789424329.06322,
+    "ast_hash": "42369b196f96ed99e48de78960b81b5f",
+    "semantic_hash": "42369b196f96ed99e48de78960b81b5f"
+  },
+  "design-systems/library/bmw/DESIGN.md": {
+    "mtime": 1789070974.2299337,
+    "seen": 1789424329.063221,
+    "ast_hash": "e37974ebc522d800d3e9a854adf82918",
+    "semantic_hash": "e37974ebc522d800d3e9a854adf82918"
+  },
+  "design-systems/library/bold/DESIGN.md": {
+    "mtime": 1789070974.2300694,
+    "seen": 1789424329.063221,
+    "ast_hash": "e6d2dbeb60a47e584120068343d1a3ef",
+    "semantic_hash": "e6d2dbeb60a47e584120068343d1a3ef"
+  },
+  "design-systems/library/brutalism/DESIGN.md": {
+    "mtime": 1789070974.230211,
+    "seen": 1789424329.063221,
+    "ast_hash": "ac7b24691d3c2406bcfe3c0059c80abe",
+    "semantic_hash": "ac7b24691d3c2406bcfe3c0059c80abe"
+  },
+  "design-systems/library/bugatti/DESIGN.md": {
+    "mtime": 1789070974.2303793,
+    "seen": 1789424329.063222,
+    "ast_hash": "40ea083a4d05b2d746668fe676c9bd86",
+    "semantic_hash": "40ea083a4d05b2d746668fe676c9bd86"
+  },
+  "design-systems/library/cafe/DESIGN.md": {
+    "mtime": 1789070974.2305424,
+    "seen": 1789424329.063222,
+    "ast_hash": "9ad85a4692c4e1b7456a68ab0615d571",
+    "semantic_hash": "9ad85a4692c4e1b7456a68ab0615d571"
+  },
+  "design-systems/library/cal/DESIGN.md": {
+    "mtime": 1789070974.2306983,
+    "seen": 1789424329.063222,
+    "ast_hash": "4bed7e144c5107008a61e734f953e038",
+    "semantic_hash": "4bed7e144c5107008a61e734f953e038"
+  },
+  "design-systems/library/canva/DESIGN.md": {
+    "mtime": 1789070974.2308834,
+    "seen": 1789424329.0632231,
+    "ast_hash": "362f67e507f7bb5c656b4c05a2193d63",
+    "semantic_hash": "362f67e507f7bb5c656b4c05a2193d63"
+  },
+  "design-systems/library/claude/DESIGN.md": {
+    "mtime": 1789070974.2310548,
+    "seen": 1789424329.0632231,
+    "ast_hash": "7661b152bfa888fee274f749953e61ef",
+    "semantic_hash": "7661b152bfa888fee274f749953e61ef"
+  },
+  "design-systems/library/clay/DESIGN.md": {
+    "mtime": 1789070974.2312634,
+    "seen": 1789424329.0632231,
+    "ast_hash": "2947e82ee3ef41b9369b6deab15709a4",
+    "semantic_hash": "2947e82ee3ef41b9369b6deab15709a4"
+  },
+  "design-systems/library/claymorphism/DESIGN.md": {
+    "mtime": 1789070974.2314405,
+    "seen": 1789424329.063224,
+    "ast_hash": "f32943a1c8683d357853180db88a0783",
+    "semantic_hash": "f32943a1c8683d357853180db88a0783"
+  },
+  "design-systems/library/clean/DESIGN.md": {
+    "mtime": 1789070974.2315726,
+    "seen": 1789424329.063224,
+    "ast_hash": "1c79e8238d140872fa394ae4cd38cb2a",
+    "semantic_hash": "1c79e8238d140872fa394ae4cd38cb2a"
+  },
+  "design-systems/library/clickhouse/DESIGN.md": {
+    "mtime": 1789070974.2317839,
+    "seen": 1789424329.063224,
+    "ast_hash": "2ca00f95b7e914047864423e98da8d8a",
+    "semantic_hash": "2ca00f95b7e914047864423e98da8d8a"
+  },
+  "design-systems/library/cohere/DESIGN.md": {
+    "mtime": 1789070974.2319832,
+    "seen": 1789424329.063225,
+    "ast_hash": "4b9cffb1533646712d1db5c46bc87bde",
+    "semantic_hash": "4b9cffb1533646712d1db5c46bc87bde"
+  },
+  "design-systems/library/coinbase/DESIGN.md": {
+    "mtime": 1789070974.2321336,
+    "seen": 1789424329.063225,
+    "ast_hash": "645930735eb9edd969d82058c5c32f57",
+    "semantic_hash": "645930735eb9edd969d82058c5c32f57"
+  },
+  "design-systems/library/colorful/DESIGN.md": {
+    "mtime": 1789070974.2322762,
+    "seen": 1789424329.063225,
+    "ast_hash": "4b4bd12386436b9cd873359278fb651c",
+    "semantic_hash": "4b4bd12386436b9cd873359278fb651c"
+  },
+  "design-systems/library/composio/DESIGN.md": {
+    "mtime": 1789070974.2324219,
+    "seen": 1789424329.063225,
+    "ast_hash": "7bac5080d7fddb658bd1af3ca14e803a",
+    "semantic_hash": "7bac5080d7fddb658bd1af3ca14e803a"
+  },
+  "design-systems/library/contemporary/DESIGN.md": {
+    "mtime": 1789070974.2325802,
+    "seen": 1789424329.0632262,
+    "ast_hash": "224242bb94e4cbddb40951be64d6eab8",
+    "semantic_hash": "224242bb94e4cbddb40951be64d6eab8"
+  },
+  "design-systems/library/corporate/DESIGN.md": {
+    "mtime": 1789070974.2327158,
+    "seen": 1789424329.0632262,
+    "ast_hash": "ef32cbaa1bd47e1daac37ba1c54f848e",
+    "semantic_hash": "ef32cbaa1bd47e1daac37ba1c54f848e"
+  },
+  "design-systems/library/cosmic/DESIGN.md": {
+    "mtime": 1789070974.2328312,
+    "seen": 1789424329.0632262,
+    "ast_hash": "5cc1fe8585f7d86bdc032a291903c629",
+    "semantic_hash": "5cc1fe8585f7d86bdc032a291903c629"
+  },
+  "design-systems/library/creative/DESIGN.md": {
+    "mtime": 1789070974.2329502,
+    "seen": 1789424329.063227,
+    "ast_hash": "4ed0c27b5459657ba879f4e33fed79fa",
+    "semantic_hash": "4ed0c27b5459657ba879f4e33fed79fa"
+  },
+  "design-systems/library/cursor/DESIGN.md": {
+    "mtime": 1789070974.233097,
+    "seen": 1789424329.063227,
+    "ast_hash": "1e4aabb573d21dc849da870fe7adc48a",
+    "semantic_hash": "1e4aabb573d21dc849da870fe7adc48a"
+  },
+  "design-systems/library/dashboard/DESIGN.md": {
+    "mtime": 1789070974.2332227,
+    "seen": 1789424329.063227,
+    "ast_hash": "a17972fb804c11342c1133546546958a",
+    "semantic_hash": "a17972fb804c11342c1133546546958a"
+  },
+  "design-systems/library/default/DESIGN.md": {
+    "mtime": 1789070974.2333374,
+    "seen": 1789424329.063227,
+    "ast_hash": "c29b4854230d2936ccbf506f2244e08a",
+    "semantic_hash": "c29b4854230d2936ccbf506f2244e08a"
+  },
+  "design-systems/library/discord/DESIGN.md": {
+    "mtime": 1789070974.2334647,
+    "seen": 1789424329.063228,
+    "ast_hash": "827490af6e2b15bb0e80ba83efd9882b",
+    "semantic_hash": "827490af6e2b15bb0e80ba83efd9882b"
+  },
+  "design-systems/library/dithered/DESIGN.md": {
+    "mtime": 1789070974.2335804,
+    "seen": 1789424329.063228,
+    "ast_hash": "95071c5f4acd0a90db3d2615beb0bf4d",
+    "semantic_hash": "95071c5f4acd0a90db3d2615beb0bf4d"
+  },
+  "design-systems/library/doodle/DESIGN.md": {
+    "mtime": 1789070974.2336936,
+    "seen": 1789424329.063228,
+    "ast_hash": "f65281dd14ae2d2a5c14b7b87c585ddd",
+    "semantic_hash": "f65281dd14ae2d2a5c14b7b87c585ddd"
+  },
+  "design-systems/library/dramatic/DESIGN.md": {
+    "mtime": 1789070974.233802,
+    "seen": 1789424329.063228,
+    "ast_hash": "71f6110a38b3173fbc524eb0556bccfd",
+    "semantic_hash": "71f6110a38b3173fbc524eb0556bccfd"
+  },
+  "design-systems/library/duolingo/DESIGN.md": {
+    "mtime": 1789070974.2339442,
+    "seen": 1789424329.0632288,
+    "ast_hash": "c1b30f5c79934fac2e59e90f8a11fb8a",
+    "semantic_hash": "c1b30f5c79934fac2e59e90f8a11fb8a"
+  },
+  "design-systems/library/editorial/DESIGN.md": {
+    "mtime": 1789070974.2340653,
+    "seen": 1789424329.0632288,
+    "ast_hash": "ac52cae4a64d9e371ddb7fea4dceb261",
+    "semantic_hash": "ac52cae4a64d9e371ddb7fea4dceb261"
+  },
+  "design-systems/library/elegant/DESIGN.md": {
+    "mtime": 1789070974.2343025,
+    "seen": 1789424329.0632288,
+    "ast_hash": "d18b6685a23f8f8784191da805b819db",
+    "semantic_hash": "d18b6685a23f8f8784191da805b819db"
+  },
+  "design-systems/library/elevenlabs/DESIGN.md": {
+    "mtime": 1789070974.2344983,
+    "seen": 1789424329.06323,
+    "ast_hash": "3e2b2df5c17157b1d637cd2b04862059",
+    "semantic_hash": "3e2b2df5c17157b1d637cd2b04862059"
+  },
+  "design-systems/library/energetic/DESIGN.md": {
+    "mtime": 1789070974.2346165,
+    "seen": 1789424329.06323,
+    "ast_hash": "33bee2ea19ed40a9374b95b2becda94a",
+    "semantic_hash": "33bee2ea19ed40a9374b95b2becda94a"
+  },
+  "design-systems/library/enterprise/DESIGN.md": {
+    "mtime": 1789070974.2347405,
+    "seen": 1789424329.06323,
+    "ast_hash": "ab6a9f75fe4587e6c1530eb93709b853",
+    "semantic_hash": "ab6a9f75fe4587e6c1530eb93709b853"
+  },
+  "design-systems/library/expo/DESIGN.md": {
+    "mtime": 1789070974.2348874,
+    "seen": 1789424329.063231,
+    "ast_hash": "4e52001a6f6df9c93c5b540e45482781",
+    "semantic_hash": "4e52001a6f6df9c93c5b540e45482781"
+  },
+  "design-systems/library/expressive/DESIGN.md": {
+    "mtime": 1789070974.2350242,
+    "seen": 1789424329.063231,
+    "ast_hash": "989508f6aeb9345d179defb17fe1f99f",
+    "semantic_hash": "989508f6aeb9345d179defb17fe1f99f"
+  },
+  "design-systems/library/fantasy/DESIGN.md": {
+    "mtime": 1789070974.2351508,
+    "seen": 1789424329.063231,
+    "ast_hash": "89a5d0eb49b8b34312936cca5d653098",
+    "semantic_hash": "89a5d0eb49b8b34312936cca5d653098"
+  },
+  "design-systems/library/ferrari/DESIGN.md": {
+    "mtime": 1789070974.2353027,
+    "seen": 1789424329.063231,
+    "ast_hash": "a0563b78d2084a9898977687a726859d",
+    "semantic_hash": "a0563b78d2084a9898977687a726859d"
+  },
+  "design-systems/library/figma/DESIGN.md": {
+    "mtime": 1789070974.2354727,
+    "seen": 1789424329.063232,
+    "ast_hash": "bb0740fe5297c9db24d7e640e1fd290f",
+    "semantic_hash": "bb0740fe5297c9db24d7e640e1fd290f"
+  },
+  "design-systems/library/flat/DESIGN.md": {
+    "mtime": 1789070974.235589,
+    "seen": 1789424329.063232,
+    "ast_hash": "a344518a0e53c1133e0ff74b876acccd",
+    "semantic_hash": "a344518a0e53c1133e0ff74b876acccd"
+  },
+  "design-systems/library/framer/DESIGN.md": {
+    "mtime": 1789070974.2357166,
+    "seen": 1789424329.063232,
+    "ast_hash": "ac2bcadb50cdf8cb3e3f64ced7cfab0e",
+    "semantic_hash": "ac2bcadb50cdf8cb3e3f64ced7cfab0e"
+  },
+  "design-systems/library/friendly/DESIGN.md": {
+    "mtime": 1789070974.2358356,
+    "seen": 1789424329.0632331,
+    "ast_hash": "6189697c624c8c71c8d8c8d692bf4d14",
+    "semantic_hash": "6189697c624c8c71c8d8c8d692bf4d14"
+  },
+  "design-systems/library/futuristic/DESIGN.md": {
+    "mtime": 1789070974.2359555,
+    "seen": 1789424329.0632331,
+    "ast_hash": "8c37ba14d49dbd8fca45b6368634f545",
+    "semantic_hash": "8c37ba14d49dbd8fca45b6368634f545"
+  },
+  "design-systems/library/github/DESIGN.md": {
+    "mtime": 1789070974.2360923,
+    "seen": 1789424329.0632331,
+    "ast_hash": "e1def4fdb69a19c0151e8e819453f75b",
+    "semantic_hash": "e1def4fdb69a19c0151e8e819453f75b"
+  },
+  "design-systems/library/glassmorphism/DESIGN.md": {
+    "mtime": 1789070974.2362118,
+    "seen": 1789424329.0632331,
+    "ast_hash": "b801a8c1896e9082c10324a04b0376d8",
+    "semantic_hash": "b801a8c1896e9082c10324a04b0376d8"
+  },
+  "design-systems/library/gradient/DESIGN.md": {
+    "mtime": 1789070974.2363248,
+    "seen": 1789424329.063234,
+    "ast_hash": "8f9e547f7eb8a345895087ecd8a182c1",
+    "semantic_hash": "8f9e547f7eb8a345895087ecd8a182c1"
+  },
+  "design-systems/library/hashicorp/DESIGN.md": {
+    "mtime": 1789070974.2365172,
+    "seen": 1789424329.063234,
+    "ast_hash": "31e1fb2afa77057ebcefc9cb050801eb",
+    "semantic_hash": "31e1fb2afa77057ebcefc9cb050801eb"
+  },
+  "design-systems/library/huggingface/DESIGN.md": {
+    "mtime": 1789070974.2366488,
+    "seen": 1789424329.063234,
+    "ast_hash": "a3e19c176de663072de3cb703441162d",
+    "semantic_hash": "a3e19c176de663072de3cb703441162d"
+  },
+  "design-systems/library/ibm/DESIGN.md": {
+    "mtime": 1789070974.2367904,
+    "seen": 1789424329.063234,
+    "ast_hash": "f150063b40f9b6cdfbf0730bfb3850fa",
+    "semantic_hash": "f150063b40f9b6cdfbf0730bfb3850fa"
+  },
+  "design-systems/library/intercom/DESIGN.md": {
+    "mtime": 1789070974.236931,
+    "seen": 1789424329.063235,
+    "ast_hash": "edc25421b004655679583508a267b732",
+    "semantic_hash": "edc25421b004655679583508a267b732"
+  },
+  "design-systems/library/kami/DESIGN.md": {
+    "mtime": 1789070974.237068,
+    "seen": 1789424329.063235,
+    "ast_hash": "e5f2933794a105d84d85d1ffe0454c64",
+    "semantic_hash": "e5f2933794a105d84d85d1ffe0454c64"
+  },
+  "design-systems/library/kraken/DESIGN.md": {
+    "mtime": 1789070974.2371953,
+    "seen": 1789424329.063235,
+    "ast_hash": "1a53dc976dcc3ab26d2d68d42a0423cf",
+    "semantic_hash": "1a53dc976dcc3ab26d2d68d42a0423cf"
+  },
+  "design-systems/library/lamborghini/DESIGN.md": {
+    "mtime": 1789070974.2373307,
+    "seen": 1789424329.063235,
+    "ast_hash": "a82f3b4b4c54ee70d011642a0c925d30",
+    "semantic_hash": "a82f3b4b4c54ee70d011642a0c925d30"
+  },
+  "design-systems/library/levels/DESIGN.md": {
+    "mtime": 1789070974.2374442,
+    "seen": 1789424329.063236,
+    "ast_hash": "c1e6c1a8bf3cd0841308b01391af34a2",
+    "semantic_hash": "c1e6c1a8bf3cd0841308b01391af34a2"
+  },
+  "design-systems/library/linear-app/DESIGN.md": {
+    "mtime": 1789070974.2375731,
+    "seen": 1789424329.063236,
+    "ast_hash": "ac791a30f9c370689d3242d3a99a41f2",
+    "semantic_hash": "ac791a30f9c370689d3242d3a99a41f2"
+  },
+  "design-systems/library/lingo/DESIGN.md": {
+    "mtime": 1789070974.237703,
+    "seen": 1789424329.063236,
+    "ast_hash": "5cd08dd28a4ca81ae9ea057efcf3b5d6",
+    "semantic_hash": "5cd08dd28a4ca81ae9ea057efcf3b5d6"
+  },
+  "design-systems/library/lovable/DESIGN.md": {
+    "mtime": 1789070974.2378442,
+    "seen": 1789424329.0632372,
+    "ast_hash": "d8b7045fa0ef1521526227d7a829a7d9",
+    "semantic_hash": "d8b7045fa0ef1521526227d7a829a7d9"
+  },
+  "design-systems/library/luxury/DESIGN.md": {
+    "mtime": 1789070974.2379646,
+    "seen": 1789424329.0632372,
+    "ast_hash": "dcc9944edea7aa5e35a5b8b314e9833c",
+    "semantic_hash": "dcc9944edea7aa5e35a5b8b314e9833c"
+  },
+  "design-systems/library/mastercard/DESIGN.md": {
+    "mtime": 1789070974.2381105,
+    "seen": 1789424329.0632372,
+    "ast_hash": "e302a6d9b6bf7430d0f956e5f6cf55c3",
+    "semantic_hash": "e302a6d9b6bf7430d0f956e5f6cf55c3"
+  },
+  "design-systems/library/material/DESIGN.md": {
+    "mtime": 1789070974.2382264,
+    "seen": 1789424329.0632372,
+    "ast_hash": "337fd97c4c7b3889b1131d4e9b37144d",
+    "semantic_hash": "337fd97c4c7b3889b1131d4e9b37144d"
+  },
+  "design-systems/library/meta/DESIGN.md": {
+    "mtime": 1789070974.2383573,
+    "seen": 1789424329.063238,
+    "ast_hash": "92f27791bb40525ef029b1fbc33ca270",
+    "semantic_hash": "92f27791bb40525ef029b1fbc33ca270"
+  },
+  "design-systems/library/minimal/DESIGN.md": {
+    "mtime": 1789070974.2384708,
+    "seen": 1789424329.063238,
+    "ast_hash": "18bf658b09bf317948f346dfbc42b932",
+    "semantic_hash": "18bf658b09bf317948f346dfbc42b932"
+  },
+  "design-systems/library/minimax/DESIGN.md": {
+    "mtime": 1789070974.2386377,
+    "seen": 1789424329.063238,
+    "ast_hash": "38b0c592c0ff5c85c1d507086d3ad8b5",
+    "semantic_hash": "38b0c592c0ff5c85c1d507086d3ad8b5"
+  },
+  "design-systems/library/mintlify/DESIGN.md": {
+    "mtime": 1789070974.2387538,
+    "seen": 1789424329.063238,
+    "ast_hash": "c889a59ed0120f66353a81d0b7643517",
+    "semantic_hash": "c889a59ed0120f66353a81d0b7643517"
+  },
+  "design-systems/library/miro/DESIGN.md": {
+    "mtime": 1789070974.2388768,
+    "seen": 1789424329.0632389,
+    "ast_hash": "354421b8c0ce7032cc56579bc5cfe1f1",
+    "semantic_hash": "354421b8c0ce7032cc56579bc5cfe1f1"
+  },
+  "design-systems/library/mistral-ai/DESIGN.md": {
+    "mtime": 1789070974.2390404,
+    "seen": 1789424329.0632389,
+    "ast_hash": "ae860086c527f87146697d5673a7af7a",
+    "semantic_hash": "ae860086c527f87146697d5673a7af7a"
+  },
+  "design-systems/library/modern/DESIGN.md": {
+    "mtime": 1789070974.2391477,
+    "seen": 1789424329.0632389,
+    "ast_hash": "b4f9e15a657fee75d77e0374e09de0e2",
+    "semantic_hash": "b4f9e15a657fee75d77e0374e09de0e2"
+  },
+  "design-systems/library/mongodb/DESIGN.md": {
+    "mtime": 1789070974.2393203,
+    "seen": 1789424329.06324,
+    "ast_hash": "4de727472a374038f8c92902fbda50b9",
+    "semantic_hash": "4de727472a374038f8c92902fbda50b9"
+  },
+  "design-systems/library/mono/DESIGN.md": {
+    "mtime": 1789070974.2394376,
+    "seen": 1789424329.06324,
+    "ast_hash": "aebda5df665120887fccbbe6aee39b52",
+    "semantic_hash": "aebda5df665120887fccbbe6aee39b52"
+  },
+  "design-systems/library/neobrutalism/DESIGN.md": {
+    "mtime": 1789070974.2395508,
+    "seen": 1789424329.06324,
+    "ast_hash": "efb139e14cf8a63b977811c160d199e8",
+    "semantic_hash": "efb139e14cf8a63b977811c160d199e8"
+  },
+  "design-systems/library/neon/DESIGN.md": {
+    "mtime": 1789070974.239652,
+    "seen": 1789424329.06324,
+    "ast_hash": "efdafee4a8f0105ef376ff3a48a4d34a",
+    "semantic_hash": "efdafee4a8f0105ef376ff3a48a4d34a"
+  },
+  "design-systems/library/neumorphism/DESIGN.md": {
+    "mtime": 1789070974.2397723,
+    "seen": 1789424329.063241,
+    "ast_hash": "336c1a574229cc1544a2b16a91b41ecc",
+    "semantic_hash": "336c1a574229cc1544a2b16a91b41ecc"
+  },
+  "design-systems/library/nike/DESIGN.md": {
+    "mtime": 1789070974.2398946,
+    "seen": 1789424329.063241,
+    "ast_hash": "d905578eeb4a5719c713956eb27dc900",
+    "semantic_hash": "d905578eeb4a5719c713956eb27dc900"
+  },
+  "design-systems/library/notion/DESIGN.md": {
+    "mtime": 1789070974.2400162,
+    "seen": 1789424329.063241,
+    "ast_hash": "d78d8b392f825f2832c3130be46422d2",
+    "semantic_hash": "d78d8b392f825f2832c3130be46422d2"
+  },
+  "design-systems/library/nvidia/DESIGN.md": {
+    "mtime": 1789070974.240142,
+    "seen": 1789424329.063242,
+    "ast_hash": "e96ae087718e7f634101d90d9054e9e3",
+    "semantic_hash": "e96ae087718e7f634101d90d9054e9e3"
+  },
+  "design-systems/library/ollama/DESIGN.md": {
+    "mtime": 1789070974.2403102,
+    "seen": 1789424329.063242,
+    "ast_hash": "97a9c145f2c328ad8f10550659363f5d",
+    "semantic_hash": "97a9c145f2c328ad8f10550659363f5d"
+  },
+  "design-systems/library/openai/DESIGN.md": {
+    "mtime": 1789070974.240434,
+    "seen": 1789424329.063242,
+    "ast_hash": "75731e3e273b3e125902f17c2a35a992",
+    "semantic_hash": "75731e3e273b3e125902f17c2a35a992"
+  },
+  "design-systems/library/opencode-ai/DESIGN.md": {
+    "mtime": 1789070974.2406056,
+    "seen": 1789424329.063242,
+    "ast_hash": "e1b856a72c6abed8aaede0d0a34a1570",
+    "semantic_hash": "e1b856a72c6abed8aaede0d0a34a1570"
+  },
+  "design-systems/library/pacman/DESIGN.md": {
+    "mtime": 1789070974.2407136,
+    "seen": 1789424329.063243,
+    "ast_hash": "b8c138046429629fd51e0a81fabd3bb3",
+    "semantic_hash": "b8c138046429629fd51e0a81fabd3bb3"
+  },
+  "design-systems/library/paper/DESIGN.md": {
+    "mtime": 1789070974.2408133,
+    "seen": 1789424329.063243,
+    "ast_hash": "7819b86b1c496bc0a160c1a890674fcb",
+    "semantic_hash": "7819b86b1c496bc0a160c1a890674fcb"
+  },
+  "design-systems/library/perspective/DESIGN.md": {
+    "mtime": 1789070974.240913,
+    "seen": 1789424329.063243,
+    "ast_hash": "bdd24ca42ad7a0329b853d60310e1ab6",
+    "semantic_hash": "bdd24ca42ad7a0329b853d60310e1ab6"
+  },
+  "design-systems/library/pinterest/DESIGN.md": {
+    "mtime": 1789070974.2410536,
+    "seen": 1789424329.063244,
+    "ast_hash": "c1ddb775494078f048885402ef809613",
+    "semantic_hash": "c1ddb775494078f048885402ef809613"
+  },
+  "design-systems/library/playstation/DESIGN.md": {
+    "mtime": 1789070974.241188,
+    "seen": 1789424329.063244,
+    "ast_hash": "191eb590732e3c72ebad7bd7e48b241c",
+    "semantic_hash": "191eb590732e3c72ebad7bd7e48b241c"
+  },
+  "design-systems/library/posthog/DESIGN.md": {
+    "mtime": 1789070974.2413228,
+    "seen": 1789424329.063244,
+    "ast_hash": "f416be06d0fff7c55da0fe396e9c8d9f",
+    "semantic_hash": "f416be06d0fff7c55da0fe396e9c8d9f"
+  },
+  "design-systems/library/premium/DESIGN.md": {
+    "mtime": 1789070974.2414436,
+    "seen": 1789424329.063244,
+    "ast_hash": "c828dad30516f10bd4ace7056144a090",
+    "semantic_hash": "c828dad30516f10bd4ace7056144a090"
+  },
+  "design-systems/library/professional/DESIGN.md": {
+    "mtime": 1789070974.2415516,
+    "seen": 1789424329.063245,
+    "ast_hash": "e17f5c2b3952bcbd9b9545f16a3ba345",
+    "semantic_hash": "e17f5c2b3952bcbd9b9545f16a3ba345"
+  },
+  "design-systems/library/publication/DESIGN.md": {
+    "mtime": 1789070974.2416525,
+    "seen": 1789424329.063245,
+    "ast_hash": "f915caab3a977e7763302ec12c9ef84f",
+    "semantic_hash": "f915caab3a977e7763302ec12c9ef84f"
+  },
+  "design-systems/library/raycast/DESIGN.md": {
+    "mtime": 1789070974.24179,
+    "seen": 1789424329.063245,
+    "ast_hash": "c16914fb7ca9581e3adb000574ffc3b9",
+    "semantic_hash": "c16914fb7ca9581e3adb000574ffc3b9"
+  },
+  "design-systems/library/refined/DESIGN.md": {
+    "mtime": 1789070974.241902,
+    "seen": 1789424329.063246,
+    "ast_hash": "886c77acf67625765d2e0b197ead3373",
+    "semantic_hash": "886c77acf67625765d2e0b197ead3373"
+  },
+  "design-systems/library/renault/DESIGN.md": {
+    "mtime": 1789070974.2420347,
+    "seen": 1789424329.063248,
+    "ast_hash": "6c6fa9045ef117b222831c6e96472673",
+    "semantic_hash": "6c6fa9045ef117b222831c6e96472673"
+  },
+  "design-systems/library/replicate/DESIGN.md": {
+    "mtime": 1789070974.2422063,
+    "seen": 1789424329.063248,
+    "ast_hash": "e0f17807ffd80cbfb51c4a347571254f",
+    "semantic_hash": "e0f17807ffd80cbfb51c4a347571254f"
+  },
+  "design-systems/library/resend/DESIGN.md": {
+    "mtime": 1789070974.2423265,
+    "seen": 1789424329.063248,
+    "ast_hash": "6e041a32fe19ead22dbb38ce7b3f8755",
+    "semantic_hash": "6e041a32fe19ead22dbb38ce7b3f8755"
+  },
+  "design-systems/library/retro/DESIGN.md": {
+    "mtime": 1789070974.242444,
+    "seen": 1789424329.0632489,
+    "ast_hash": "a8eeb75146bc85c11a9cbd4b9a0038b2",
+    "semantic_hash": "a8eeb75146bc85c11a9cbd4b9a0038b2"
+  },
+  "design-systems/library/revolut/DESIGN.md": {
+    "mtime": 1789070974.2425852,
+    "seen": 1789424329.0632489,
+    "ast_hash": "7d7e0c57e82f3b3836544f909a7ff0ea",
+    "semantic_hash": "7d7e0c57e82f3b3836544f909a7ff0ea"
+  },
+  "design-systems/library/runwayml/DESIGN.md": {
+    "mtime": 1789070974.2427454,
+    "seen": 1789424329.0632489,
+    "ast_hash": "dc31a975084664226a80b628fb457aef",
+    "semantic_hash": "dc31a975084664226a80b628fb457aef"
+  },
+  "design-systems/library/sanity/DESIGN.md": {
+    "mtime": 1789070974.242877,
+    "seen": 1789424329.0632498,
+    "ast_hash": "b982e6e435454bf3ba5fb2616aa85196",
+    "semantic_hash": "b982e6e435454bf3ba5fb2616aa85196"
+  },
+  "design-systems/library/sentry/DESIGN.md": {
+    "mtime": 1789070974.2430477,
+    "seen": 1789424329.0632498,
+    "ast_hash": "1c4a5e633f789bcadec9160a24c22b2d",
+    "semantic_hash": "1c4a5e633f789bcadec9160a24c22b2d"
+  },
+  "design-systems/library/shadcn/DESIGN.md": {
+    "mtime": 1789070974.2431557,
+    "seen": 1789424329.0632498,
+    "ast_hash": "da21f577bf5f868a3b04f1b1505d631d",
+    "semantic_hash": "da21f577bf5f868a3b04f1b1505d631d"
+  },
+  "design-systems/library/shopify/DESIGN.md": {
+    "mtime": 1789070974.2432802,
+    "seen": 1789424329.0632498,
+    "ast_hash": "749f393725b25e105c47aaa4e1ebdcb2",
+    "semantic_hash": "749f393725b25e105c47aaa4e1ebdcb2"
+  },
+  "design-systems/library/simple/DESIGN.md": {
+    "mtime": 1789070974.2433891,
+    "seen": 1789424329.063251,
+    "ast_hash": "d3a33c96e0dfe9cfb696f62d1d579779",
+    "semantic_hash": "d3a33c96e0dfe9cfb696f62d1d579779"
+  },
+  "design-systems/library/skeumorphism/DESIGN.md": {
+    "mtime": 1789070974.243496,
+    "seen": 1789424329.063251,
+    "ast_hash": "09812dafa97a0788a7e8039165b55f2e",
+    "semantic_hash": "09812dafa97a0788a7e8039165b55f2e"
+  },
+  "design-systems/library/sleek/DESIGN.md": {
+    "mtime": 1789070974.2436066,
+    "seen": 1789424329.063251,
+    "ast_hash": "43a087f3123f1845d532772250bf28f4",
+    "semantic_hash": "43a087f3123f1845d532772250bf28f4"
+  },
+  "design-systems/library/spacex/DESIGN.md": {
+    "mtime": 1789070974.2437422,
+    "seen": 1789424329.063252,
+    "ast_hash": "993051a26c2996c24b24907b40c2d3c6",
+    "semantic_hash": "993051a26c2996c24b24907b40c2d3c6"
+  },
+  "design-systems/library/spacious/DESIGN.md": {
+    "mtime": 1789070974.2438457,
+    "seen": 1789424329.063252,
+    "ast_hash": "a60da55d51dad09b28d7e4d95c33de17",
+    "semantic_hash": "a60da55d51dad09b28d7e4d95c33de17"
+  },
+  "design-systems/library/spotify/DESIGN.md": {
+    "mtime": 1789070974.2440069,
+    "seen": 1789424329.063252,
+    "ast_hash": "8d68b296c61cd73c9fdc19bb0ef9fb01",
+    "semantic_hash": "8d68b296c61cd73c9fdc19bb0ef9fb01"
+  },
+  "design-systems/library/starbucks/DESIGN.md": {
+    "mtime": 1789070974.244159,
+    "seen": 1789424329.063252,
+    "ast_hash": "908d13c36171a89632e9ec3c254564cd",
+    "semantic_hash": "908d13c36171a89632e9ec3c254564cd"
+  },
+  "design-systems/library/storytelling/DESIGN.md": {
+    "mtime": 1789070974.2442796,
+    "seen": 1789424329.063253,
+    "ast_hash": "35be41eef35b90e41e5680370b3d9a50",
+    "semantic_hash": "35be41eef35b90e41e5680370b3d9a50"
+  },
+  "design-systems/library/stripe/DESIGN.md": {
+    "mtime": 1789070974.2444026,
+    "seen": 1789424329.063253,
+    "ast_hash": "da276f2538aabdb802dfd1d1fd81eb75",
+    "semantic_hash": "da276f2538aabdb802dfd1d1fd81eb75"
+  },
+  "design-systems/library/supabase/DESIGN.md": {
+    "mtime": 1789070974.2445934,
+    "seen": 1789424329.063253,
+    "ast_hash": "62e15f979c544e331dc5dac1c2e58d89",
+    "semantic_hash": "62e15f979c544e331dc5dac1c2e58d89"
+  },
+  "design-systems/library/superhuman/DESIGN.md": {
+    "mtime": 1789070974.2447352,
+    "seen": 1789424329.063253,
+    "ast_hash": "19753a3a47bc050fe4142a702d2537d4",
+    "semantic_hash": "19753a3a47bc050fe4142a702d2537d4"
+  },
+  "design-systems/library/tesla/DESIGN.md": {
+    "mtime": 1789070974.2450678,
+    "seen": 1789424329.063254,
+    "ast_hash": "cd5d92557cefa34e22b17b0676aa6d3f",
+    "semantic_hash": "cd5d92557cefa34e22b17b0676aa6d3f"
+  },
+  "design-systems/library/tetris/DESIGN.md": {
+    "mtime": 1789070974.2451775,
+    "seen": 1789424329.063254,
+    "ast_hash": "18f589511b95ceff4c45a4ae0a1f184d",
+    "semantic_hash": "18f589511b95ceff4c45a4ae0a1f184d"
+  },
+  "design-systems/library/theverge/DESIGN.md": {
+    "mtime": 1789070974.2453156,
+    "seen": 1789424329.063254,
+    "ast_hash": "3e2ced420cc2373a6ed443de82af62ed",
+    "semantic_hash": "3e2ced420cc2373a6ed443de82af62ed"
+  },
+  "design-systems/library/together-ai/DESIGN.md": {
+    "mtime": 1789070974.245489,
+    "seen": 1789424329.063255,
+    "ast_hash": "e7dd35ea2e18372b179c502def63903c",
+    "semantic_hash": "e7dd35ea2e18372b179c502def63903c"
+  },
+  "design-systems/library/uber/DESIGN.md": {
+    "mtime": 1789070974.245607,
+    "seen": 1789424329.063255,
+    "ast_hash": "dbe3ca41279786675034e47f3e345279",
+    "semantic_hash": "dbe3ca41279786675034e47f3e345279"
+  },
+  "design-systems/library/vercel/DESIGN.md": {
+    "mtime": 1789070974.2457354,
+    "seen": 1789424329.063255,
+    "ast_hash": "6320d4d2c623b9dfdf4cc19db88052da",
+    "semantic_hash": "6320d4d2c623b9dfdf4cc19db88052da"
+  },
+  "design-systems/library/vibrant/DESIGN.md": {
+    "mtime": 1789070974.2458508,
+    "seen": 1789424329.063255,
+    "ast_hash": "bc68d5d7472125304440a85ef27fa558",
+    "semantic_hash": "bc68d5d7472125304440a85ef27fa558"
+  },
+  "design-systems/library/vintage/DESIGN.md": {
+    "mtime": 1789070974.245958,
+    "seen": 1789424329.063256,
+    "ast_hash": "d711c0ec4edf21811ed7248c70809bbe",
+    "semantic_hash": "d711c0ec4edf21811ed7248c70809bbe"
+  },
+  "design-systems/library/vodafone/DESIGN.md": {
+    "mtime": 1789070974.2460964,
+    "seen": 1789424329.063256,
+    "ast_hash": "cbc7c0dc99920b66f0ead936a9f71441",
+    "semantic_hash": "cbc7c0dc99920b66f0ead936a9f71441"
+  },
+  "design-systems/library/voltagent/DESIGN.md": {
+    "mtime": 1789070974.2462385,
+    "seen": 1789424329.063256,
+    "ast_hash": "d46c5f9cee3ea40a19cba324f2129260",
+    "semantic_hash": "d46c5f9cee3ea40a19cba324f2129260"
+  },
+  "design-systems/library/warm-editorial/DESIGN.md": {
+    "mtime": 1789070974.2463584,
+    "seen": 1789424329.063257,
+    "ast_hash": "573dc3e41c70c5367b8bc8e47797f050",
+    "semantic_hash": "573dc3e41c70c5367b8bc8e47797f050"
+  },
+  "design-systems/library/warp/DESIGN.md": {
+    "mtime": 1789070974.2464752,
+    "seen": 1789424329.063257,
+    "ast_hash": "eef378265c06edd2ba78108936ecce45",
+    "semantic_hash": "eef378265c06edd2ba78108936ecce45"
+  },
+  "design-systems/library/webflow/DESIGN.md": {
+    "mtime": 1789070974.2465951,
+    "seen": 1789424329.063257,
+    "ast_hash": "ebec6286e737fbb60d24db90e18a8c5d",
+    "semantic_hash": "ebec6286e737fbb60d24db90e18a8c5d"
+  },
+  "design-systems/library/wired/DESIGN.md": {
+    "mtime": 1789070974.246723,
+    "seen": 1789424329.063257,
+    "ast_hash": "b9e3af8bb9df85f95d55a6ae12000b79",
+    "semantic_hash": "b9e3af8bb9df85f95d55a6ae12000b79"
+  },
+  "design-systems/library/wise/DESIGN.md": {
+    "mtime": 1789070974.2468655,
+    "seen": 1789424329.0632582,
+    "ast_hash": "8a3616241b15fef281c436d877aca0ba",
+    "semantic_hash": "8a3616241b15fef281c436d877aca0ba"
+  },
+  "design-systems/library/x-ai/DESIGN.md": {
+    "mtime": 1789070974.2470446,
+    "seen": 1789424329.0632582,
+    "ast_hash": "a8084dfab63dff26572bbccca628b89f",
+    "semantic_hash": "a8084dfab63dff26572bbccca628b89f"
+  },
+  "design-systems/library/xiaohongshu/DESIGN.md": {
+    "mtime": 1789070974.2471983,
+    "seen": 1789424329.0632582,
+    "ast_hash": "41b1a0da7eb79dff07126c9961b2d8c2",
+    "semantic_hash": "41b1a0da7eb79dff07126c9961b2d8c2"
+  },
+  "design-systems/library/zapier/DESIGN.md": {
+    "mtime": 1789070974.2475262,
+    "seen": 1789424329.063259,
+    "ast_hash": "bf927fb6fc788c9ddc27ccbcb8689ce8",
+    "semantic_hash": "bf927fb6fc788c9ddc27ccbcb8689ce8"
+  },
+  "taste/aesthetic-systems.md": {
+    "mtime": 1789070974.2533588,
+    "seen": 1789424329.063259,
+    "ast_hash": "d48cffaece58dbe858ebdf94d289fedc",
+    "semantic_hash": "d48cffaece58dbe858ebdf94d289fedc"
+  },
+  "taste/design-taste.md": {
+    "mtime": 1789070974.2534723,
+    "seen": 1789424329.063259,
+    "ast_hash": "0aaa3ea866dc8143fe3d92aa6fd4fa86",
+    "semantic_hash": "0aaa3ea866dc8143fe3d92aa6fd4fa86"
+  },
+  "taste/motion-choreography.md": {
+    "mtime": 1789070974.2535572,
+    "seen": 1789424329.0632598,
+    "ast_hash": "97e5a56637f10e5e3eaf484fb138940a",
+    "semantic_hash": "97e5a56637f10e5e3eaf484fb138940a"
+  },
+  "assets/images/icon.png": {
+    "mtime": 1789165504.5823894,
+    "seen": 1789424329.0632598,
+    "ast_hash": "70f30343ffa288792a8f59ee1c2834aa",
+    "semantic_hash": "70f30343ffa288792a8f59ee1c2834aa"
+  },
+  "assets/images/kocum-benim-app-icon.png": {
+    "mtime": 1789164658.0203924,
+    "seen": 1789424329.0632598,
+    "ast_hash": "3e28c48ee76726f675ce92940e3c4418",
+    "semantic_hash": "3e28c48ee76726f675ce92940e3c4418"
+  },
+  "assets/images/kocum-benim-app-maskot.png": {
+    "mtime": 1789164658.036695,
+    "seen": 1789424329.0632598,
+    "ast_hash": "8c1fb66d1989f2d8bae41691ad154a47",
+    "semantic_hash": "8c1fb66d1989f2d8bae41691ad154a47"
+  },
+  "assets/images/logo-glow.png": {
+    "mtime": 1787532009.6458652,
+    "seen": 1789424329.063261,
+    "ast_hash": "dbca075a49dc45e550c5d2e3e9601039",
+    "semantic_hash": "dbca075a49dc45e550c5d2e3e9601039"
+  },
+  "assets/images/mascot.png": {
+    "mtime": 1789165407.6479673,
+    "seen": 1789424329.063261,
+    "ast_hash": "c27e688dc1653272f520f98b9fe4c9eb",
+    "semantic_hash": "c27e688dc1653272f520f98b9fe4c9eb"
+  },
+  "assets/images/splash-icon.png": {
+    "mtime": 1789164179.3109727,
+    "seen": 1789424329.063261,
+    "ast_hash": "71cc047968d631ff5685392415de5c1b",
+    "semantic_hash": "71cc047968d631ff5685392415de5c1b"
+  },
+  "assets/images/tutorial-web.png": {
+    "mtime": 1787532009.6490304,
+    "seen": 1789424329.063262,
+    "ast_hash": "c62d22797f3002396754d8cc55b0ae1a",
+    "semantic_hash": "c62d22797f3002396754d8cc55b0ae1a"
+  }
+}

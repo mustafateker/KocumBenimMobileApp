@@ -6,8 +6,8 @@ import { Alert, StyleSheet, Switch, View } from 'react-native';
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, TextField, Txt } from '@/components/ui';
-import { ApiError } from '@/lib/api-client';
 import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
+import { ApiError } from '@/lib/api-client';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
 import { Accent, Palette, Space } from '@/theme/tokens';
@@ -266,8 +266,18 @@ export default function Settings() {
           Destek ve Yasal
         </Txt>
         <Card style={styles.list}>
-          <SettingRow icon="shield-checkmark-outline" color={Palette.textDim} label="Gizlilik Politikası" chevron />
-          <SettingRow icon="document-text-outline" color={Palette.textDim} label="Kullanım Şartları" chevron />
+          <PressScale onPress={() => router.push('/help')}>
+            <SettingRow icon="help-circle-outline" color={Palette.green} label="Yardım & Destek" chevron />
+          </PressScale>
+          <PressScale onPress={() => router.push('/privacy-policy')}>
+            <SettingRow icon="shield-checkmark-outline" color={Palette.textDim} label="Gizlilik Politikası" chevron />
+          </PressScale>
+          <PressScale onPress={() => router.push('/terms')}>
+            <SettingRow icon="document-text-outline" color={Palette.textDim} label="Kullanım Şartları" chevron />
+          </PressScale>
+          <PressScale onPress={() => router.push('/data-disclosure')}>
+            <SettingRow icon="reader-outline" color={Palette.textDim} label="Aydınlatma Metni" chevron />
+          </PressScale>
           <SettingRow icon="information-circle-outline" color={Palette.textDim} label="Sürüm" trailing="1.0.0" />
         </Card>
       </View>
@@ -275,7 +285,7 @@ export default function Settings() {
       {/* Tehlikeli bolge */}
       <View style={styles.section}>
         <Txt variant="smallStrong" color={Palette.pink}>
-          Tehlikeli Bölge
+          Hesap İşlemleri
         </Txt>
         <GhostButton
           label="Çıkış Yap"

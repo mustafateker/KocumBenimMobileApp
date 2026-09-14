@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-import { Accent, Border, deepOf, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
+import { Accent, Border, deepOf, Font, gradientOf, Motion, OnColor, Palette, Space } from '@/theme/tokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 
 /** Dokunmatik geri bildirim — web'de haptics yok, sessizce atlanir. */
 function tap(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
@@ -74,7 +76,8 @@ type ChunkyButtonProps = {
 /**
  * Duolingo'nun imza mekanigi: dinlenirken rengin koyu tonundan 4px'lik bir
  * "3D basma" seridi gorunur; basinca ic katman asagi kayar ve seridi yutar.
- * Gradyan/parlama yerine duz dolgu + kati kenarlik hiyerarsiyi tasir.
+ * Ust yuzey artik acikdan-koyuya yumusak bir gradyan (bkz `gradientOf`) —
+ * canlilik gradyandan, kat/basma hiyerarsisi yine kontur + koyu seritten gelir.
  */
 function ChunkyButton({
   label,
@@ -125,13 +128,15 @@ function ChunkyButton({
           },
         ]}
       >
-        <Animated.View
+        <AnimatedGradient
+          colors={gradientOf(fill)}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
           style={[
             styles.solid,
             {
               height,
               borderRadius: height / 2,
-              backgroundColor: fill,
               borderWidth: borderColor ? Border.thick : 0,
               borderColor,
             },
@@ -145,7 +150,7 @@ function ChunkyButton({
           >
             {label}
           </Animated.Text>
-        </Animated.View>
+        </AnimatedGradient>
       </View>
     </Pressable>
   );

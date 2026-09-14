@@ -28,7 +28,7 @@ npx expo start        # sonra a (Android) / i (iOS) / w (web)
 **Öğrenci** (`src/app/student/`)
 - **Üs** — dairesel odak zamanlayıcı, günlük görev kartları, seri ve coin göstergesi,
   oyun odası kilidinin ilerlemesi
-- **Sorular** — "Kurtar Beni": soruyu fotoğrafla, üzerine çiz, hocaya yolla
+- **Sorular** — "Şipşak Soru ": soruyu fotoğrafla, üzerine çiz, hocaya yolla
 - **Oyun** — günlük odak hedefi tutunca açılan zeka molası (2048, Sudoku, Hafıza)
 - **Market** — kazanılan coin ile koçun belirlediği ödülleri alma
 - **Ben** — RPG tarzı seviye/karakter kartı, haftalık grafik, en verimli saat analizi,
