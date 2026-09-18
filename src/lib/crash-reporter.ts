@@ -60,7 +60,22 @@ function nextId(): string {
 
 function describe(error: unknown): { message: string; stack: string | null } {
   if (error instanceof Error) {
-    return { message: error.message || error.name, stack: error.stack ?? null };
+    // ApiError'in `code`/`details` alanlarini da teknik detaya yaziyoruz:
+    // "Sunucuya baglanilamadi." gibi kullaniciya gosterilen mesajlar tek
+    // baslarina sebebi anlatmiyor, asil neden `details.originalMessage`'ta.
+    const { code, details } = error as { code?: string; details?: unknown };
+    const parts: string[] = [];
+    if (code) parts.push(`code: ${code}`);
+    if (details != null) {
+      try {
+        parts.push(`details: ${JSON.stringify(details)}`);
+      } catch {
+        parts.push(`details: ${String(details)}`);
+      }
+    }
+    if (error.stack) parts.push(error.stack);
+
+    return { message: error.message || error.name, stack: parts.length > 0 ? parts.join('\n') : null };
   }
   if (typeof error === 'string') return { message: error, stack: null };
   try {

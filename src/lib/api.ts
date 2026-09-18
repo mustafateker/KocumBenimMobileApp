@@ -98,12 +98,9 @@ export function completeTask(taskId: number, correct: number, wrong: number) {
 /* --------------------------------------- sorular ----------------------------------- */
 
 export function createQuestion(input: { imageUri: string; strokes: CanvasData; note: string }) {
-  const extension = input.imageUri.split('.').pop()?.split('?')[0] || 'jpg';
-
   return api.uploadFile<Question>('/questions', {
     fieldName: 'image',
     fileUri: localImageUri(input.imageUri),
-    mimeType: extension === 'png' ? 'image/png' : 'image/jpeg',
     fields: {
       strokes: JSON.stringify(input.strokes),
       note: input.note,

@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   Keyboard,
   Modal,
   PanResponder,
@@ -47,7 +48,6 @@ export default function Annotate() {
   const [photoAspect, setPhotoAspect] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
-  const [sendError, setSendError] = useState<string | null>(null);
 
   /** Metin araci: dokunulan noktaya not birakma penceresi. */
   const [textDraft, setTextDraft] = useState<{ x: number; y: number; value: string } | null>(null);
@@ -155,7 +155,6 @@ export default function Annotate() {
   const send = useCallback(async () => {
     if (saving || !uri) return;
     setSaving(true);
-    setSendError(null);
     try {
       await createQuestion({
         imageUri: uri,
@@ -170,8 +169,11 @@ export default function Annotate() {
       router.replace({ pathname: '/student/questions', params: { mode: 'list' } });
     } catch (err) {
       // Eskiden yakalanmayan bu hata sessiz bir cokmeye donusuyordu.
+      // Mesaji ekrana bir metin satiri olarak basmiyoruz: alt panele sonradan
+      // gorunur bir yazi eklemek Fabric'te "addViewAt: the specified child
+      // already has a parent" mount hatasina (kirmizi ekran) yol aciyor.
       const entry = logHandledError('QUESTION_UPLOAD', err);
-      setSendError(entry.message);
+      Alert.alert('Soru gönderilemedi', `${entry.message}\n\nHata kodu: ${entry.code}`);
     } finally {
       setSaving(false);
     }
@@ -277,12 +279,6 @@ export default function Annotate() {
               </PressScale>
             ))}
           </View>
-
-          {sendError ? (
-            <Txt variant="small" color={Palette.pink} center style={styles.sendError}>
-              {sendError}
-            </Txt>
-          ) : null}
 
           {/* Not alani */}
           <View style={styles.noteRow}>
@@ -435,10 +431,6 @@ const styles = StyleSheet.create({
   },
   swatchActive: {
     borderColor: Palette.text,
-  },
-  sendError: {
-    marginHorizontal: Space.lg,
-    marginBottom: Space.sm,
   },
   noteRow: {
     flexDirection: 'row',
