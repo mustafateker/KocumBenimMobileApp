@@ -167,14 +167,18 @@ export default function Annotate() {
       // Gonderdikten sonra kamera yerine listeye dus: ogrenci sorusunun
       // gittigini gorsun.
       router.replace({ pathname: '/student/questions', params: { mode: 'list' } });
+      // `saving` bilerek sifirlanmiyor ve bu satirdan sonra state'e
+      // dokunulmuyor: `router.replace` bu tam ekran modali sokmeye baslarken
+      // ayni karede setState yapmak Fabric'i
+      // "addViewAt: the specified child already has a parent" mount hatasina
+      // (kirmizi ekran) dusuruyordu. Ekran zaten kapandigi icin bayragi
+      // sifirlamaya gerek de yok.
     } catch (err) {
       // Eskiden yakalanmayan bu hata sessiz bir cokmeye donusuyordu.
       // Mesaji ekrana bir metin satiri olarak basmiyoruz: alt panele sonradan
-      // gorunur bir yazi eklemek Fabric'te "addViewAt: the specified child
-      // already has a parent" mount hatasina (kirmizi ekran) yol aciyor.
+      // gorunur bir yazi eklemek ayni mount hatasini tetikliyor.
       const entry = logHandledError('QUESTION_UPLOAD', err);
       Alert.alert('Soru gönderilemedi', `${entry.message}\n\nHata kodu: ${entry.code}`);
-    } finally {
       setSaving(false);
     }
   }, [saving, uri, frame.w, frame.h, items, note, refresh, router]);
