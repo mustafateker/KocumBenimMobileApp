@@ -4,6 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Keyboard,
   Modal,
   PanResponder,
   StyleSheet,
@@ -77,6 +78,9 @@ export default function Annotate() {
 
   const onGrant = useCallback(
     (e: GestureResponderEvent) => {
+      // Not yazarken fotografa dokunmak klavyeyi kapatsin — geri tusuna
+      // basmak zorunda kalinmasin.
+      Keyboard.dismiss();
       const { locationX, locationY } = e.nativeEvent;
       pathRef.current = `M ${(locationX - frame.x).toFixed(1)} ${(locationY - frame.y).toFixed(1)}`;
       setCurrent(pathRef.current);
@@ -126,6 +130,7 @@ export default function Annotate() {
   const onCanvasPress = useCallback(
     (e: { nativeEvent: { locationX: number; locationY: number } }) => {
       if (tool !== 'text') return;
+      Keyboard.dismiss();
       const { locationX, locationY } = e.nativeEvent;
       setTextDraft({ x: locationX - frame.x, y: locationY - frame.y, value: '' });
     },
@@ -259,48 +264,52 @@ export default function Annotate() {
       </View>
 
       {/* Renkler, not alani ve arac cubugu klavye acilinca onun ustune biner —
-          Android edge-to-edge modunda pencere kendiliginden kucultulmuyor. */}
+          Android edge-to-edge modunda pencere kendiliginden kucultulmuyor.
+          Panelin kendi opak zemini var: yukari bindiginde fotograf arkasindan
+          gorunup araclari okunmaz hale getirmesin. */}
       <KeyboardStickyView>
-        {/* Kalem renkleri */}
-        <View style={styles.swatchRow}>
-          {PENS.map((c) => (
-            <PressScale key={c} onPress={() => setColor(c)} scaleTo={0.85}>
-              <View style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]} />
-            </PressScale>
-          ))}
-        </View>
+        <View style={styles.bottomPanel}>
+          {/* Kalem renkleri */}
+          <View style={styles.swatchRow}>
+            {PENS.map((c) => (
+              <PressScale key={c} onPress={() => setColor(c)} scaleTo={0.85}>
+                <View style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]} />
+              </PressScale>
+            ))}
+          </View>
 
-        {sendError ? (
-          <Txt variant="small" color={Palette.pink} center style={styles.sendError}>
-            {sendError}
-          </Txt>
-        ) : null}
+          {sendError ? (
+            <Txt variant="small" color={Palette.pink} center style={styles.sendError}>
+              {sendError}
+            </Txt>
+          ) : null}
 
-        {/* Not alani */}
-        <View style={styles.noteRow}>
-          <Ionicons name="chatbubble-ellipses-outline" size={18} color={Palette.textFaint} />
-          <TextInput
-            value={note}
-            onChangeText={setNote}
-            placeholder="Nerede takıldın? (opsiyonel not)"
-            placeholderTextColor={Palette.textFaint}
-            style={styles.noteInput}
-          />
-        </View>
+          {/* Not alani */}
+          <View style={styles.noteRow}>
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={Palette.textFaint} />
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="Nerede takıldın? (opsiyonel not)"
+              placeholderTextColor={Palette.textFaint}
+              style={styles.noteInput}
+            />
+          </View>
 
-        {/* Alt arac cubugu */}
-        <View style={[styles.toolbar, { paddingBottom: insets.bottom + Space.sm }]}>
-          <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Palette.purple} onPress={() => setTool('pen')} />
-          <ToolButton
-            icon="color-fill"
-            label="Vurgula"
-            active={tool === 'highlight'}
-            color={Palette.gold}
-            onPress={() => setTool('highlight')}
-          />
-          <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Palette.blue} onPress={() => setTool('text')} />
-          <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
-          <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
+          {/* Alt arac cubugu */}
+          <View style={[styles.toolbar, { paddingBottom: insets.bottom + Space.sm }]}>
+            <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Palette.purple} onPress={() => setTool('pen')} />
+            <ToolButton
+              icon="color-fill"
+              label="Vurgula"
+              active={tool === 'highlight'}
+              color={Palette.gold}
+              onPress={() => setTool('highlight')}
+            />
+            <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Palette.blue} onPress={() => setTool('text')} />
+            <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
+            <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
+          </View>
         </View>
       </KeyboardStickyView>
 
@@ -403,6 +412,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Space.sm,
+  },
+  /**
+   * Klavye acilinca bu panel fotografin uzerine biner; kendi opak zemini
+   * olmazsa fotograf araclarin arkasindan gorunup hepsini okunmaz yapiyor.
+   */
+  bottomPanel: {
+    backgroundColor: Palette.bg,
   },
   swatchRow: {
     flexDirection: 'row',
