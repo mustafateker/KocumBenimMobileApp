@@ -1,25 +1,26 @@
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
+import Svg, { Circle, Defs, Line, LinearGradient as SvgGradient, Path, Rect, Stop } from 'react-native-svg';
 
-import { Accent, Palette, softOf } from '@/theme/tokens';
+import { Accent, lighten, Palette, softOf } from '@/theme/tokens';
 
 /**
- * Ekran zemininin dekoratif katmani — tamamen gradyansiz.
+ * Ekran zemininin dekoratif katmani.
  *
  * Uc kattan olusur:
- *  1. Matematik defteri karesi: cok soluk mor izgara. Uygulamanin konusunu
- *     zemine tasir, icerigi bogmaz.
- *  2. Tepe bandi: ustte kavisli, adimin/ekranin renginin pastel tonunda duz
- *     bir blok. Basligi tasiyan alani ayirir.
+ *  1. Matematik defteri karesi: cok soluk lavanta izgara. Uygulamanin
+ *     konusunu zemine tasir, icerigi bogmaz.
+ *  2. Tepe bandi: ustte kavisli, adimin/ekranin renginin pastel tonundan
+ *     acik-koyu yumusak bir gradyan. Basligi tasiyan alani ayirir ve
+ *     canlilik katar.
  *  3. Serpme sekiller: kenarlarda duran birkac duz renkli konfeti. Sabit
  *     konumlarda dururlar, her render'da yer degistirmezler.
  *
- * Duolingo dilinden sapmamak icin hicbir katmanda gecis/gradyan yok; renk
- * duz dolgu olarak yasar.
+ * Restraint: tek gradyan tepe bandinda yasar; izgara ve konfeti duz kalir
+ * ki katmanlar ust uste binmesin.
  */
 
 const GRID_STEP = 28;
-const GRID_COLOR = '#F0EAFA';
+const GRID_COLOR = '#F1E9F8';
 
 /** Serpme sekiller — W/H orani cinsinden sabit konumlar. */
 const CONFETTI = [
@@ -50,13 +51,20 @@ export function PatternBackground({
   return (
     <View style={styles.layer} pointerEvents="none">
       <Svg width={width} height={height}>
+        <Defs>
+          <SvgGradient id="bandGradient" x1="0" y1="0" x2="1" y2="1">
+            <Stop offset="0" stopColor={lighten(color, 0.45)} stopOpacity="1" />
+            <Stop offset="1" stopColor={softOf(color)} stopOpacity="1" />
+          </SvgGradient>
+        </Defs>
+
         <Rect x={0} y={0} width={width} height={height} fill={Palette.bg} />
 
-        {/* tepe bandi: alt kenari asagi dogru kavisli duz blok */}
+        {/* tepe bandi: alt kenari asagi dogru kavisli, yumusak gradyanli blok */}
         {bandRatio > 0 ? (
           <Path
             d={`M0 0 H${width} V${band} Q${width / 2} ${band + 46} 0 ${band} Z`}
-            fill={softOf(color)}
+            fill="url(#bandGradient)"
           />
         ) : null}
 

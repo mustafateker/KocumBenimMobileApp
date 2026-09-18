@@ -45,7 +45,7 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
       <View style={styles.titleRow}>
         <MenuButton />
         <Txt variant="title" style={styles.flex}>
-          Kurtar Beni
+          Şipşak Soru
         </Txt>
         <NotificationBell />
       </View>

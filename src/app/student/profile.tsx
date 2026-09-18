@@ -10,7 +10,7 @@ import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useStudent } from '@/lib/session';
 import { initials, type LeaderboardRow, type StudentSummary } from '@/lib/types';
-import { Accent, Border, Palette, Radius, Space, glow, softOf } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
 
 type BoardRange = LeaderboardRange;
 
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     marginTop: Space.xs,
     paddingHorizontal: Space.md,
     height: 34,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(34),
     borderWidth: Border.thick,
     borderColor: Palette.orange,
     backgroundColor: Palette.orangeSoft,

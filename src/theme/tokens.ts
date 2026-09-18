@@ -2,11 +2,15 @@
  * Kocum Benim — tasarim sistemi.
  *
  * Hedef kitle 12-18 yas. Duolingo'dan ilham alan "oyunlastirma render
- * edilmis gorsel dil": duz (gradyansiz) doygun renkler, her etkilesimli
- * ogede 2-4px kati kenarlik + alt kenarda daha koyu bir "3D basma" seridi,
- * beyaza yakin duz zemin (renk kartlarda/butonlarda yasar, zeminde degil).
- * Sert neon degil ama yumusak-bulanik golge de degil — kontur ve dolgu
- * hiyerarsiyi tasir.
+ * edilmis gorsel dil": her etkilesimli ogede 2-4px kati kenarlik + alt
+ * kenarda daha koyu bir "3D basma" seridi, beyaza yakin duz zemin (renk
+ * kartlarda/butonlarda yasar, zeminde degil).
+ *
+ * Vurgu renkleri 2026 pastel paletinden gelir (mint, adacayi yesili, gunes
+ * sarisi, mercan, lavanta). Canli ve ic acici bir his icin vurgulu
+ * yuzeylerde (buton dolgusu, tepe bandi, odak halkasi, acilis ekrani)
+ * `gradientOf()` ile yumusak bir gradyan uygulanir; kontur ve dolgu
+ * hiyerarsiyi tasimaya devam eder, gradyan sadece canliligi artirir.
  */
 
 export const Palette = {
@@ -28,28 +32,35 @@ export const Palette = {
   textDim: '#6E6390',
   textFaint: '#A79FC0',
 
-  /** Birincil vurgu — ana aksiyon, marka rengi */
-  amber: '#FFBD67',
-  amberSoft: '#FFF2E1',
-  /** Ikincil vurgu — XP, seviye, secili ozellik ekranlari (odaklanma, ozel dersler) */
-  purple: '#8257E5',
-  purpleSoft: '#EDE6FB',
-  /** Sari — coin, odul, enerji */
-  gold: '#FFC12B',
-  goldSoft: '#FDF1D4',
-  /** Turuncu — streak / ates */
-  orange: '#FF8A34',
-  orangeSoft: '#FDE6D5',
-  /** Pembe/kirmizi — dikkat, hata */
-  pink: '#FF4B6E',
-  pinkSoft: '#FCDFE6',
-  /** Mavi — odak, sakinlik, ipucu */
-  blue: '#1CB0F6',
-  blueSoft: '#DCEAFB',
-  /** Yesil — tamamlandi, basari */
-  green: '#4FC44E',
-  greenSoft: '#D9F3E6',
+  /** Birincil vurgu — ana aksiyon, marka rengi. 2026 palet: mercan. */
+  amber: '#FA897B',
+  amberSoft: '#FFEAE5',
+  /** Ikincil vurgu — XP, seviye, secili ozellik ekranlari (odaklanma, ozel dersler). 2026 palet: lavanta. */
+  purple: '#CCABD8',
+  purpleSoft: '#F2E9F7',
+  /** Sari — coin, odul, enerji. 2026 palet: gunes sarisi. */
+  gold: '#FFDD94',
+  goldSoft: '#FFF7E5',
+  /** Turuncu — streak / ates. 2026 palet: mercan-sari arasi kayisi tonu. */
+  orange: '#FFB37A',
+  orangeSoft: '#FFEEDF',
+  /** Pembe/kirmizi — dikkat, hata. 2026 palet: mercandan koyulastirilmis, belirgin alarm tonu. */
+  pink: '#F2565F',
+  pinkSoft: '#FDE3E4',
+  /** Mavi — odak, sakinlik, ipucu. 2026 palet: mint/turkuaz. */
+  blue: '#86E3CE',
+  blueSoft: '#E4F8F3',
+  /** Yesil — tamamlandi, basari. 2026 palet: adacayi yesili. */
+  green: '#D0E6A5',
+  greenSoft: '#F3F8E7',
 } as const;
+
+/**
+ * Marka imza gradyani — yeni paletin sicak-soguk yayilimini gosterir
+ * (mint → mercan → lavanta). Acilis ekrani gibi tek, kasitli "hero"
+ * yuzeylerde kullanilir; kucuk bilesenlerde tekrar etmez.
+ */
+export const HeroGradient = [Palette.blue, Palette.amber, Palette.purple] as const;
 
 /** Uygulamanin birincil vurgu rengi. */
 export const Accent = Palette.amber;
@@ -89,6 +100,28 @@ export function shade(hex: string, amount = 0.74): string {
   const g = Math.round(((num >> 8) & 255) * amount);
   const b = Math.round((num & 255) * amount);
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+}
+
+/**
+ * Bir rengi beyaza dogru actar — gradyanlarin acik ucu icin. #RRGGBB bekler.
+ */
+export function lighten(hex: string, amount = 0.28): string {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
+  const num = parseInt(hex.slice(1), 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  const mix = (c: number) => Math.round(c + (255 - c) * amount);
+  return `#${((mix(r) << 16) | (mix(g) << 8) | mix(b)).toString(16).padStart(6, '0')}`;
+}
+
+/**
+ * Vurgulu yuzeyler icin acikdan-koyuya iki durakli gradyan (buton dolgusu,
+ * tepe bandi, rozet). Herhangi bir #RRGGBB girdisinde calisir; beyaz gibi
+ * notr renklerde goze gorunmez kalir (guvenli varsayilan).
+ */
+export function gradientOf(color: string): readonly [string, string] {
+  return [lighten(color), color] as const;
 }
 
 /** Her vurgu renginin "3D basma" seridi icin koyu tonu. */

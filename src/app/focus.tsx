@@ -19,8 +19,6 @@ import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { deepOf, OnColor, Palette, Space, Type, pillRadius } from '@/theme/tokens';
 
-const GOLD = '#FFD166';
-
 /**
  * Tam ekran odak modu — uc durum: calisiyor (mor), duraklatildi (turuncu —
  * zemin, halka rengi ve mesaj hep birlikte degisir), tamamlandi (mor->pembe,
@@ -115,10 +113,10 @@ export default function Focus() {
         </View>
 
         <View style={styles.ringWrap}>
-          <PulseGlow color={paused ? GOLD : OnColor} />
+          <PulseGlow color={paused ? Palette.gold : OnColor} />
           <FocusRing
             progress={timer.progress}
-            color={paused ? GOLD : OnColor}
+            color={paused ? Palette.gold : OnColor}
             track="rgba(255,255,255,0.22)"
             size={280}
             strokeWidth={16}
