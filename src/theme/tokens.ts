@@ -121,8 +121,23 @@ export const Radius = {
   md: 16,
   lg: 20,
   xl: 24,
-  pill: 999,
 } as const;
+
+/**
+ * Kapsul (tam yuvarlak uc) kose yaricapi.
+ *
+ * Android'in yeni mimarisinde bir yuzeyin arka plani, kose yaricapi kendi
+ * boyutundan buyuk verildiginde duz kose cizilir — kenarlik yolu dogru
+ * yuvarlanir ama dolgu kare kalir. Eskiden kullandigimiz `Radius.pill = 999`
+ * bu yuzden "Gunluk / Haftalik / Aylik" secicisinin secili kutusunu kare
+ * gosteriyordu. Cozum sabit bir buyuk sayi degil, ogenin kendi yuksekliginin
+ * yarisi: her iki platformda da tam kapsul verir.
+ *
+ * @param height Ogenin kenarlik dahil toplam yuksekligi (px).
+ */
+export function pillRadius(height: number): number {
+  return Math.round(height / 2);
+}
 
 /** Kati kenarlik kalinliklari — Duolingo hiç kilcal cizgi kullanmaz. */
 export const Border = {

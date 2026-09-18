@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NeonButton, PressScale } from '@/components/button';
@@ -46,94 +47,92 @@ export default function Login() {
 
   return (
     <ScreenBackground tint={Accent}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
+          odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
+      <KeyboardAwareScrollView
+        bottomOffset={Space.xl}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.brand}>
-            <Mascot width={130} mood="wink" />
-            <Txt variant="hero" center>
-              Koçum Benim
-            </Txt>
-            <Txt variant="small" color={Palette.textDim} center>
-              Odaklan, seviye atla, hedefine yaklaş.
-            </Txt>
-          </View>
+        <View style={styles.brand}>
+          <Mascot width={130} mood="wink" />
+          <Txt variant="hero" center>
+            Koçum Benim
+          </Txt>
+          <Txt variant="small" color={Palette.textDim} center>
+            Odaklan, seviye atla, hedefine yaklaş.
+          </Txt>
+        </View>
 
-          <View style={styles.form}>
-            <Field label="E-posta">
-              <TextField
-                value={email}
-                onChangeText={(v) => {
-                  setEmail(v);
-                  setError(null);
-                }}
-                placeholder="ornek@eposta.com"
-                keyboardType="email-address"
-                autoComplete="email"
-                error={!!error}
-              />
-            </Field>
-
-            <Field label="Parola">
-              <TextField
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  setError(null);
-                }}
-                placeholder="Parolanı gir"
-                secureTextEntry
-                autoComplete="password"
-                error={!!error}
-              />
-            </Field>
-
-            <PressScale onPress={() => setRemember((r) => !r)} style={styles.rememberRow}>
-              <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
-                {remember ? <Ionicons name="checkmark" size={14} color={OnColor} /> : null}
-              </View>
-              <Txt variant="small" color={Palette.textDim}>
-                Beni hatırla
-              </Txt>
-            </PressScale>
-
-            {error ? (
-              <Txt variant="small" color={Palette.pink}>
-                {error}
-              </Txt>
-            ) : null}
-
-            <NeonButton
-              label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}
-              icon="log-in"
-              color={Accent}
-              size="lg"
-              full
-              disabled={submitting}
-              onPress={submit}
-              style={styles.submit}
+        <View style={styles.form}>
+          <Field label="E-posta">
+            <TextField
+              value={email}
+              onChangeText={(v) => {
+                setEmail(v);
+                setError(null);
+              }}
+              placeholder="ornek@eposta.com"
+              keyboardType="email-address"
+              autoComplete="email"
+              error={!!error}
             />
-          </View>
+          </Field>
 
-          <PressScale onPress={() => router.push('/signup')}>
-            <Txt variant="small" color={Palette.textDim} center>
-              Hesabın yok mu?{' '}
-              <Txt variant="smallStrong" color={Accent}>
-                Kayıt ol
-              </Txt>
+          <Field label="Parola">
+            <TextField
+              value={password}
+              onChangeText={(v) => {
+                setPassword(v);
+                setError(null);
+              }}
+              placeholder="Parolanı gir"
+              secureTextEntry
+              autoComplete="password"
+              error={!!error}
+            />
+          </Field>
+
+          <PressScale onPress={() => setRemember((r) => !r)} style={styles.rememberRow}>
+            <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
+              {remember ? <Ionicons name="checkmark" size={14} color={OnColor} /> : null}
+            </View>
+            <Txt variant="small" color={Palette.textDim}>
+              Beni hatırla
             </Txt>
           </PressScale>
-        </ScrollView>
-      </KeyboardAvoidingView>
+
+          {error ? (
+            <Txt variant="small" color={Palette.pink}>
+              {error}
+            </Txt>
+          ) : null}
+
+          <NeonButton
+            label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+            icon="log-in"
+            color={Accent}
+            size="lg"
+            full
+            disabled={submitting}
+            onPress={submit}
+            style={styles.submit}
+          />
+        </View>
+
+        <PressScale onPress={() => router.push('/signup')}>
+          <Txt variant="small" color={Palette.textDim} center>
+            Hesabın yok mu?{' '}
+            <Txt variant="smallStrong" color={Accent}>
+              Kayıt ol
+            </Txt>
+          </Txt>
+        </PressScale>
+      </KeyboardAwareScrollView>
     </ScreenBackground>
   );
 }
@@ -150,7 +149,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
   content: {
     flexGrow: 1,
     justifyContent: 'center',

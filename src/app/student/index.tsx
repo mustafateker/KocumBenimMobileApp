@@ -6,15 +6,15 @@ import { useSharedValue } from 'react-native-reanimated';
 
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
+import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen } from '@/components/screen';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
 import { getTasks, getUpcomingLessons } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
-import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon } from '@/lib/task-categories';
-import { initials, type PrivateLesson, type Task } from '@/lib/types';
-import { Accent, Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
+import type { PrivateLesson, Task } from '@/lib/types';
+import { Accent, Border, Palette, Radius, Space, pillRadius, softOf } from '@/theme/tokens';
 
 const DURATIONS = [
   { label: '25 dk', seconds: 25 * 60 },
@@ -29,7 +29,6 @@ export default function Home() {
   const router = useRouter();
   const student = useStudent();
   const { refresh } = useSession();
-  const { open: openMenu } = useHamburgerMenu();
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -88,17 +87,13 @@ export default function Home() {
     <Screen tint={Accent} pattern>
       {/* Ust bar */}
       <View style={styles.topBar}>
+        {/* Menu sol ustte, bildirim sag ustte — tum ogrenci ekranlarinda ayni yerde. */}
+        <MenuButton />
+
         <PressScale onPress={() => router.push('/student/profile')} style={styles.who}>
-          <View style={styles.avatar}>
-            <Txt variant="smallStrong" color={Accent}>
-              {initials(student.name)}
-            </Txt>
-          </View>
-          <View style={styles.whoText}>
-            <Txt variant="bodyStrong" numberOfLines={1}>
-              Merhaba, {student.nickname ?? student.name.split(' ')[0]}
-            </Txt>
-          </View>
+          <Txt variant="bodyStrong" numberOfLines={1}>
+            Merhaba, {student.nickname ?? student.name.split(' ')[0]}
+          </Txt>
         </PressScale>
 
         <View style={styles.topActions}>
@@ -108,7 +103,7 @@ export default function Home() {
               {student.streak}
             </Txt>
           </View>
-          <IconButton icon="menu" onPress={openMenu} />
+          <NotificationBell />
         </View>
       </View>
 
@@ -304,22 +299,8 @@ const styles = StyleSheet.create({
     gap: Space.md,
   },
   who: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-    flexShrink: 1,
+    flex: 1,
   },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: Border.thick,
-    borderColor: Accent,
-    backgroundColor: softOf(Accent),
-  },
-  whoText: { flexShrink: 1 },
   topActions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -331,7 +312,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: Space.md,
     height: 40,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(40),
     borderWidth: Border.thick,
     backgroundColor: Palette.surface,
   },
@@ -350,7 +331,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     height: 42,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(42),
     borderWidth: Border.thick,
     borderColor: Palette.border,
     backgroundColor: Palette.surface,

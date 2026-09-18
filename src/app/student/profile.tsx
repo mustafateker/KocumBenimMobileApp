@@ -3,12 +3,11 @@ import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { IconButton } from '@/components/button';
+import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
 import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
-import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
 import { initials, type LeaderboardRow, type StudentSummary } from '@/lib/types';
 import { Accent, Border, Palette, Radius, Space, glow, softOf } from '@/theme/tokens';
@@ -23,7 +22,6 @@ const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
 
 export default function Profile() {
   const student = useStudent();
-  const { open: openMenu } = useHamburgerMenu();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
   const [boardRange, setBoardRange] = useState<BoardRange>('weekly');
@@ -54,7 +52,8 @@ export default function Profile() {
       <ScreenHeader
         title="Profil"
         subtitle="Karakterin, hedeflerin ve rakiplerin."
-        right={<IconButton icon="menu" onPress={openMenu} />}
+        left={<MenuButton />}
+        right={<NotificationBell />}
       />
 
       {/* Karakter karti */}

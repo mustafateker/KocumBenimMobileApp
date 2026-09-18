@@ -42,6 +42,13 @@
       "expo-sharing",
       "expo-image",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Takıldığın soruyu fotoğraflayabilmen için kameraya erişmemiz gerekiyor.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-notifications",
         {
           "icon": "./assets/images/android-icon-monochrome.png",

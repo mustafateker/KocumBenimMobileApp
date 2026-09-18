@@ -4,25 +4,25 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
   Modal,
   PanResponder,
-  Platform,
   StyleSheet,
   TextInput,
   View,
   type GestureResponderEvent,
 } from 'react-native';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
 import { createQuestion } from '@/lib/api';
-import { localImageUri } from '@/lib/photo-store';
+import { logHandledError } from '@/lib/crash-reporter';
+import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
 import type { CanvasItem } from '@/lib/types';
-import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { Border, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
 const PENS = ['#FF3B5C', '#2B7FFF', '#12C46A', '#FFB020', '#111827'];
@@ -46,6 +46,7 @@ export default function Annotate() {
   const [photoAspect, setPhotoAspect] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   /** Metin araci: dokunulan noktaya not birakma penceresi. */
   const [textDraft, setTextDraft] = useState<{ x: number; y: number; value: string } | null>(null);
@@ -149,6 +150,7 @@ export default function Annotate() {
   const send = useCallback(async () => {
     if (saving || !uri) return;
     setSaving(true);
+    setSendError(null);
     try {
       await createQuestion({
         imageUri: uri,
@@ -156,9 +158,15 @@ export default function Annotate() {
         note: note.trim(),
       });
       await refresh();
+      // Sunucuda duruyor; yerel kopyayi tutmaya gerek yok.
+      discardPhoto(uri);
       // Gonderdikten sonra kamera yerine listeye dus: ogrenci sorusunun
       // gittigini gorsun.
       router.replace({ pathname: '/student/questions', params: { mode: 'list' } });
+    } catch (err) {
+      // Eskiden yakalanmayan bu hata sessiz bir cokmeye donusuyordu.
+      const entry = logHandledError('QUESTION_UPLOAD', err);
+      setSendError(entry.message);
     } finally {
       setSaving(false);
     }
@@ -250,7 +258,9 @@ export default function Annotate() {
         </View>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* Renkler, not alani ve arac cubugu klavye acilinca onun ustune biner —
+          Android edge-to-edge modunda pencere kendiliginden kucultulmuyor. */}
+      <KeyboardStickyView>
         {/* Kalem renkleri */}
         <View style={styles.swatchRow}>
           {PENS.map((c) => (
@@ -259,6 +269,12 @@ export default function Annotate() {
             </PressScale>
           ))}
         </View>
+
+        {sendError ? (
+          <Txt variant="small" color={Palette.pink} center style={styles.sendError}>
+            {sendError}
+          </Txt>
+        ) : null}
 
         {/* Not alani */}
         <View style={styles.noteRow}>
@@ -286,7 +302,7 @@ export default function Annotate() {
           <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
           <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardStickyView>
 
       {/* Metin araci penceresi */}
       <Modal visible={textDraft !== null} transparent animationType="fade" onRequestClose={() => setTextDraft(null)}>
@@ -360,7 +376,7 @@ const styles = StyleSheet.create({
   saveButton: {
     height: 40,
     paddingHorizontal: Space.xl,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(40),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.purple,
@@ -403,6 +419,10 @@ const styles = StyleSheet.create({
   },
   swatchActive: {
     borderColor: Palette.text,
+  },
+  sendError: {
+    marginHorizontal: Space.lg,
+    marginBottom: Space.sm,
   },
   noteRow: {
     flexDirection: 'row',

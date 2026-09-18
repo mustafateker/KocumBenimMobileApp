@@ -12,7 +12,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Border, Font, OnColor, Palette, Radius, Space, Type, softOf } from '@/theme/tokens';
+import { Border, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
 import { PressScale } from './button';
 
@@ -157,6 +157,9 @@ export function ProgressBar({
 
 /* --------------------------------- sekmeler --------------------------------- */
 
+/** Sekme secicinin kutu yuksekligi — kose yaricapi bundan turetilir. */
+const SEGMENT_HEIGHT = 38;
+
 /** Kapsul icinde yer degistiren sekme secici — Gorevlerim, Liderlik Tablosu. */
 export function Segmented<T extends string>({
   options,
@@ -279,7 +282,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: Space.md,
     paddingVertical: 5,
-    borderRadius: Radius.pill,
+    // 15 (tiny satir yuksekligi) + 10 (dikey dolgu) + 4 (kenarlik) = 29
+    borderRadius: pillRadius(29),
     borderWidth: Border.thick,
     alignSelf: 'flex-start',
   },
@@ -333,13 +337,14 @@ const styles = StyleSheet.create({
     gap: Space.xs,
     padding: Space.xs,
     backgroundColor: Palette.surfaceHi,
-    borderRadius: Radius.pill,
+    // 38 (oge) + 8 (dolgu) + 4 (kenarlik) = 50
+    borderRadius: pillRadius(50),
     borderWidth: Border.thick,
     borderColor: Palette.border,
   },
   segmentedItem: {
-    height: 38,
-    borderRadius: Radius.pill,
+    height: SEGMENT_HEIGHT,
+    borderRadius: pillRadius(SEGMENT_HEIGHT),
     alignItems: 'center',
     justifyContent: 'center',
   },

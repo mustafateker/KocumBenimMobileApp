@@ -7,7 +7,10 @@ import { PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
 import { getNotifications, markNotificationRead } from '@/lib/api';
+import { logHandledError } from '@/lib/crash-reporter';
 import { relativeTime } from '@/lib/date';
+import { useNotificationCenter } from '@/lib/notification-center';
+import { hrefForNotification } from '@/lib/notification-route';
 import { useStudent } from '@/lib/session';
 import type { AppNotification, NotificationType } from '@/lib/types';
 import { Palette, Space } from '@/theme/tokens';
@@ -25,24 +28,45 @@ const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Io
 export default function Notifications() {
   useStudent();
   const router = useRouter();
+  const { markOneRead, refresh } = useNotificationCenter();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       getNotifications()
-        .then((res) => setNotifications(res.data))
-        .catch(() => {
+        .then((res) => {
+          setNotifications(res.data);
+          // Baslikta duran rozeti sunucudaki gercekle esitle.
+          refresh();
+        })
+        .catch((err) => {
           // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+          logHandledError('NOTIFICATIONS_LOAD', err);
         });
-    }, [])
+    }, [refresh])
   );
 
-  const markRead = useCallback((id: number) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    markNotificationRead(id).catch(() => {
-      // Sunucuya yazilamadiysa bir sonraki acilista tekrar "okunmadi" gorunur.
-    });
-  }, []);
+  /**
+   * Bildirime dokunuldugunda okundu isaretlenir ve ilgili ekrana gidilir —
+   * push bildirimine dokunmakla ayni hedef (bkz. notification-route).
+   */
+  const open = useCallback(
+    (notification: AppNotification) => {
+      if (!notification.read) {
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n))
+        );
+        markOneRead();
+        markNotificationRead(notification.id).catch((err) => {
+          // Sunucuya yazilamadiysa bir sonraki acilista tekrar "okunmadi" gorunur.
+          logHandledError('NOTIFICATION_READ', err);
+        });
+      }
+
+      router.push(hrefForNotification(notification));
+    },
+    [markOneRead, router]
+  );
 
   return (
     <Screen tint={Palette.gold}>
@@ -60,7 +84,7 @@ export default function Notifications() {
           {notifications.map((n) => {
             const meta = TYPE_META[n.type];
             return (
-              <PressScale key={n.id} onPress={() => markRead(n.id)} disabled={n.read}>
+              <PressScale key={n.id} onPress={() => open(n)}>
                 <Card style={styles.row} accent={n.read ? undefined : meta.color}>
                   <IconBubble name={meta.icon} color={meta.color} size={40} />
                   <View style={styles.flex}>
@@ -74,6 +98,7 @@ export default function Notifications() {
                       {relativeTime(n.createdAt)}
                     </Txt>
                   </View>
+                  <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
                 </Card>
               </PressScale>
             );

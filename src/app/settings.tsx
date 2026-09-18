@@ -268,6 +268,9 @@ export default function Settings() {
         <Card style={styles.list}>
           <SettingRow icon="shield-checkmark-outline" color={Palette.textDim} label="Gizlilik Politikası" chevron />
           <SettingRow icon="document-text-outline" color={Palette.textDim} label="Kullanım Şartları" chevron />
+          <PressScale onPress={() => router.push('/diagnostics')}>
+            <SettingRow icon="bug-outline" color={Palette.pink} label="Hata Kayıtları" chevron />
+          </PressScale>
           <SettingRow icon="information-circle-outline" color={Palette.textDim} label="Sürüm" trailing="1.0.0" />
         </Card>
       </View>

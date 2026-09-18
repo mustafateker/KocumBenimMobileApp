@@ -18,8 +18,9 @@ export type HamburgerMenuItem = {
 };
 
 /**
- * Sagdan acilan menu paneli. Profil ekranindaki hamburger tetikleyicisi
- * Ayarlar ve Cikis Yap gibi sayfaya ozgu olmayan aksiyonlari burada toplar.
+ * Soldan acilan menu paneli. Tetikleyici hamburger dugmesi tum ogrenci
+ * ekranlarinda sol ustte durdugu icin panel de ayni kenardan giriyor; Ayarlar
+ * ve Cikis Yap gibi sayfaya ozgu olmayan aksiyonlari burada topluyor.
  */
 export function HamburgerMenu({
   visible,
@@ -56,7 +57,7 @@ export function HamburgerMenu({
   }, [visible, progress]);
 
   const panelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: (1 - progress.value) * 300 }],
+    transform: [{ translateX: -(1 - progress.value) * PANEL_WIDTH }],
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({ opacity: progress.value * 0.45 }));
@@ -119,12 +120,15 @@ export function HamburgerMenu({
   );
 }
 
+/** Panel genisligi — kapanis animasyonunun kaydirma mesafesiyle ayni olmali. */
+const PANEL_WIDTH = 300;
+
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   root: {
     flex: 1,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   backdrop: {
     position: 'absolute',
@@ -135,11 +139,11 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.overlay,
   },
   panel: {
-    width: 300,
+    width: PANEL_WIDTH,
     maxWidth: '82%',
     backgroundColor: Palette.surface,
-    borderTopLeftRadius: Radius.xl,
-    borderBottomLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
     paddingHorizontal: Space.lg,
     gap: Space.xl,
   },

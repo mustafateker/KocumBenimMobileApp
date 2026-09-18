@@ -17,7 +17,7 @@ import { logFocusSession } from '@/lib/api';
 import { clockFormat } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
-import { deepOf, OnColor, Palette, Radius, Space, Type } from '@/theme/tokens';
+import { deepOf, OnColor, Palette, Space, Type, pillRadius } from '@/theme/tokens';
 
 const GOLD = '#FFD166';
 
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: Space.lg,
     height: 32,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(32),
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   ringWrap: {
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   xpChip: {
     paddingHorizontal: Space.xl,
     height: 46,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(46),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: OnColor,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   solidButtonInner: {
     height: 56,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(56),
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: OnColor,

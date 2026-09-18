@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, NeonButton } from '@/components/button';
@@ -199,16 +200,19 @@ export default function Onboarding() {
         />
       </View>
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            { paddingBottom: insets.bottom + Space.xl },
-            CENTERED_STEPS.has(step) && styles.contentCentered,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+      {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
+          odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
+      <KeyboardAwareScrollView
+        style={styles.flex}
+        bottomOffset={Space.xl}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + Space.xl },
+          CENTERED_STEPS.has(step) && styles.contentCentered,
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
           <StepHeader
             color={meta.color}
             title={meta.title}
@@ -362,26 +366,28 @@ export default function Onboarding() {
               </View>
             ) : null}
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
-        <View style={styles.footerRow}>
-          {index > 0 ? (
-            <GhostButton label="Geri" icon="chevron-back" onPress={back} style={styles.flex} full />
-          ) : null}
-          <NeonButton
-            label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
-            icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
-            color={Accent}
-            size="lg"
-            disabled={!valid || saving}
-            onPress={next}
-            style={styles.flex}
-            full
-          />
+      {/* Ileri/Geri butonlari klavyenin arkasinda kalmasin diye onun ustune biner. */}
+      <KeyboardStickyView>
+        <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
+          <View style={styles.footerRow}>
+            {index > 0 ? (
+              <GhostButton label="Geri" icon="chevron-back" onPress={back} style={styles.flex} full />
+            ) : null}
+            <NeonButton
+              label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
+              icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
+              color={Accent}
+              size="lg"
+              disabled={!valid || saving}
+              onPress={next}
+              style={styles.flex}
+              full
+            />
+          </View>
         </View>
-      </View>
+      </KeyboardStickyView>
     </View>
   );
 }

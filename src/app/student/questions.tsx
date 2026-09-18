@@ -7,14 +7,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { CanvasView } from '@/components/canvas-view';
+import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
 import { getQuestions, resolveQuestion } from '@/lib/api';
+import { logHandledError } from '@/lib/crash-reporter';
 import { relativeTime } from '@/lib/date';
-import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
+import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
-import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   pending: { label: 'Hocada bekliyor', color: Palette.gold, icon: 'hourglass' },
@@ -37,13 +39,15 @@ export default function Questions() {
 
 function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'camera' | 'list') => void }) {
   const insets = useSafeAreaInsets();
-  const { open: openMenu } = useHamburgerMenu();
 
   return (
     <View style={[styles.header, { paddingTop: insets.top + Space.md }]}>
       <View style={styles.titleRow}>
-        <Txt variant="title">Kurtar Beni</Txt>
-        <IconButton icon="menu" onPress={openMenu} />
+        <MenuButton />
+        <Txt variant="title" style={styles.flex}>
+          Kurtar Beni
+        </Txt>
+        <NotificationBell />
       </View>
       <View style={styles.segment}>
         {(['camera', 'list'] as const).map((m) => {
@@ -93,15 +97,30 @@ function CameraPane() {
   );
 
   const cameraRef = useRef<CameraView>(null);
+  const [captureError, setCaptureError] = useState<string | null>(null);
 
   const shoot = useCallback(async () => {
+    // `ready` kontrolu sart: onizleme hazir degilken ya da duraklatilmisken
+    // takePictureAsync Android'de dogrudan firlatiyor (SDK 57 dokumani).
     if (!ready || busy) return;
     setBusy(true);
+    setCaptureError(null);
     try {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.75 });
-      if (photo?.uri) {
-        router.push({ pathname: '/annotate', params: { uri: photo.uri } });
+      if (!photo?.uri) {
+        setCaptureError('Fotoğraf alınamadı, tekrar dene.');
+        return;
       }
+
+      // Onbellekteki gecici dosyayi kalici klasore tasi; cizim ekranina
+      // gecerken silinirse sunucuya bos dosya gidiyordu.
+      const uri = await persistCapturedPhoto(photo.uri);
+      router.push({ pathname: '/annotate', params: { uri } });
+    } catch (err) {
+      // Eskiden bu hata yakalanmiyordu: yakalanmamis reddedilen soz
+      // uygulamayi hicbir sey gostermeden kapatiyordu.
+      const entry = logHandledError('CAMERA_CAPTURE', err);
+      setCaptureError(`Fotoğraf çekilemedi (${entry.code}). Tekrar dene.`);
     } finally {
       setBusy(false);
     }
@@ -146,8 +165,13 @@ function CameraPane() {
         <View style={[styles.corner, styles.cornerBR]} />
       </View>
 
-      <Txt variant="small" color={Palette.textDim} center style={styles.hint}>
-        Soruyu çerçeveye sığdır, sonra üzerine çizip hocaya yolla.
+      <Txt
+        variant="small"
+        color={captureError ? Palette.pink : Palette.textDim}
+        center
+        style={styles.hint}
+      >
+        {captureError ?? 'Soruyu çerçeveye sığdır, sonra üzerine çizip hocaya yolla.'}
       </Txt>
 
       <View style={[styles.shutterRow, { paddingBottom: insets.bottom + 100 }]}>
@@ -185,8 +209,9 @@ function QuestionList() {
     useCallback(() => {
       getQuestions()
         .then(setQuestions)
-        .catch(() => {
-          // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+        .catch((err) => {
+          // Aglama hatasi ekrani bozmasin; liste bos gorunur, sebebi kayda dussun.
+          logHandledError('QUESTIONS_LOAD', err);
         });
     }, [])
   );
@@ -227,8 +252,9 @@ function QuestionCard({ question, onResolved }: { question: Question; onResolved
     try {
       const updated = await resolveQuestion(question.id);
       onResolved(updated);
-    } catch {
+    } catch (err) {
       // Aglama hatasi karti bozmasin; kullanici tekrar deneyebilir.
+      logHandledError('QUESTION_RESOLVE', err);
     } finally {
       setBusy(false);
     }
@@ -286,13 +312,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Space.md,
   },
   segment: {
     flexDirection: 'row',
     gap: Space.xs,
     padding: Space.xs,
     backgroundColor: Palette.surfaceHi,
-    borderRadius: Radius.pill,
+    // 38 (oge) + 8 (dolgu) = 46
+    borderRadius: pillRadius(46),
   },
   segmentItem: {
     flexDirection: 'row',
@@ -300,7 +328,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     height: 38,
-    borderRadius: Radius.pill,
+    borderRadius: pillRadius(38),
   },
   segmentItemActive: {
     backgroundColor: Palette.orange,
@@ -382,7 +410,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingVertical: 4,
     paddingHorizontal: Space.sm,
-    borderRadius: Radius.pill,
+    // 15 (tiny satir yuksekligi) + 8 (dikey dolgu) = 23
+    borderRadius: pillRadius(23),
     backgroundColor: Palette.greenSoft,
   },
   thumb: {

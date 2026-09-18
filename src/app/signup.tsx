@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { NeonButton, PressScale } from '@/components/button';
@@ -56,99 +57,97 @@ export default function SignUp() {
 
   return (
     <ScreenBackground tint={Accent}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
+          odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
+      <KeyboardAwareScrollView
+        bottomOffset={Space.xl}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
+        ]}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            { paddingTop: insets.top + Space.xxl, paddingBottom: insets.bottom + Space.xl, minHeight: '100%' },
-          ]}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.brand}>
-            <Mascot width={118} mood="cheer" />
-            <Txt variant="hero" center>
-              Hesap Oluştur
-            </Txt>
-            <Txt variant="small" color={Palette.textDim} center>
-              Birkaç adımda seni tanıyalım, sonra yolculuğa başlayalım.
-            </Txt>
-          </View>
+        <View style={styles.brand}>
+          <Mascot width={118} mood="cheer" />
+          <Txt variant="hero" center>
+            Hesap Oluştur
+          </Txt>
+          <Txt variant="small" color={Palette.textDim} center>
+            Birkaç adımda seni tanıyalım, sonra yolculuğa başlayalım.
+          </Txt>
+        </View>
 
-          <View style={styles.form}>
-            <Field label="E-posta">
-              <TextField
-                value={email}
-                onChangeText={(v) => {
-                  setEmail(v);
-                  setError(null);
-                }}
-                placeholder="ornek@eposta.com"
-                keyboardType="email-address"
-                autoComplete="email"
-                error={!!error}
-              />
-            </Field>
-
-            <Field label="Parola">
-              <TextField
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  setError(null);
-                }}
-                placeholder="En az 4 karakter"
-                secureTextEntry
-                autoComplete="password-new"
-                error={!!error}
-              />
-            </Field>
-
-            <Field label="Parola (tekrar)">
-              <TextField
-                value={confirm}
-                onChangeText={(v) => {
-                  setConfirm(v);
-                  setError(null);
-                }}
-                placeholder="Parolanı tekrar gir"
-                secureTextEntry
-                autoComplete="password-new"
-                error={!!error}
-              />
-            </Field>
-
-            {error ? (
-              <Txt variant="small" color={Palette.pink}>
-                {error}
-              </Txt>
-            ) : null}
-
-            <NeonButton
-              label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}
-              icon="arrow-forward"
-              color={Accent}
-              size="lg"
-              full
-              disabled={submitting}
-              onPress={submit}
-              style={styles.submit}
+        <View style={styles.form}>
+          <Field label="E-posta">
+            <TextField
+              value={email}
+              onChangeText={(v) => {
+                setEmail(v);
+                setError(null);
+              }}
+              placeholder="ornek@eposta.com"
+              keyboardType="email-address"
+              autoComplete="email"
+              error={!!error}
             />
-          </View>
+          </Field>
 
-          <PressScale onPress={() => router.replace('/login')}>
-            <Txt variant="small" color={Palette.textDim} center>
-              Zaten hesabın var mı?{' '}
-              <Txt variant="smallStrong" color={Accent}>
-                Giriş yap
-              </Txt>
+          <Field label="Parola">
+            <TextField
+              value={password}
+              onChangeText={(v) => {
+                setPassword(v);
+                setError(null);
+              }}
+              placeholder="En az 4 karakter"
+              secureTextEntry
+              autoComplete="password-new"
+              error={!!error}
+            />
+          </Field>
+
+          <Field label="Parola (tekrar)">
+            <TextField
+              value={confirm}
+              onChangeText={(v) => {
+                setConfirm(v);
+                setError(null);
+              }}
+              placeholder="Parolanı tekrar gir"
+              secureTextEntry
+              autoComplete="password-new"
+              error={!!error}
+            />
+          </Field>
+
+          {error ? (
+            <Txt variant="small" color={Palette.pink}>
+              {error}
             </Txt>
-          </PressScale>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          ) : null}
+
+          <NeonButton
+            label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}
+            icon="arrow-forward"
+            color={Accent}
+            size="lg"
+            full
+            disabled={submitting}
+            onPress={submit}
+            style={styles.submit}
+          />
+        </View>
+
+        <PressScale onPress={() => router.replace('/login')}>
+          <Txt variant="small" color={Palette.textDim} center>
+            Zaten hesabın var mı?{' '}
+            <Txt variant="smallStrong" color={Accent}>
+              Giriş yap
+            </Txt>
+          </Txt>
+        </PressScale>
+      </KeyboardAwareScrollView>
     </ScreenBackground>
   );
 }
@@ -165,7 +164,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
   content: {
     flexGrow: 1,
     justifyContent: 'center',

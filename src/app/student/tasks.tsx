@@ -3,11 +3,11 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton, NeonButton, PressScale } from '@/components/button';
+import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Segmented, Txt } from '@/components/ui';
 import { completeTask, getTasks } from '@/lib/api';
 import { formatShortDate } from '@/lib/date';
-import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useStudent } from '@/lib/session';
 import type { Task } from '@/lib/types';
 import { categoryColor, categoryIcon, categoryLabel } from '@/lib/task-categories';
@@ -29,7 +29,6 @@ const API_RANGE: Record<RangeKey, 'day' | 'week' | 'month'> = {
 
 export default function Tasks() {
   useStudent();
-  const { open: openMenu } = useHamburgerMenu();
 
   const [range, setRange] = useState<RangeKey>('daily');
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -60,7 +59,8 @@ export default function Tasks() {
       <ScreenHeader
         title="Görevlerin"
         subtitle={`${doneCount}/${tasks.length} tamamlandı`}
-        right={<IconButton icon="menu" onPress={openMenu} />}
+        left={<MenuButton />}
+        right={<NotificationBell />}
       />
 
       <Segmented options={RANGE_OPTIONS} value={range} onChange={setRange} color={Palette.green} />

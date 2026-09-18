@@ -4,7 +4,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { PressScale } from '@/components/button';
 import { Mascot, type MascotMood } from '@/components/mascot';
 import { TextField, Txt } from '@/components/ui';
-import { Accent, Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space, pillRadius, softOf } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -400,7 +400,8 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingHorizontal: Space.md,
     paddingVertical: 5,
-    borderRadius: Radius.pill,
+    // 15 (tiny satir yuksekligi) + 10 (dikey dolgu) + 4 (kenarlik) = 29
+    borderRadius: pillRadius(29),
     borderWidth: Border.thick,
   },
   segments: {

@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, View, type ScrollViewProps, type ViewProps } from 'react-native';
+import { StyleSheet, View, type ScrollViewProps, type ViewProps } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Accent, Palette, Space } from '@/theme/tokens';
@@ -32,7 +33,15 @@ export function ScreenBackground({
   );
 }
 
-/** Kaydirilabilir ekran govdesi. Alt tab cubugunun altinda kalmayi onler. */
+/**
+ * Kaydirilabilir ekran govdesi. Alt tab cubugunun altinda kalmayi onler.
+ *
+ * Android SDK 54'ten beri edge-to-edge zorunlu; bu modda `adjustResize`
+ * pencereyi artik kucultmuyor, uygulama klavyenin altina ciziyor ve odaklanan
+ * girdi klavyenin arkasinda kaliyordu. `KeyboardAwareScrollView` klavye
+ * yuksekligini olcup icerigi yukari kaydiriyor — RN'in kendi
+ * KeyboardAvoidingView'i bu modda ise yaramiyor.
+ */
 export function Screen({
   tint,
   pattern,
@@ -44,8 +53,11 @@ export function Screen({
 
   return (
     <ScreenBackground tint={tint} pattern={pattern}>
-      <ScrollView
+      <KeyboardAwareScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        // Odaklanan girdi ile klavyenin ust kenari arasinda nefes payi.
+        bottomOffset={Space.xl}
         contentContainerStyle={[
           styles.content,
           { paddingTop: insets.top + Space.md, paddingBottom: insets.bottom + 96 },
@@ -54,7 +66,7 @@ export function Screen({
         {...rest}
       >
         {children}
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </ScreenBackground>
   );
 }
@@ -81,18 +93,21 @@ export function FixedScreen({
 export function ScreenHeader({
   title,
   subtitle,
+  left,
   right,
   onBack,
 }: {
   title: string;
   subtitle?: string;
+  /** Sol ustteki aksiyon — ogrenci sekmelerinde hamburger menu. */
+  left?: React.ReactNode;
   right?: React.ReactNode;
   /** Verilirse basligin solunda geri oku gosterir — ust seviye (yigin) sayfalarda. */
   onBack?: () => void;
 }) {
   return (
     <View style={styles.header}>
-      {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : null}
+      {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : left}
       <View style={styles.headerText}>
         <Txt variant="title">{title}</Txt>
         {subtitle ? (
@@ -120,7 +135,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     gap: Space.md,
   },
