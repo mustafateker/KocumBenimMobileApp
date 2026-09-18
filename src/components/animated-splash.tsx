@@ -17,15 +17,23 @@ import { Txt } from './ui';
 /**
  * Native acilis ekraninin uzerine binen JS katmani.
  *
- * app.json'daki expo-splash-screen eklentisi ayni maskotu ayni amber zemine,
- * ayni genislikte basar. Native ekran gizlendigi anda bu bilesen tipatip
- * ayni kareyi gosterdigi icin gecis gorunmez; sonrasinda maskot bir zipla,
- * kelime isareti asagidan gelir ve katman silinir.
+ * app.json'daki expo-splash-screen eklentisi ayni maskotu ayni zemine basar.
+ * Native ekran gizlendigi anda bu bilesen tipatip ayni kareyi gosterdigi icin
+ * gecis gorunmez; sonrasinda maskot bir zipla, kelime isareti asagidan gelir
+ * ve katman silinir.
  *
- * MASCOT_WIDTH degisirse app.json > expo-splash-screen > imageWidth de
- * ayni degere cekilmeli, yoksa devir teslim aninda gorsel siçrar.
+ * DIKKAT — iki genislik ayni sey degil:
+ *  - app.json > imageWidth (288) native ikonun TUVAL genisligi. Android 12+
+ *    acilis ekrani ikonu dairesel maskeyle kirptigi icin splash-icon.png
+ *    kare ve bol payli: cizim tuvalin yalnizca %55'ini kapliyor (1024 px
+ *    tuvalde 564 px). Pay olmadan maskotun kafasi ve ayaklari kesiliyordu.
+ *  - Buradaki MASCOT_WIDTH ise CIZIMIN ekrandaki genisligi.
+ *
+ * Yani: MASCOT_WIDTH = imageWidth x 0.55 = 288 x 0.55 ≈ 159.
+ * Biri degisirse digeri bu orana gore yeniden hesaplanmali, yoksa devir
+ * teslim aninda gorsel sicrar.
  */
-const MASCOT_WIDTH = 220;
+const MASCOT_WIDTH = 159;
 
 /** Katmanin toplam omru — _layout bu sureden sonra bilesen kaldirilir. */
 export const SPLASH_DURATION = 1700;
