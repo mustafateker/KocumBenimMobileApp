@@ -13,9 +13,10 @@ import type { AppNotification, NotificationType } from './types';
 /** Sunucunun push `data` alaninda gonderdigi govde (bkz. backend notifications/service.py). */
 export type PushPayload = {
   type?: string;
-  taskId?: number | null;
-  questionId?: number | null;
-  lessonId?: number | null;
+  // FCM data payload degerleri her zaman string olarak teslim edilir.
+  taskId?: string | number | null;
+  questionId?: string | number | null;
+  lessonId?: string | number | null;
 };
 
 const ROUTES: Record<NotificationType, Href> = {

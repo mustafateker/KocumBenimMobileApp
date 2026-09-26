@@ -1,96 +1,82 @@
-# Telefona bildirim gitmesi için gereken kurulum
+# Doğrudan FCM bildirim kurulumu
 
-Uygulama tarafı hazır: izin isteniyor, Android kanalı açılıyor, Expo push token
-alınıp backend'e (`POST /notifications/register-push`) gönderiliyor, gelen
-bildirime dokunulunca ilgili ekrana gidiliyor. Backend de zaten görev
-atandığında `https://exp.host/--/api/v2/push/send` adresine istek atıyor
-(`app-manager-backend/modules/notifications/service.py`).
+Mobil uygulama Android'de `expo-notifications` ile native FCM tokenını alır ve
+`POST /notifications/register-push` üzerinden backend'e gönderir. Backend,
+Firebase Admin SDK ile bildirimi doğrudan FCM'e yollar. Expo Push Service bu
+akışta kullanılmaz.
 
-Eksik olan tek şey **kimlik bilgileri**. Bunlar olmadan `getExpoPushTokenAsync()`
-token üretemez, backend'in gönderecek adresi olmaz ve telefona hiçbir şey düşmez.
-Uygulama bu durumu artık sessizce yutmuyor: sebep **Ayarlar → Hata Kayıtları**
-ekranına `PUSH_NO_PROJECT_ID` / `PUSH_REGISTER_FAILED` koduyla yazılıyor.
+## 1. Android uygulamasını Firebase'e bağla
 
-## 1. EAS projesi ve projectId
-
-```bash
-npm install -g eas-cli
-eas login
-eas init          # app.json içine expo.extra.eas.projectId yazar
-```
-
-`eas init` çalıştıramıyorsan projectId'yi elle de verebilirsin:
-
-```jsonc
-// app.json
-{
-  "expo": {
-    "extra": { "eas": { "projectId": "<expo.dev panelindeki uuid>" } }
-  }
-}
-```
-
-Alternatif olarak `.env.local` içine `EXPO_PUBLIC_EAS_PROJECT_ID=<uuid>` yazmak
-da yeterli — kod iki kaynağı da okuyor (`src/lib/push-notifications.ts`).
-
-## 2. Android için FCM (Firebase)
-
-Expo push servisi Android'e ancak FCM üzerinden ulaşabiliyor:
-
-1. [Firebase Console](https://console.firebase.google.com)'da proje aç,
-   paket adı **`com.crossborders.KocumBenimMobileApp`** olacak şekilde bir
-   Android uygulaması ekle.
-2. `google-services.json` dosyasını indir, proje köküne koy ve `app.json`'a
-   tanıt:
-
-   ```jsonc
-   { "expo": { "android": { "googleServicesFile": "./google-services.json" } } }
-   ```
-
-3. Firebase → Proje ayarları → Hizmet hesapları → **yeni özel anahtar oluştur**
-   (JSON). Bu dosyayı Expo'ya yükle:
-
-   ```bash
-   eas credentials          # Android > Push Notifications > FCM V1 service account key
-   ```
-
-4. Native tarafı yeniden üret ve derle:
+1. [Firebase Console](https://console.firebase.google.com) içindeki
+   `kocum-benim-6c5b0` projesine paket adı
+   **`com.triworkster.kocumbenimmobileapp`** olan bir Android uygulaması ekle.
+2. Bu Android uygulamasına ait `google-services.json` dosyasını indirip mobil
+   proje köküne koy. `app.json` dosyası bu konumu
+   `./google-services.json` olarak kullanacak şekilde ayarlıdır.
+3. Native uygulamayı yeniden derle:
 
    ```bash
    npx expo prebuild --platform android
    npx expo run:android
    ```
 
-   > `android/` klasörü depoda duruyor; `prebuild` onu yeniden üretir. Elle
-   > yapılmış bir düzenleme varsa önce yedekle.
+   `google-services.json` bir Firebase **Web** yapılandırması değildir. Web
+   yapılandırmasındaki `apiKey`, `appId` ve benzeri alanlar bu dosyanın yerine
+   kullanılamaz.
+
+## 2. Backend Firebase Admin kimliğini ayarla
+
+Firebase Console → Proje ayarları → Hizmet hesapları → **Yeni özel anahtar
+oluştur** yoluyla Service Account JSON dosyasını indir. Bu gizli dosyayı repoya
+ekleme.
+
+Yerel `.env` örneği:
+
+```dotenv
+FIREBASE_PROJECT_ID=kocum-benim-6c5b0
+FIREBASE_SERVICE_ACCOUNT_PATH=/mutlak/yol/firebase-service-account.json
+```
+
+Dosya yerine secret yöneticisinden tek satırlık JSON vermek için
+`FIREBASE_SERVICE_ACCOUNT_JSON` kullanılabilir. `GOOGLE_APPLICATION_CREDENTIALS`
+ile Application Default Credentials da desteklenir.
+
+Backend bağımlılıklarını kurup uygulamayı yeniden başlat:
+
+```bash
+pip install -r requirements.txt
+```
+
+Firebase Admin uygulaması FastAPI başlangıcında bir kez başlatılır. Kimlik
+bilgisi eksik veya hatalıysa backend başlangıçta hata vererek durur.
 
 ## 3. Doğrulama
 
-1. Uygulamayı aç, bildirim iznini ver.
-2. Backend'de `push_tokens` koleksiyonunda `ExponentPushToken[...]` ile başlayan
-   bir kayıt oluştuğunu gör.
-3. Test gönderimi:
+1. Expo Go yerine development/release build'i fiziksel Android cihazda aç.
+2. Bildirim iznini ver.
+3. MongoDB `push_tokens` koleksiyonunda `fcmToken` alanlı kaydın oluştuğunu
+   doğrula.
+4. Öğretmen panelinden bir görev ata. Bildirime dokununca **Görevlerim**
+   ekranının açıldığını doğrula.
 
-   ```bash
-   curl -X POST https://exp.host/--/api/v2/push/send \
-     -H "Content-Type: application/json" \
-     -d '{"to":"ExponentPushToken[...]","title":"Test","body":"Deneme","data":{"type":"task_assigned"}}'
-   ```
+Yönlendirme eşleşmeleri `src/lib/notification-route.ts` içindedir:
 
-4. Gelen bildirime dokunduğunda **Görevlerim** ekranının açılması gerekir.
-   Eşleşmelerin tamamı `src/lib/notification-route.ts` içinde:
+| Bildirim türü       | Açılan ekran      |
+| ------------------- | ----------------- |
+| `task_assigned`     | Görevlerim        |
+| `question_answered` | Sorularım (liste) |
+| `lesson_*`          | Özel Derslerim    |
+| `streak_reminder`   | Ana Sayfa         |
+| `announcement`      | Bildirimler       |
 
-   | Bildirim türü       | Açılan ekran          |
-   | ------------------- | --------------------- |
-   | `task_assigned`     | Görevlerim            |
-   | `question_answered` | Sorularım (liste)     |
-   | `lesson_*`          | Özel Derslerim        |
-   | `streak_reminder`   | Ana Sayfa             |
-   | `announcement`      | Bildirimler           |
+## Platform notları
 
-## Notlar
-
-- **Expo Go'da Android push çalışmaz** (SDK 53'ten beri). Test için
-  `expo run:android` ile üretilen geliştirme derlemesi gerekir.
-- Android 13+ bildirim izni kullanıcıdan ayrıca isteniyor; reddedilirse
-  `PUSH_PERMISSION_DENIED` kaydı düşer.
+- Expo SDK 57'de `getDevicePushTokenAsync()` Android'de FCM tokenı, iOS'ta APNs
+  tokenı döndürür. Firebase Admin ham APNs tokenına gönderim yapmadığı için bu
+  doğrudan FCM kurulumu şu anda Android ile sınırlıdır. iOS için uygulamaya
+  Firebase Messaging native SDK'sı eklenerek bir FCM registration tokenı
+  üretilmelidir.
+- Expo Go'da Android remote push SDK 53'ten beri çalışmaz; development build
+  gerekir.
+- Android 13+ için kanal izin isteğinden önce oluşturulur. Kullanıcı izni
+  reddederse `PUSH_PERMISSION_DENIED` hata kaydı oluşur.

@@ -8,6 +8,7 @@
     "scheme": "kocumbenimmobileapp",
     "userInterfaceStyle": "light",
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FA897B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -15,7 +16,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.crossborders.KocumBenimMobileApp"
+      "package": "com.triworkster.kocumbenimmobileapp"
     },
     "web": {
       "output": "static",
@@ -52,7 +53,8 @@
         "expo-notifications",
         {
           "icon": "./assets/images/android-icon-monochrome.png",
-          "color": "#FA897B"
+          "color": "#FA897B",
+          "defaultChannel": "default"
         }
       ]
     ],

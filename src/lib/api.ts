@@ -134,8 +134,8 @@ export function markNotificationRead(id: number) {
   return api.patch<void>(`/notifications/${id}/read`);
 }
 
-export function registerPushToken(expoPushToken: string) {
-  return api.post<void>('/notifications/register-push', { expoPushToken });
+export function registerPushToken(fcmToken: string) {
+  return api.post<void>('/notifications/register-push', { fcmToken });
 }
 
 /* ------------------------------------- ozel dersler ----------------------------------- */
