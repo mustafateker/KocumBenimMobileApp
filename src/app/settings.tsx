@@ -117,11 +117,11 @@ export default function Settings() {
           Hesap
         </Txt>
         <Card style={styles.list}>
-          <SettingRow icon="mail-outline" color={Palette.purple} label="E-posta" trailing={student.email ?? '—'} />
+          <SettingRow icon="mail-outline" color={Accent} label="E-posta" trailing={student.email ?? '—'} />
           <PressScale onPress={() => setEditingParentEmail((c) => !c)}>
             <SettingRow
               icon="people-outline"
-              color={Palette.green}
+              color={Accent}
               label="Veli E-postası"
               trailing={editingParentEmail ? undefined : (student.parentEmail ?? 'Ekle')}
               chevron
@@ -148,7 +148,7 @@ export default function Settings() {
               )}
               <NeonButton
                 label={savingParentEmail ? 'Kaydediliyor…' : 'Kaydet'}
-                color={Palette.green}
+                color={Accent}
                 disabled={savingParentEmail}
                 onPress={submitParentEmail}
                 full
@@ -157,7 +157,7 @@ export default function Settings() {
           ) : null}
 
           <PressScale onPress={() => setChangingPassword((c) => !c)}>
-            <SettingRow icon="lock-closed-outline" color={Palette.blue} label="Parolayı Değiştir" chevron />
+            <SettingRow icon="lock-closed-outline" color={Accent} label="Parolayı Değiştir" chevron />
           </PressScale>
 
           {changingPassword ? (
@@ -176,7 +176,7 @@ export default function Settings() {
               ) : null}
               <NeonButton
                 label={savingPassword ? 'Kaydediliyor…' : 'Parolayı Güncelle'}
-                color={Palette.blue}
+                color={Accent}
                 disabled={savingPassword}
                 onPress={submitPassword}
                 full
@@ -194,7 +194,7 @@ export default function Settings() {
         <Card style={styles.list}>
           <SettingRow
             icon="clipboard-outline"
-            color={Palette.gold}
+            color={Accent}
             label="Görev bildirimleri"
             control={
               <Switch
@@ -206,7 +206,7 @@ export default function Settings() {
           />
           <SettingRow
             icon="flame-outline"
-            color={Palette.orange}
+            color={Accent}
             label="Seri hatırlatmaları"
             control={
               <Switch
@@ -218,7 +218,7 @@ export default function Settings() {
           />
           <SettingRow
             icon="megaphone-outline"
-            color={Palette.green}
+            color={Accent}
             label="Uygulama duyuruları"
             control={
               <Switch
@@ -239,7 +239,7 @@ export default function Settings() {
         <Card style={styles.list}>
           <SettingRow
             icon="volume-high-outline"
-            color={Palette.blue}
+            color={Accent}
             label="Ses efektleri"
             control={
               <Switch value={prefs.sound} onValueChange={(v) => togglePref('sound', v)} trackColor={SWITCH_TRACK} />
@@ -247,7 +247,7 @@ export default function Settings() {
           />
           <SettingRow
             icon="phone-portrait-outline"
-            color={Palette.purple}
+            color={Accent}
             label="Titreşim"
             control={
               <Switch
@@ -267,7 +267,7 @@ export default function Settings() {
         </Txt>
         <Card style={styles.list}>
           <PressScale onPress={() => router.push('/help')}>
-            <SettingRow icon="help-circle-outline" color={Palette.green} label="Yardım & Destek" chevron />
+            <SettingRow icon="help-circle-outline" color={Accent} label="Yardım & Destek" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/privacy-policy')}>
             <SettingRow icon="shield-checkmark-outline" color={Palette.textDim} label="Gizlilik Politikası" chevron />
@@ -279,7 +279,7 @@ export default function Settings() {
             <SettingRow icon="reader-outline" color={Palette.textDim} label="Aydınlatma Metni" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/diagnostics')}>
-            <SettingRow icon="bug-outline" color={Palette.pink} label="Hata Kayıtları" chevron />
+            <SettingRow icon="bug-outline" color={Palette.textDim} label="Hata Kayıtları" chevron />
           </PressScale>
           <SettingRow icon="information-circle-outline" color={Palette.textDim} label="Sürüm" trailing="1.0.0" />
         </Card>

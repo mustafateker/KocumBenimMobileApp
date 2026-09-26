@@ -9,12 +9,12 @@ import { PatternBackground } from './pattern-background';
 import { Txt } from './ui';
 
 /**
- * Tum ekranlarin ortak zemini: duz, neredeyse beyaz. Duolingo tarzinda renk
- * zeminde degil bilesenlerde (kart kenarligi, buton dolgusu) yasar.
+ * Tum ekranlarin ortak zemini: sicak ve neredeyse beyaz. Renk zeminde degil,
+ * anlamli durumlarda ve ana aksiyonda yasar.
  *
  * `pattern` verilen ekranlar bunun yerine dekoratif ama yine gradyansiz bir
- * zemin alir (defter izgarasi + pastel tepe bandi); `tint` o bandin rengini
- * belirler. Varsayilan kapalidir ki icerik yogun ekranlar sade kalsin.
+ * zemin alir (tek renkli organik tepe bandi); `tint` o bandin rengini belirler.
+ * Varsayilan kapalidir ki icerik yogun ekranlar sade kalsin.
  */
 export function ScreenBackground({
   tint,
@@ -107,16 +107,20 @@ export function ScreenHeader({
 }) {
   return (
     <View style={styles.header}>
-      {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : left}
+      <View style={[styles.headerSide, styles.headerSideLeft]}>
+        {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : left}
+      </View>
       <View style={styles.headerText}>
-        <Txt variant="title">{title}</Txt>
+        <Txt variant="title" center>
+          {title}
+        </Txt>
         {subtitle ? (
-          <Txt variant="small" color={Palette.textDim}>
+          <Txt variant="small" color={Palette.textDim} center>
             {subtitle}
           </Txt>
         ) : null}
       </View>
-      {right}
+      <View style={[styles.headerSide, styles.headerSideRight]}>{right}</View>
     </View>
   );
 }
@@ -136,11 +140,21 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: Space.md,
   },
   headerText: {
     flex: 1,
     gap: 2,
+  },
+  headerSide: {
+    width: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+  },
+  headerSideLeft: {
+    alignItems: 'flex-start',
+  },
+  headerSideRight: {
+    alignItems: 'flex-end',
   },
 });

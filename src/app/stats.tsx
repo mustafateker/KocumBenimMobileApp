@@ -11,7 +11,7 @@ import { relativeTime } from '@/lib/date';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
 import type { StudentStats, Task, TopicBreakdown } from '@/lib/types';
-import { Border, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, Palette, Radius, Space } from '@/theme/tokens';
 
 const EMPTY_STATS: StudentStats = {
   totalTasks: 0,
@@ -49,16 +49,16 @@ export default function Stats() {
       <ScreenHeader title="İstatistiklerin" subtitle="Görev tamamlama geçmişin" onBack={() => router.back()} />
 
       <View style={styles.tiles}>
-        <StatTile icon="flame" color={Palette.orange} value={String(stats.currentStreak)} label="Seri" />
-        <StatTile icon="checkmark-done" color={Palette.blue} value={String(stats.doneTasks)} label="Tamamlanan" />
-        <StatTile icon="trending-up" color={Palette.green} value={`%${rate}`} label="Tamamlama" />
+        <StatTile icon="flame" color={Accent} value={String(stats.currentStreak)} label="Seri" />
+        <StatTile icon="checkmark-done" color={Accent} value={String(stats.doneTasks)} label="Tamamlanan" />
+        <StatTile icon="trending-up" color={Accent} value={`%${rate}`} label="Tamamlama" />
       </View>
 
       <Card>
         <Txt variant="section" style={styles.cardTitle}>
           Son 7 gün odak süren
         </Txt>
-        <WeekBars data={stats.last7Days} goalMinutes={Rules.dailyGoalMinutes} color={Palette.blue} />
+        <WeekBars data={stats.last7Days} goalMinutes={Rules.dailyGoalMinutes} color={Accent} />
       </Card>
 
       {stats.byTopic.length > 0 ? (
@@ -84,7 +84,7 @@ export default function Stats() {
             icon="checkmark-done-outline"
             title="Henüz tamamlanmış görev yok"
             subtitle="İlk görevini bitirdiğinde burada listelenecek."
-            color={Palette.blue}
+            color={Accent}
           />
         ) : (
           <View style={styles.list}>
@@ -150,9 +150,9 @@ function StatTile({
   label: string;
 }) {
   return (
-    <View style={[styles.tile, { backgroundColor: color + '18', borderColor: color }]}>
+    <View style={styles.tile}>
       <IconBubble name={icon} color={color} size={36} />
-      <Txt variant="section" color={color}>
+      <Txt variant="section" color={Palette.text}>
         {value}
       </Txt>
       <Txt variant="tiny" color={Palette.textDim}>
@@ -175,7 +175,9 @@ const styles = StyleSheet.create({
     paddingVertical: Space.lg,
     paddingHorizontal: Space.xs,
     borderRadius: Radius.lg,
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
   },
   cardTitle: {
     marginBottom: Space.md,

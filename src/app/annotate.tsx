@@ -24,7 +24,7 @@ import { logHandledError } from '@/lib/crash-reporter';
 import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
 import type { CanvasItem } from '@/lib/types';
-import { Border, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, Border, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
 const PENS = ['#FF3B5C', '#2B7FFF', '#12C46A', '#FFB020', '#111827'];
@@ -298,15 +298,15 @@ export default function Annotate() {
 
           {/* Alt arac cubugu */}
           <View style={[styles.toolbar, { paddingBottom: insets.bottom + Space.sm }]}>
-            <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Palette.purple} onPress={() => setTool('pen')} />
+            <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Accent} onPress={() => setTool('pen')} />
             <ToolButton
               icon="color-fill"
               label="Vurgula"
               active={tool === 'highlight'}
-              color={Palette.gold}
+              color={Accent}
               onPress={() => setTool('highlight')}
             />
-            <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Palette.blue} onPress={() => setTool('text')} />
+            <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Accent} onPress={() => setTool('text')} />
             <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
             <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
           </View>
@@ -333,7 +333,7 @@ export default function Annotate() {
             />
             <View style={styles.modalActions}>
               <GhostButton label="Vazgeç" onPress={() => setTextDraft(null)} style={styles.flex} full />
-              <NeonButton label="Ekle" color={Palette.blue} onPress={commitText} style={styles.flex} full />
+              <NeonButton label="Ekle" color={Accent} onPress={commitText} style={styles.flex} full />
             </View>
           </View>
         </View>
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(40),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Palette.purple,
+    backgroundColor: Accent,
   },
   saveButtonDisabled: {
     opacity: 0.6,

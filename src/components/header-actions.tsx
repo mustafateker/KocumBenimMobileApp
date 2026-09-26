@@ -7,7 +7,7 @@ import { Txt } from './ui';
 
 import { useHamburgerMenu } from '@/lib/hamburger-menu-context';
 import { useNotificationCenter } from '@/lib/notification-center';
-import { OnColor, Palette } from '@/theme/tokens';
+import { Accent, OnColor, Palette } from '@/theme/tokens';
 
 /**
  * Ogrenci ekranlarinin ortak baslik aksiyonlari: menu solda, bildirim sagda.
@@ -34,7 +34,7 @@ export function NotificationBell() {
     <View>
       <IconButton
         icon={unread > 0 ? 'notifications' : 'notifications-outline'}
-        color={unread > 0 ? Palette.gold : Palette.textDim}
+        color={unread > 0 ? Accent : Palette.textDim}
         onPress={() => router.push('/notifications')}
       />
       {unread > 0 ? (
@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Palette.pink,
+    backgroundColor: Accent,
     borderWidth: 2,
     borderColor: Palette.bg,
   },

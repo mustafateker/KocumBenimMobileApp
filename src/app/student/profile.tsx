@@ -83,16 +83,16 @@ export default function Profile() {
           Bu Hafta
         </Txt>
         <View style={styles.tiles}>
-          <StatTile icon="star" color={Palette.gold} value={String(student.xp)} label="Toplam XP" />
+          <StatTile icon="star" color={Accent} value={String(student.xp)} label="Toplam XP" />
           <StatTile
             icon="time"
-            color={Palette.green}
+            color={Accent}
             value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
             label="Odak Süresi"
           />
           <StatTile
             icon="checkmark-done"
-            color={Palette.blue}
+            color={Accent}
             value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
             label="Görev"
           />
@@ -153,9 +153,9 @@ function StatTile({
   label: string;
 }) {
   return (
-    <View style={[styles.tile, { backgroundColor: color + '18', borderColor: color }]}>
+    <View style={styles.tile}>
       <IconBubble name={icon} color={color} size={36} />
-      <Txt variant="section" color={color}>
+      <Txt variant="section" color={Palette.text}>
         {value}
       </Txt>
       <Txt variant="tiny" color={Palette.textDim}>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: softOf(Accent),
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
     borderColor: Accent,
   },
   streakPill: {
@@ -204,7 +204,9 @@ const styles = StyleSheet.create({
     paddingVertical: Space.lg,
     paddingHorizontal: Space.xs,
     borderRadius: Radius.lg,
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
   },
   section: {
     gap: Space.sm,

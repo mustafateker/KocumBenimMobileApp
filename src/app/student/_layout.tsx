@@ -5,13 +5,11 @@ import { TabBar, type TabBarState, type TabMeta } from '@/components/tab-bar';
 import { HamburgerMenuProvider } from '@/lib/hamburger-menu-context';
 import { useNotificationRouting } from '@/lib/push-notifications';
 import { useSession } from '@/lib/session';
-import { Accent, Palette } from '@/theme/tokens';
-
 const TABS: Record<string, TabMeta> = {
-  index: { label: 'Ana Sayfa', icon: 'home', color: Accent },
-  tasks: { label: 'Görevlerim', icon: 'checkmark-done', color: Palette.green },
-  questions: { label: 'Sorularım', icon: 'camera', color: Palette.orange },
-  profile: { label: 'Profil', icon: 'person', color: Palette.blue },
+  index: { label: 'Ana Sayfa', icon: 'home' },
+  tasks: { label: 'Görevlerim', icon: 'checkmark-done' },
+  questions: { label: 'Sorularım', icon: 'camera' },
+  profile: { label: 'Profil', icon: 'person' },
 };
 
 export default function StudentLayout() {

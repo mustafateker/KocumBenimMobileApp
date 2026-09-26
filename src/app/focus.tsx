@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useKeepAwake } from 'expo-keep-awake';
 import { NavigationBar } from 'expo-navigation-bar';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -10,19 +9,18 @@ import { Alert, Platform, StyleSheet, View, type StyleProp, type ViewStyle } fro
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { PressScale } from '@/components/button';
-import { Confetti } from '@/components/confetti';
 import { FocusRing } from '@/components/focus-ring';
 import { Txt } from '@/components/ui';
 import { logFocusSession } from '@/lib/api';
 import { clockFormat } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
-import { deepOf, OnColor, Palette, Space, Type, pillRadius } from '@/theme/tokens';
+import { Accent, Border, OnColor, Palette, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
 /**
- * Tam ekran odak modu — uc durum: calisiyor (mor), duraklatildi (turuncu —
- * zemin, halka rengi ve mesaj hep birlikte degisir), tamamlandi (mor->pembe,
- * konfeti), elle bitirildi (pembe, kaydedilmez).
+ * Tam ekran odak modu. Calisma ve mola ayni koyu yesil zemini korur; durum
+ * yalnizca ikon ve halka ile anlatilir. Boylece kullanici duraklattiginda
+ * bile tum ekran renk degistirip dikkat cekmez.
  *
  * Calisma suresince ekranda dikkat dagitici hicbir sey yok; durum cubugu ve
  * Android gezinme cubugu gizlenir, ekran uyumaz.
@@ -96,13 +94,12 @@ export default function Focus() {
   }
 
   const paused = timer.status === 'paused';
-  const themeColor = paused ? Palette.orange : Palette.purple;
+  const themeColor = paused ? Palette.orange : Accent;
 
   return (
     <View style={styles.root}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
-      <LinearGradient colors={[themeColor, deepOf(themeColor)]} style={StyleSheet.absoluteFill} />
 
       <View style={styles.center}>
         <View style={styles.pill}>
@@ -163,7 +160,7 @@ export default function Focus() {
   );
 }
 
-/** Halkanin arkasinda yavasca nefes alan dekoratif parilti — "havali loop" hissi. */
+/** Halkanin arkasinda cok hafif nefes alan durum geri bildirimi. */
 function PulseGlow({ color }: { color: string }) {
   const pulse = useSharedValue(0);
 
@@ -172,8 +169,8 @@ function PulseGlow({ color }: { color: string }) {
   }, [pulse]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: 0.15 + pulse.value * 0.2,
-    transform: [{ scale: 1 + pulse.value * 0.06 }],
+    opacity: 0.07 + pulse.value * 0.08,
+    transform: [{ scale: 1 + pulse.value * 0.035 }],
   }));
 
   return <Animated.View pointerEvents="none" style={[styles.pulseGlow, { backgroundColor: color }, animatedStyle]} />;
@@ -183,30 +180,27 @@ function PulseGlow({ color }: { color: string }) {
 
 function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; onDone: () => void }) {
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, styles.resultRoot]}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
-      <LinearGradient colors={[Palette.purple, Palette.pink]} style={StyleSheet.absoluteFill} />
-      <Confetti trigger={1} />
-
       <View style={styles.center}>
-        <View style={styles.starCircle}>
-          <Ionicons name="star" size={44} color={Palette.gold} />
+        <View style={[styles.starCircle, { backgroundColor: Palette.greenSoft }]}>
+          <Ionicons name="checkmark" size={44} color={Palette.green} />
         </View>
-        <Txt variant="hero" color={OnColor} center>
-          Harika! 🎉
+        <Txt variant="hero" center>
+          Harika!
         </Txt>
-        <Txt variant="body" color="rgba(255,255,255,0.85)" center>
+        <Txt variant="body" color={Palette.textDim} center>
           Odak süren tamamlandı. {minutes} dakika.
         </Txt>
 
         <View style={styles.xpChip}>
-          <Txt variant="section" color={Palette.purple}>
+          <Txt variant="section" color={Accent}>
             +{xp} XP
           </Txt>
         </View>
 
-        <SolidButton label="Devam Et" color={Palette.purple} onPress={onDone} />
+        <SolidButton label="Devam Et" color={Accent} onPress={onDone} />
       </View>
     </View>
   );
@@ -216,18 +210,18 @@ function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; o
 
 function DiscardedScreen({ onDone }: { onDone: () => void }) {
   return (
-    <View style={[styles.root, { backgroundColor: Palette.pink }]}>
+    <View style={[styles.root, styles.resultRoot]}>
       <StatusBar hidden />
       {Platform.OS === 'android' ? <NavigationBar hidden /> : null}
 
       <View style={styles.center}>
-        <View style={styles.starCircle}>
+        <View style={[styles.starCircle, { backgroundColor: Palette.pinkSoft }]}>
           <Ionicons name="alarm" size={40} color={Palette.pink} />
         </View>
-        <Txt variant="title" color={OnColor} center>
+        <Txt variant="title" center>
           Odak süren bitirildi.
         </Txt>
-        <Txt variant="body" color="rgba(255,255,255,0.85)" center>
+        <Txt variant="body" color={Palette.textDim} center>
           Süre kaydedilmedi.
         </Txt>
 
@@ -237,7 +231,7 @@ function DiscardedScreen({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** Renkli tam ekranlar uzerindeki beyaz zeminli birincil buton. */
+/** Sonuc ekranlarindaki yuksek kontrastli birincil buton. */
 function SolidButton({
   label,
   color,
@@ -251,8 +245,8 @@ function SolidButton({
 }) {
   return (
     <PressScale onPress={onPress} style={[styles.solidButton, style]} hapticStyle={Haptics.ImpactFeedbackStyle.Medium}>
-      <View style={styles.solidButtonInner}>
-        <Txt variant="section" color={color}>
+      <View style={[styles.solidButtonInner, { backgroundColor: color }]}>
+        <Txt variant="section" color={OnColor}>
           {label}
         </Txt>
       </View>
@@ -263,7 +257,10 @@ function SolidButton({
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: Palette.purple,
+    backgroundColor: Palette.focusBg,
+  },
+  resultRoot: {
+    backgroundColor: Palette.bg,
   },
   center: {
     flex: 1,
@@ -331,7 +328,9 @@ const styles = StyleSheet.create({
     borderRadius: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: OnColor,
+    backgroundColor: Palette.surface,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
   },
   xpChip: {
     paddingHorizontal: Space.xl,
@@ -339,7 +338,9 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(46),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: OnColor,
+    backgroundColor: softOf(Accent),
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
   },
   solidButton: {
     alignSelf: 'stretch',
@@ -349,7 +350,6 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(56),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: OnColor,
     paddingHorizontal: Space.xl,
   },
   gapTop: {

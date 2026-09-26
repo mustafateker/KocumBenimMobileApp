@@ -1,7 +1,7 @@
 import type { Ionicons } from '@expo/vector-icons';
 
 import type { MascotMood } from '@/components/mascot';
-import { Palette } from '@/theme/tokens';
+import { Accent } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -53,7 +53,7 @@ export const STEP_META: Record<
 > = {
   welcome: {
     icon: 'hand-left',
-    color: Palette.purple,
+    color: Accent,
     title: 'Hadi seni tanıyalım! 👋',
     subtitle: 'Bu yolculukta seni daha iyi tanımak istiyoruz.',
     mood: 'wink',
@@ -61,7 +61,7 @@ export const STEP_META: Record<
   },
   name: {
     icon: 'person',
-    color: Palette.purple,
+    color: Accent,
     title: 'Adın ne?',
     subtitle: 'Sana nasıl hitap etmemizi istersin?',
     mood: 'happy',
@@ -69,77 +69,77 @@ export const STEP_META: Record<
   },
   grade: {
     icon: 'school',
-    color: Palette.green,
+    color: Accent,
     title: 'Hangi sınıftasın?',
     subtitle: 'Sana uygun bir program oluşturabilmemiz için.',
     mood: 'happy',
   },
   goal: {
     icon: 'trophy',
-    color: Palette.gold,
+    color: Accent,
     title: 'En büyük hedefin ne?',
     subtitle: 'Bu hedef, seni motive edecek pusulan olacak.',
     mood: 'cheer',
   },
   career: {
     icon: 'briefcase',
-    color: Palette.blue,
+    color: Accent,
     title: 'İlerde hangi mesleği seçmek istiyorsun?',
     subtitle: 'Hayalindeki mesleği seç ya da yazabilirsin.',
     mood: 'think',
   },
   highSchool: {
     icon: 'business',
-    color: Palette.orange,
+    color: Accent,
     title: 'Hangi lisede okumak istiyorsun?',
     subtitle: 'Hedeflediğin lise seni bir adım öne taşır.',
     mood: 'think',
   },
   university: {
     icon: 'library',
-    color: Palette.purple,
+    color: Accent,
     title: 'Hangi üniversitede okumak istiyorsun?',
     subtitle: 'Hayalindeki üniversiteyi seç ya da yaz.',
     mood: 'think',
   },
   department: {
     icon: 'book',
-    color: Palette.orange,
+    color: Accent,
     title: 'Hangi bölümü hedefliyorsun?',
     subtitle: 'İlgilendiğin bölümü seç ya da yazabilirsin.',
     mood: 'think',
   },
   mathTopics: {
     icon: 'calculator',
-    color: Palette.purple,
+    color: Accent,
     title: 'Matematikte seni en çok korkutan konular neler?',
     subtitle: 'Korkma, birlikte çalışacağımız konuları seçelim.',
     mood: 'think',
   },
   dailyHours: {
     icon: 'time',
-    color: Palette.green,
+    color: Accent,
     title: 'Günlük kaç saat çalışmayı planlıyorsun?',
     subtitle: 'Gerçekçi bir süre seçmek çok önemli!',
     mood: 'happy',
   },
   timeframe: {
     icon: 'calendar',
-    color: Palette.orange,
+    color: Accent,
     title: 'Hedeflerine ne kadar sürede ulaşmak istiyorsun?',
     subtitle: 'Sabırlı ol, istikrarlı ilerle!',
     mood: 'happy',
   },
   motivation: {
     icon: 'star',
-    color: Palette.gold,
+    color: Accent,
     title: 'Motivasyon kaynağın nedir?',
     subtitle: 'Seni motive eden şeyleri seçebilirsin.',
     mood: 'cheer',
   },
   summary: {
     icon: 'checkmark-circle',
-    color: Palette.purple,
+    color: Accent,
     title: 'Hazırsın!',
     subtitle: 'Hedeflerine ulaşmak için harika bir yolculuğa çıkıyoruz.',
     mood: 'cheer',

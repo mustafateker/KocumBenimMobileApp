@@ -1,66 +1,53 @@
 /**
- * Kocum Benim — tasarim sistemi.
+ * Kocum Benim — sakin egitim tasarim sistemi.
  *
- * Hedef kitle 12-18 yas. Duolingo'dan ilham alan "oyunlastirma render
- * edilmis gorsel dil": her etkilesimli ogede 2-4px kati kenarlik + alt
- * kenarda daha koyu bir "3D basma" seridi, beyaza yakin duz zemin (renk
- * kartlarda/butonlarda yasar, zeminde degil).
- *
- * Vurgu renkleri 2026 pastel paletinden gelir (mint, adacayi yesili, gunes
- * sarisi, mercan, lavanta). Canli ve ic acici bir his icin vurgulu
- * yuzeylerde (buton dolgusu, tepe bandi, odak halkasi, acilis ekrani)
- * `gradientOf()` ile yumusak bir gradyan uygulanir; kontur ve dolgu
- * hiyerarsiyi tasimaya devam eder, gradyan sadece canliligi artirir.
+ * Sicak notr zeminler uzun calisma oturumlarinda goz yormaz. Adacayi yesili
+ * markayi ve ana aksiyonlari tasir; mavi, kayisi ve kirmizi yalnizca anlamli
+ * bilgi/durum geri bildirimlerinde kullanilir. Buyuk yuzeyler renkli degil,
+ * beyaz veya notrdur. Boylece arayuz cocuk dostu kalirken oyuncaklasmaz.
  */
 
 export const Palette = {
-  /** Sayfa zemini — duz, neredeyse beyaz. Renk zeminde degil bilesenlerde yasar. */
-  bg: '#FCFBFF',
-  /** Cerceve / vurgulu bloklar */
-  bgDeep: '#DED2F7',
+  /** Sicak kagit hissi veren ana sayfa zemini. */
+  bg: '#F6F7F3',
+  /** Marka renginin sakin, genis yuzey tonu. */
+  bgDeep: '#D9E5DF',
+  /** Odak modunun isigi azaltan tek parca koyu zemini. */
+  focusBg: '#27483F',
   /** Kart zemini */
   surface: '#FFFFFF',
   /** Ikincil yuzey — ic kartlar, ilerleme cubugu zemini */
-  surfaceHi: '#F1ECFB',
-  /** Standart kati kenarlik — Duolingo'nun 2px "Swan" cizgisinin karsiligi */
-  border: '#E1D6F5',
-  /** Vurgulu kenarlik — secili sekme, odakli girdi */
-  borderStrong: '#C9B8ED',
-  overlay: 'rgba(38, 31, 61, 0.5)',
+  surfaceHi: '#EEF2EF',
+  border: '#DCE4DF',
+  borderStrong: '#AFC4BA',
+  overlay: 'rgba(24, 39, 33, 0.46)',
 
-  text: '#2E2650',
-  textDim: '#6E6390',
-  textFaint: '#A79FC0',
+  text: '#24332D',
+  textDim: '#5D6E66',
+  textFaint: '#68776F',
 
-  /** Birincil vurgu — ana aksiyon, marka rengi. 2026 palet: mercan. */
-  amber: '#FA897B',
-  amberSoft: '#FFEAE5',
-  /** Ikincil vurgu — XP, seviye, secili ozellik ekranlari (odaklanma, ozel dersler). 2026 palet: lavanta. */
-  purple: '#CCABD8',
-  purpleSoft: '#F2E9F7',
-  /** Sari — coin, odul, enerji. 2026 palet: gunes sarisi. */
-  gold: '#FFDD94',
-  goldSoft: '#FFF7E5',
-  /** Turuncu — streak / ates. 2026 palet: mercan-sari arasi kayisi tonu. */
-  orange: '#FFB37A',
-  orangeSoft: '#FFEEDF',
-  /** Pembe/kirmizi — dikkat, hata. 2026 palet: mercandan koyulastirilmis, belirgin alarm tonu. */
-  pink: '#F2565F',
-  pinkSoft: '#FDE3E4',
-  /** Mavi — odak, sakinlik, ipucu. 2026 palet: mint/turkuaz. */
-  blue: '#86E3CE',
-  blueSoft: '#E4F8F3',
-  /** Yesil — tamamlandi, basari. 2026 palet: adacayi yesili. */
-  green: '#D0E6A5',
-  greenSoft: '#F3F8E7',
+  /** Birincil marka ve aksiyon rengi — beyaz metinle AA kontrastli. */
+  amber: '#3F7667',
+  amberSoft: '#E5F0EB',
+  /** Ikincil sakin ton — dekoratif morun yerini alan yesil-gri. */
+  purple: '#667A76',
+  purpleSoft: '#EBEFEE',
+  /** Sicak vurgu — odul/enerji gibi az sayida anlamli noktada. */
+  gold: '#98613D',
+  goldSoft: '#F7EEE6',
+  /** Seri ve bekleme durumlari icin koyu kayisi. */
+  orange: '#9D6043',
+  orangeSoft: '#F8ECE6',
+  /** Hata ve tehlike. */
+  pink: '#B8575F',
+  pinkSoft: '#F8E9EA',
+  /** Bilgi ve rehberlik. */
+  blue: '#527B8C',
+  blueSoft: '#E8F0F3',
+  /** Basari ve tamamlanma. */
+  green: '#4F7D5C',
+  greenSoft: '#E9F1EB',
 } as const;
-
-/**
- * Marka imza gradyani — yeni paletin sicak-soguk yayilimini gosterir
- * (mint → mercan → lavanta). Acilis ekrani gibi tek, kasitli "hero"
- * yuzeylerde kullanilir; kucuk bilesenlerde tekrar etmez.
- */
-export const HeroGradient = [Palette.blue, Palette.amber, Palette.purple] as const;
 
 /** Uygulamanin birincil vurgu rengi. */
 export const Accent = Palette.amber;
@@ -89,56 +76,6 @@ export function softOf(color: string): string {
   return SoftOf[color] ?? Palette.surfaceHi;
 }
 
-/**
- * Bir rengi koyulastirir — chunky butonlarin "3D basma" seridi ve kart
- * vurgu kenarliklari icin. #RRGGBB bekler.
- */
-export function shade(hex: string, amount = 0.74): string {
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  const num = parseInt(hex.slice(1), 16);
-  const r = Math.round(((num >> 16) & 255) * amount);
-  const g = Math.round(((num >> 8) & 255) * amount);
-  const b = Math.round((num & 255) * amount);
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
-}
-
-/**
- * Bir rengi beyaza dogru actar — gradyanlarin acik ucu icin. #RRGGBB bekler.
- */
-export function lighten(hex: string, amount = 0.28): string {
-  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return hex;
-  const num = parseInt(hex.slice(1), 16);
-  const r = (num >> 16) & 255;
-  const g = (num >> 8) & 255;
-  const b = num & 255;
-  const mix = (c: number) => Math.round(c + (255 - c) * amount);
-  return `#${((mix(r) << 16) | (mix(g) << 8) | mix(b)).toString(16).padStart(6, '0')}`;
-}
-
-/**
- * Vurgulu yuzeyler icin acikdan-koyuya iki durakli gradyan (buton dolgusu,
- * tepe bandi, rozet). Herhangi bir #RRGGBB girdisinde calisir; beyaz gibi
- * notr renklerde goze gorunmez kalir (guvenli varsayilan).
- */
-export function gradientOf(color: string): readonly [string, string] {
-  return [lighten(color), color] as const;
-}
-
-/** Her vurgu renginin "3D basma" seridi icin koyu tonu. */
-export const DeepOf: Record<string, string> = {
-  [Palette.amber]: shade(Palette.amber),
-  [Palette.purple]: shade(Palette.purple),
-  [Palette.gold]: shade(Palette.gold),
-  [Palette.orange]: shade(Palette.orange),
-  [Palette.pink]: shade(Palette.pink),
-  [Palette.blue]: shade(Palette.blue),
-  [Palette.green]: shade(Palette.green),
-};
-
-export function deepOf(color: string): string {
-  return DeepOf[color] ?? shade(color);
-}
-
 export const Space = {
   xs: 4,
   sm: 8,
@@ -150,10 +87,10 @@ export const Space = {
 } as const;
 
 export const Radius = {
-  sm: 10,
-  md: 16,
-  lg: 20,
-  xl: 24,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
 } as const;
 
 /**
@@ -172,13 +109,10 @@ export function pillRadius(height: number): number {
   return Math.round(height / 2);
 }
 
-/** Kati kenarlik kalinliklari — Duolingo hiç kilcal cizgi kullanmaz. */
+/** Ince, sakin ayrimlar; secili durumda ikinci kademe kullanilir. */
 export const Border = {
   thin: 1,
-  /** Standart kart/buton kenarligi */
-  thick: 2,
-  /** Chunky butonlarin dinlenme durumundaki "3D" alt serit yuksekligi */
-  chunky: 4,
+  thick: 1,
 } as const;
 
 /**
@@ -186,13 +120,13 @@ export const Border = {
  * hamburger menu) kullanilir. Kartlarda ve butonlarda hiyerarsiyi kalin
  * kenarlik tasir, golge degil.
  */
-export function glow(color: string = Palette.amber, intensity = 0.45) {
+export function glow(color: string = Palette.amber, intensity = 0.3) {
   return {
     shadowColor: color,
-    shadowOpacity: intensity * 0.42,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 5,
+    shadowOpacity: intensity * 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   };
 }
 
@@ -200,21 +134,21 @@ export function glow(color: string = Palette.amber, intensity = 0.45) {
 export const Elevation = {
   none: {},
   sm: {
-    shadowColor: '#3E3560',
+    shadowColor: '#24332D',
     shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
   md: {
-    shadowColor: '#3E3560',
+    shadowColor: '#24332D',
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
   },
   lg: {
-    shadowColor: '#2E2650',
+    shadowColor: '#24332D',
     shadowOpacity: 0.12,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -222,7 +156,7 @@ export const Elevation = {
   },
   /** En ust katman — modal, hamburger menu, tam ekran kutlama. */
   xl: {
-    shadowColor: '#2E2650',
+    shadowColor: '#24332D',
     shadowOpacity: 0.2,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 16 },
@@ -262,21 +196,18 @@ export const Font = {
   black: 'Poppins_800ExtraBold',
 } as const;
 
-/**
- * Cesur, kendinden emin tip skalasi — basliklar ve buton etiketleri
- * varsayilan olarak extra-bold (Duolingo'nun "800 is default" kurali).
- */
+/** Okunakli, yumusak hiyerarsi; agirlik yalnizca ana basliklarda artar. */
 export const Type = {
-  hero: { fontFamily: Font.black, fontSize: 40, lineHeight: 46 },
-  title: { fontFamily: Font.black, fontSize: 28, lineHeight: 34 },
-  section: { fontFamily: Font.bold, fontSize: 19, lineHeight: 25 },
+  hero: { fontFamily: Font.bold, fontSize: 32, lineHeight: 40 },
+  title: { fontFamily: Font.bold, fontSize: 24, lineHeight: 31 },
+  section: { fontFamily: Font.semibold, fontSize: 18, lineHeight: 25 },
   body: { fontFamily: Font.regular, fontSize: 15, lineHeight: 22 },
-  bodyStrong: { fontFamily: Font.bold, fontSize: 15, lineHeight: 22 },
+  bodyStrong: { fontFamily: Font.semibold, fontSize: 15, lineHeight: 22 },
   small: { fontFamily: Font.regular, fontSize: 13, lineHeight: 18 },
-  smallStrong: { fontFamily: Font.bold, fontSize: 13, lineHeight: 18 },
-  tiny: { fontFamily: Font.bold, fontSize: 11, lineHeight: 15 },
+  smallStrong: { fontFamily: Font.semibold, fontSize: 13, lineHeight: 18 },
+  tiny: { fontFamily: Font.semibold, fontSize: 11, lineHeight: 15 },
   /** Zamanlayici rakamlari */
-  timer: { fontFamily: Font.black, fontSize: 52, lineHeight: 58 },
+  timer: { fontFamily: Font.bold, fontSize: 52, lineHeight: 58 },
 } as const;
 
 /** Renkli zemin uzerine yazilan metin (butonlar, rozetler). */

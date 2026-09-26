@@ -353,16 +353,16 @@ export default function Onboarding() {
 
             {step === 'summary' ? (
               <View style={styles.summaryCard}>
-                <SummaryRow icon="school" color={Palette.green} label="Sınıf" value={form.grade} />
-                <SummaryRow icon="trophy" color={Palette.gold} label="Hedefin" value={form.goal} />
-                <SummaryRow icon="briefcase" color={Palette.blue} label="Meslek Hayali" value={form.career} />
+                <SummaryRow icon="school" color={Accent} label="Sınıf" value={form.grade} />
+                <SummaryRow icon="trophy" color={Accent} label="Hedefin" value={form.goal} />
+                <SummaryRow icon="briefcase" color={Accent} label="Meslek Hayali" value={form.career} />
                 <SummaryRow
                   icon="time"
-                  color={Palette.purple}
+                  color={Accent}
                   label="Günlük Çalışma"
                   value={form.dailyHours}
                 />
-                <SummaryRow icon="calendar" color={Palette.orange} label="Hedef Süre" value={form.timeframe} />
+                <SummaryRow icon="calendar" color={Accent} label="Hedef Süre" value={form.timeframe} />
               </View>
             ) : null}
           </View>

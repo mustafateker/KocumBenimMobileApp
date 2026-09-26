@@ -162,8 +162,8 @@ export default function Home() {
 
       {/* Hizli soru sor */}
       <PressScale onPress={() => router.push('/student/questions')}>
-        <Card accent={Palette.orange} style={styles.quickCard}>
-          <IconBubble name="camera" color={Palette.orange} size={48} />
+        <Card accent={Accent} style={styles.quickCard}>
+          <IconBubble name="camera" color={Accent} size={48} />
           <View style={styles.flex}>
             <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
             <Txt variant="tiny" color={Palette.textDim}>
@@ -177,8 +177,8 @@ export default function Home() {
       {/* Yaklasan ozel ders */}
       {nextLesson ? (
         <PressScale onPress={() => router.push('/lessons')}>
-          <Card accent={Palette.purple} style={styles.quickCard}>
-            <IconBubble name="calendar" color={Palette.purple} size={48} />
+          <Card accent={Accent} style={styles.quickCard}>
+            <IconBubble name="calendar" color={Accent} size={48} />
             <View style={styles.flex}>
               <Txt variant="bodyStrong">Yaklaşan Özel Ders</Txt>
               <Txt variant="tiny" color={Palette.textDim}>
