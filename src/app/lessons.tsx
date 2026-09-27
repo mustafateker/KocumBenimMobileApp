@@ -8,7 +8,7 @@ import { getLessons } from '@/lib/api';
 import { formatLessonDateTime, relativeTime } from '@/lib/date';
 import { useStudent } from '@/lib/session';
 import type { PrivateLesson } from '@/lib/types';
-import { Accent, Palette, Space } from '@/theme/tokens';
+import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -53,7 +53,7 @@ export default function Lessons() {
           icon="calendar-outline"
           title="Planlanmış özel ders yok"
           subtitle="Hocan bir özel ders planladığında burada göreceksin."
-          color={Accent}
+          color={DetailAccent}
         />
       ) : (
         <View style={styles.list}>
@@ -85,7 +85,7 @@ export default function Lessons() {
 }
 
 function LessonCard({ lesson, past }: { lesson: PrivateLesson; past: boolean }) {
-  const color = past ? Palette.textFaint : Accent;
+  const color = past ? Palette.textFaint : DetailAccent;
 
   return (
     <Card style={styles.row} accent={past ? undefined : Accent}>

@@ -1,56 +1,54 @@
 /**
- * Kocum Benim — sakin egitim tasarim sistemi.
+ * Kocum Benim — sicak, yumusak egitim tasarim sistemi.
  *
- * Sicak notr zeminler uzun calisma oturumlarinda goz yormaz. Adacayi yesili
- * markayi ve ana aksiyonlari tasir; mavi, kayisi ve kirmizi yalnizca anlamli
- * bilgi/durum geri bildirimlerinde kullanilir. Buyuk yuzeyler renkli degil,
- * beyaz veya notrdur. Boylece arayuz cocuk dostu kalirken oyuncaklasmaz.
+ * Pudra zemin ve acik notr yuzeyler sakinligi; koyu mor metin ve ana
+ * aksiyonlar guvenilir hiyerarsiyi; pembe ile kayisi ise yalnizca kontrollu
+ * vurgu noktalarini tasir.
  */
 
 export const Palette = {
-  /** Sicak kagit hissi veren ana sayfa zemini. */
-  bg: '#F6F7F3',
-  /** Marka renginin sakin, genis yuzey tonu. */
-  bgDeep: '#D9E5DF',
-  /** Odak modunun isigi azaltan tek parca koyu zemini. */
-  focusBg: '#27483F',
-  /** Kart zemini */
-  surface: '#FFFFFF',
-  /** Ikincil yuzey — ic kartlar, ilerleme cubugu zemini */
-  surfaceHi: '#EEF2EF',
-  border: '#DCE4DF',
-  borderStrong: '#AFC4BA',
-  overlay: 'rgba(24, 39, 33, 0.46)',
+  /** Ana uygulama zemini. */
+  bg: '#F5EFF1',
+  /** Yalnizca dekoratif ve secili alanlarda kullanilan pembe marka tonu. */
+  bgDeep: '#FDCEDF',
+  /** Pomodoro/odak ekraninin yuksek kontrastli zemini. */
+  focusBg: '#3A3967',
+  /** Kart, modal, menu ve alt navigasyonun sakin notr yuzeyi. */
+  surface: '#FFFBFC',
+  /** Secili alanlar ve ikincil bloklar icin dusuk yogunluklu pembe. */
+  surfaceHi: 'rgba(253, 206, 223, 0.36)',
+  border: 'rgba(58, 57, 103, 0.14)',
+  borderStrong: '#3A3967',
+  overlay: 'rgba(58, 57, 103, 0.52)',
 
-  text: '#24332D',
-  textDim: '#5D6E66',
-  textFaint: '#68776F',
+  text: '#3A3967',
+  textDim: 'rgba(58, 57, 103, 0.78)',
+  textFaint: 'rgba(58, 57, 103, 0.62)',
 
-  /** Birincil marka ve aksiyon rengi — beyaz metinle AA kontrastli. */
-  amber: '#3F7667',
-  amberSoft: '#E5F0EB',
-  /** Ikincil sakin ton — dekoratif morun yerini alan yesil-gri. */
-  purple: '#667A76',
-  purpleSoft: '#EBEFEE',
-  /** Sicak vurgu — odul/enerji gibi az sayida anlamli noktada. */
-  gold: '#98613D',
-  goldSoft: '#F7EEE6',
-  /** Seri ve bekleme durumlari icin koyu kayisi. */
-  orange: '#9D6043',
-  orangeSoft: '#F8ECE6',
-  /** Hata ve tehlike. */
-  pink: '#B8575F',
-  pinkSoft: '#F8E9EA',
-  /** Bilgi ve rehberlik. */
-  blue: '#527B8C',
-  blueSoft: '#E8F0F3',
-  /** Basari ve tamamlanma. */
-  green: '#4F7D5C',
-  greenSoft: '#E9F1EB',
+  /** Ana aksiyon ve yuksek kontrast. */
+  amber: '#3A3967',
+  amberSoft: 'rgba(253, 206, 223, 0.36)',
+  purple: '#3A3967',
+  purpleSoft: 'rgba(253, 206, 223, 0.36)',
+  /** Ikonlar, rozetler ve kucuk enerji vurgulari. */
+  gold: '#FBAE75',
+  goldSoft: 'rgba(251, 174, 117, 0.20)',
+  orange: '#FBAE75',
+  orangeSoft: 'rgba(251, 174, 117, 0.20)',
+  /** Durum renkleri de sinirli marka paletinden turetilir; anlam ikon/metinle desteklenir. */
+  pink: '#3A3967',
+  pinkSoft: 'rgba(253, 206, 223, 0.36)',
+  blue: '#3A3967',
+  blueSoft: 'rgba(253, 206, 223, 0.36)',
+  green: '#3A3967',
+  greenSoft: 'rgba(253, 206, 223, 0.36)',
 } as const;
 
 /** Uygulamanin birincil vurgu rengi. */
 export const Accent = Palette.amber;
+
+/** Ikon ve kucuk bilesen vurgusu. */
+export const DetailAccent = Palette.orange;
 
 /**
  * Native acilis ekrani ve Android adaptif ikon zemini — app.json'daki
@@ -58,18 +56,13 @@ export const Accent = Palette.amber;
  * olmali, yoksa devir teslim aninda renk atlar.
  */
 export const Brand = {
-  bg: Palette.amber,
+  bg: Palette.bg,
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */
 export const SoftOf: Record<string, string> = {
   [Palette.amber]: Palette.amberSoft,
-  [Palette.purple]: Palette.purpleSoft,
-  [Palette.gold]: Palette.goldSoft,
   [Palette.orange]: Palette.orangeSoft,
-  [Palette.pink]: Palette.pinkSoft,
-  [Palette.blue]: Palette.blueSoft,
-  [Palette.green]: Palette.greenSoft,
 };
 
 export function softOf(color: string): string {
@@ -120,7 +113,7 @@ export const Border = {
  * hamburger menu) kullanilir. Kartlarda ve butonlarda hiyerarsiyi kalin
  * kenarlik tasir, golge degil.
  */
-export function glow(color: string = Palette.amber, intensity = 0.3) {
+export function glow(color: string = Palette.purple, intensity = 0.3) {
   return {
     shadowColor: color,
     shadowOpacity: intensity * 0.3,
@@ -134,21 +127,21 @@ export function glow(color: string = Palette.amber, intensity = 0.3) {
 export const Elevation = {
   none: {},
   sm: {
-    shadowColor: '#24332D',
+    shadowColor: Palette.purple,
     shadowOpacity: 0.05,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
   md: {
-    shadowColor: '#24332D',
+    shadowColor: Palette.purple,
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
   },
   lg: {
-    shadowColor: '#24332D',
+    shadowColor: Palette.purple,
     shadowOpacity: 0.12,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 10 },
@@ -156,7 +149,7 @@ export const Elevation = {
   },
   /** En ust katman — modal, hamburger menu, tam ekran kutlama. */
   xl: {
-    shadowColor: '#24332D',
+    shadowColor: Palette.purple,
     shadowOpacity: 0.2,
     shadowRadius: 28,
     shadowOffset: { width: 0, height: 16 },
@@ -211,4 +204,4 @@ export const Type = {
 } as const;
 
 /** Renkli zemin uzerine yazilan metin (butonlar, rozetler). */
-export const OnColor = '#FFFFFF';
+export const OnColor = Palette.bg;

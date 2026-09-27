@@ -7,7 +7,7 @@ import { NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, SectionLabel, Txt } from '@/components/ui';
 import { mailtoWithSubject, SUPPORT_EMAIL } from '@/lib/legal-constants';
-import { Accent, Palette, Space } from '@/theme/tokens';
+import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 type Faq = { question: string; answer: string };
 
@@ -110,7 +110,7 @@ export default function Help() {
       <View style={styles.section}>
         <SectionLabel>Bize Ulaş</SectionLabel>
         <Card style={styles.contactCard}>
-          <IconBubble name="mail-outline" color={Accent} size={48} />
+          <IconBubble name="mail-outline" color={DetailAccent} size={48} />
           <View style={styles.flex}>
             <Txt variant="bodyStrong">Sorunun cevabını bulamadın mı?</Txt>
             <Txt variant="small" color={Palette.textDim}>
@@ -136,7 +136,7 @@ export default function Help() {
           </Txt>
 
           <View style={styles.step}>
-            <IconBubble name="trash-outline" color={Palette.pink} size={36} />
+            <IconBubble name="trash-outline" color={DetailAccent} size={36} />
             <View style={styles.flex}>
               <Txt variant="smallStrong">Uygulama içinden</Txt>
               <Txt variant="small" color={Palette.textDim}>
@@ -146,7 +146,7 @@ export default function Help() {
           </View>
 
           <View style={styles.step}>
-            <IconBubble name="mail-open-outline" color={Palette.pink} size={36} />
+            <IconBubble name="mail-open-outline" color={DetailAccent} size={36} />
             <View style={styles.flex}>
               <Txt variant="smallStrong">Uygulamaya erişemiyorsan</Txt>
               <Txt variant="small" color={Palette.textDim}>

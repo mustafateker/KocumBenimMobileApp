@@ -16,7 +16,7 @@ import { Accent, OnColor, Palette } from '@/theme/tokens';
 
 export function MenuButton() {
   const { open } = useHamburgerMenu();
-  return <IconButton icon="menu" onPress={open} />;
+  return <IconButton icon="menu" color={Palette.text} onPress={open} />;
 }
 
 /** Okunmamis bildirim varsa sayaci rozet olarak gosterir. */
@@ -34,7 +34,7 @@ export function NotificationBell() {
     <View>
       <IconButton
         icon={unread > 0 ? 'notifications' : 'notifications-outline'}
-        color={unread > 0 ? Accent : Palette.textDim}
+        color={Palette.text}
         onPress={() => router.push('/notifications')}
       />
       {unread > 0 ? (

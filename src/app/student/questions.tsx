@@ -16,7 +16,7 @@ import { relativeTime } from '@/lib/date';
 import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
-import { Accent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   pending: { label: 'Hocada bekliyor', color: Palette.gold, icon: 'hourglass' },
@@ -58,9 +58,9 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
                 <Ionicons
                   name={m === 'camera' ? 'camera' : 'albums'}
                   size={15}
-                  color={active ? OnColor : Palette.textDim}
+                  color={active ? Palette.text : Palette.textDim}
                 />
-                <Txt variant="smallStrong" color={active ? OnColor : Palette.textDim}>
+                <Txt variant="smallStrong" color={active ? Palette.text : Palette.textDim}>
                   {m === 'camera' ? 'Çek' : 'Sorularım'}
                 </Txt>
               </View>
@@ -133,7 +133,7 @@ function CameraPane() {
   if (!permission.granted) {
     return (
       <View style={styles.permission}>
-        <IconBubble name="camera" color={Accent} size={72} />
+        <IconBubble name="camera" color={DetailAccent} size={72} />
         <Txt variant="section" center>
           Kamera izni gerekiyor
         </Txt>
@@ -226,7 +226,7 @@ function QuestionList() {
         icon="camera-outline"
         title="Henüz soru göndermedin"
         subtitle="Takıldığın soruyu çek, üstüne çiz, hocaya yolla. Her soru için +10 XP."
-        color={Accent}
+        color={DetailAccent}
       />
     );
   }
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(38),
   },
   segmentItemActive: {
-    backgroundColor: Accent,
+    backgroundColor: DetailAccent,
   },
   pane: {
     flex: 1,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 4,
-    borderColor: Accent,
+    borderColor: DetailAccent,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.surface,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Accent,
+    backgroundColor: DetailAccent,
   },
   listContent: {
     paddingHorizontal: Space.lg,

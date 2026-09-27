@@ -9,8 +9,8 @@ import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
 import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useStudent } from '@/lib/session';
-import { initials, type LeaderboardRow, type StudentSummary } from '@/lib/types';
-import { Accent, Border, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
+import type { LeaderboardRow, StudentSummary } from '@/lib/types';
+import { Accent, Border, DetailAccent, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
 
 type BoardRange = LeaderboardRange;
 
@@ -59,21 +59,21 @@ export default function Profile() {
       {/* Karakter karti */}
       <Card accent={Accent} style={styles.hero}>
         <View style={[styles.avatar, glow(Accent, 0.3)]}>
-          <Txt variant="hero" color={Accent}>
-            {initials(student.name)}
-          </Txt>
+          <Ionicons name="person" size={44} color={Accent} />
         </View>
 
-        <Txt variant="title" center>
-          {student.nickname ?? student.name}
-        </Txt>
-        {student.grade ? <Pill label={student.grade} color={Accent} icon="school" /> : null}
-
-        <View style={styles.streakPill}>
-          <Ionicons name="flame" size={16} color={Palette.orange} />
-          <Txt variant="smallStrong" color={Palette.orange}>
-            {student.streak} günlük seri
+        <View style={styles.heroInfo}>
+          <Txt variant="title" color={Palette.text} numberOfLines={2}>
+            {student.nickname ?? student.name}
           </Txt>
+          {student.grade ? <Pill label={student.grade} color={Accent} icon="school" /> : null}
+
+          <View style={styles.streakPill}>
+            <Ionicons name="flame" size={16} color={Palette.text} />
+            <Txt variant="smallStrong" color={Palette.text}>
+              {student.streak} günlük seri
+            </Txt>
+          </View>
         </View>
       </Card>
 
@@ -83,16 +83,16 @@ export default function Profile() {
           Bu Hafta
         </Txt>
         <View style={styles.tiles}>
-          <StatTile icon="star" color={Accent} value={String(student.xp)} label="Toplam XP" />
+          <StatTile icon="star" color={DetailAccent} value={String(student.xp)} label="Toplam XP" />
           <StatTile
             icon="time"
-            color={Accent}
+            color={DetailAccent}
             value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
             label="Odak Süresi"
           />
           <StatTile
             icon="checkmark-done"
-            color={Accent}
+            color={DetailAccent}
             value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
             label="Görev"
           />
@@ -168,30 +168,35 @@ function StatTile({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   hero: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: Space.sm,
+    gap: Space.lg,
   },
   avatar: {
-    width: 92,
-    height: 92,
-    borderRadius: 46,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: softOf(Accent),
     borderWidth: Border.thin,
     borderColor: Accent,
   },
+  heroInfo: {
+    flex: 1,
+    alignItems: 'flex-start',
+    gap: Space.sm,
+  },
   streakPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: Space.xs,
     paddingHorizontal: Space.md,
     height: 34,
     borderRadius: pillRadius(34),
     borderWidth: Border.thick,
-    borderColor: Palette.orange,
-    backgroundColor: Palette.orangeSoft,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surfaceHi,
   },
   tiles: {
     flexDirection: 'row',

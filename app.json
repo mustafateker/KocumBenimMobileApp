@@ -10,12 +10,15 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#3F7667",
+        "backgroundColor": "#F5EFF1",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.triworkster.kocumbenimmobileapp"
+      "package": "com.triworkster.kocumbenimmobileapp",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "output": "static",
@@ -34,7 +37,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#3F7667",
+          "backgroundColor": "#F5EFF1",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 288
         }
@@ -52,7 +55,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/android-icon-monochrome.png",
-          "color": "#3F7667",
+          "color": "#FBAE75",
           "defaultChannel": "default"
         }
       ]
@@ -60,6 +63,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "ios": {
+      "bundleIdentifier": "com.triworkster.kocumbenimmobileapp"
     }
   }
 }

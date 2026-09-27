@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Palette, Radius, Space } from '@/theme/tokens';
+import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 /**
  * Cokme ekrani.
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
   buttonLabel: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#FFFFFF',
+    color: OnColor,
   },
   hint: {
     fontSize: 12,

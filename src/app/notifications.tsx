@@ -13,15 +13,15 @@ import { useNotificationCenter } from '@/lib/notification-center';
 import { hrefForNotification } from '@/lib/notification-route';
 import { useStudent } from '@/lib/session';
 import type { AppNotification, NotificationType } from '@/lib/types';
-import { Accent, Palette, Space } from '@/theme/tokens';
+import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string }> = {
-  task_assigned: { icon: 'clipboard', color: Accent },
-  question_answered: { icon: 'chatbubble-ellipses', color: Palette.green },
-  streak_reminder: { icon: 'flame', color: Palette.orange },
-  announcement: { icon: 'megaphone', color: Accent },
-  lesson_scheduled: { icon: 'calendar', color: Accent },
-  lesson_updated: { icon: 'calendar', color: Accent },
+  task_assigned: { icon: 'clipboard', color: DetailAccent },
+  question_answered: { icon: 'chatbubble-ellipses', color: DetailAccent },
+  streak_reminder: { icon: 'flame', color: DetailAccent },
+  announcement: { icon: 'megaphone', color: DetailAccent },
+  lesson_scheduled: { icon: 'calendar', color: DetailAccent },
+  lesson_updated: { icon: 'calendar', color: DetailAccent },
   lesson_cancelled: { icon: 'calendar-outline', color: Palette.pink },
 };
 
@@ -77,7 +77,7 @@ export default function Notifications() {
           icon="notifications-outline"
           title="Henüz bildirim yok"
           subtitle="Hocan sana bir görev atadığında ya da bir sorunu cevapladığında burada göreceksin."
-          color={Accent}
+          color={DetailAccent}
         />
       ) : (
         <View style={styles.list}>

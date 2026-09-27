@@ -5,7 +5,7 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Accent, Border, Palette, Radius, Space, softOf } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
@@ -93,7 +93,7 @@ function TabButton({
 
   return (
     <Pressable onPress={onPress} style={styles.tab} hitSlop={6}>
-      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: softOf(Accent) }]}>
+      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: DetailAccent }]}>
         <Ionicons
           name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
           size={21}

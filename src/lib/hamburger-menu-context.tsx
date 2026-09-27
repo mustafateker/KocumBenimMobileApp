@@ -38,7 +38,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
           {
             icon: 'notifications-outline',
             label: 'Bildirimler',
-            color: Palette.gold,
+            color: Palette.purple,
             onPress: () => router.push('/notifications'),
           },
           {

@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { Brand, Motion, Space } from '@/theme/tokens';
+import { Brand, Motion, Palette, Space } from '@/theme/tokens';
 
 import { Mascot } from './mascot';
 import { Txt } from './ui';
@@ -68,10 +68,10 @@ export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
         <Mascot width={MASCOT_WIDTH} mood="happy" />
 
         <Animated.View style={[styles.caption, captionStyle]}>
-          <Txt variant="title" color="#FFFFFF" center style={styles.wordmark}>
+          <Txt variant="title" color={Palette.text} center style={styles.wordmark}>
             Koçum Benim
           </Txt>
-          <Txt variant="small" color="#FFFFFFB8" center>
+          <Txt variant="small" color={Palette.textDim} center>
             Hedefine giden yolda yanindayim
           </Txt>
         </Animated.View>

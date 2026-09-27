@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-import { Accent, Border, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -169,12 +169,12 @@ export function IconButton({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: Palette.surfaceHi,
+            backgroundColor: DetailAccent,
             borderColor: Palette.border,
           },
         ]}
       >
-        <Ionicons name={icon} size={size * 0.46} color={color} />
+        <Ionicons name={icon} size={size * 0.46} color={color === DetailAccent ? Palette.text : color} />
       </View>
     </PressScale>
   );

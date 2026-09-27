@@ -11,7 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Accent, Border, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
 import { PressScale } from './button';
 
@@ -75,7 +75,7 @@ export function AccentCard({
 
 export function Pill({
   label,
-  color = Accent,
+  color = DetailAccent,
   icon,
   style,
 }: {
@@ -84,10 +84,11 @@ export function Pill({
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   style?: StyleProp<ViewStyle>;
 }) {
+  const detail = color === DetailAccent;
   return (
-    <View style={[styles.pill, { backgroundColor: softOf(color), borderColor: Palette.border }, style]}>
-      {icon ? <Ionicons name={icon} size={12} color={color} /> : null}
-      <Txt variant="tiny" color={color}>
+    <View style={[styles.pill, { backgroundColor: detail ? DetailAccent : softOf(color), borderColor: Palette.border }, style]}>
+      {icon ? <Ionicons name={icon} size={12} color={detail ? Palette.text : color} /> : null}
+      <Txt variant="tiny" color={detail ? Palette.text : color}>
         {label}
       </Txt>
     </View>
@@ -97,13 +98,14 @@ export function Pill({
 /** Yuvarlak ikon kabarcigi — kart basliklarinda ve bos durumlarda. */
 export function IconBubble({
   name,
-  color = Accent,
+  color = DetailAccent,
   size = 44,
 }: {
   name: React.ComponentProps<typeof Ionicons>['name'];
   color?: string;
   size?: number;
 }) {
+  const detail = color === DetailAccent;
   return (
     <View
       style={[
@@ -112,12 +114,12 @@ export function IconBubble({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: softOf(color),
+          backgroundColor: detail ? DetailAccent : softOf(color),
           borderColor: Palette.border,
         },
       ]}
     >
-      <Ionicons name={name} size={size * 0.48} color={color} />
+      <Ionicons name={name} size={size * 0.48} color={detail ? Palette.text : color} />
     </View>
   );
 }
@@ -304,7 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: Border.thin,
     borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+    backgroundColor: Palette.bg,
     paddingHorizontal: Space.lg,
     color: Palette.text,
     fontFamily: Font.regular,
@@ -325,7 +327,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Space.xs,
     padding: Space.xs,
-    backgroundColor: Palette.surfaceHi,
+    backgroundColor: Palette.bg,
     // 38 (oge) + 8 (dolgu) + 4 (kenarlik) = 50
     borderRadius: pillRadius(50),
     borderWidth: Border.thin,

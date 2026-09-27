@@ -9,12 +9,15 @@ görünmemelidir. Uzun odak ve okuma oturumlarında içerik her zaman dekorasyon
 
 ## Renk kullanımı
 
-- Ana zemin sıcak kırık beyaz, kartlar beyazdır.
-- Adaçayı yeşili markayı, seçili durumu ve birincil aksiyonu taşır.
-- Mavi yalnızca bilgi, yeşil başarı, kayısı bekleme/seri ve kırmızı hata veya
-  geri döndürülemez işlem anlamında kullanılır.
-- Büyük kart yüzeyleri durum rengine boyanmaz. Renk ikon, ince sol kenar,
-  ilerleme veya küçük rozetle sınırlandırılır.
+- Ana zemin `#F5EFF1`; kart, modal ve container yüzeyleri sakin `#FFFBFC`
+  kullanır.
+- `#3A3967` metni, seçili durumu, ana aksiyonu ve yüksek kontrastı taşır.
+- `#FBAE75` ikon kabarcıkları, küçük kontroller ve sınırlı enerji vurguları içindir.
+- `#FDCEDF` geniş yüzeyleri doldurmaz; seçili alanlarda, organik arka plan
+  detaylarında ve ikincil vurgularda düşük yoğunlukla kullanılır.
+- Ana sayfa düz `#F5EFF1` zemin kullanır; pembe organik arka plan, halka izi
+  veya seçili kontrol dolgusu içermez.
+- Başarı, hata ve uyarı yalnızca ayrı renklerle değil ikon ve açık metinle anlatılır.
 - Aynı gezinme grubu içindeki öğelere ayrı dekoratif renk atanmaz.
 - Metin ve aksiyon kontrastı WCAG AA seviyesinin altına düşürülmez.
 
@@ -33,11 +36,15 @@ hex renk eklenmemeli; semantik token kullanılmalıdır.
 ## Bileşen ilkeleri
 
 - Butonlar düz dolgulu, en az 46 px yüksekliğinde ve kapsül biçimindedir.
-- Kartlar 1 px nötr kenarlık ve 16 px köşe yarıçapı kullanır.
+- Kartlar açık nötr yüzey, 1 px mor saydam kenarlık ve 16 px köşe yarıçapı kullanır.
+- Görev kartları tamamlanma durumunda da nötr kalır; durum dolgu rengi yerine
+  onay ikonu, belirgin kenarlık ve ilerleme bilgisiyle anlatılır.
 - Renkli gradyan, 3D alt şerit ve dekoratif parıltı kullanılmaz.
 - Dokunma alanları en az 44–48 px olmalıdır.
 - Durum yalnızca renkle anlatılmaz; ikon ve metin etiketi de bulunur.
 - Alt gezinmede bütün aktif sekmeler aynı marka rengini kullanır.
+- Sistem uyarıları yerine açık yüzeyli, turuncu ikonlu ve mor aksiyonlu ortak
+  `AppDialog` bileşeni kullanılır.
 
 ## Arka plan ve hareket
 

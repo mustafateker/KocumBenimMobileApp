@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
 
-import { Border, Motion, Palette, Space, softOf } from '@/theme/tokens';
+import { Border, Motion, OnColor, Palette, Space, softOf } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
@@ -112,11 +112,11 @@ export function LogoLockup({
   return (
     <View style={styles.lockup}>
       <Mascot width={width} mood={mood} />
-      <Txt variant="title" color={onDark ? '#FFFFFF' : Palette.text} style={styles.wordmark}>
+      <Txt variant="title" color={onDark ? OnColor : Palette.text} style={styles.wordmark}>
         Koçum Benim
       </Txt>
       {tagline ? (
-        <Txt variant="small" color={onDark ? '#FFFFFFB8' : Palette.textDim} center>
+        <Txt variant="small" color={onDark ? OnColor : Palette.textDim} center>
           {tagline}
         </Txt>
       ) : null}

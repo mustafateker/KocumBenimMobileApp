@@ -11,7 +11,7 @@ import { relativeTime } from '@/lib/date';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
 import type { StudentStats, Task, TopicBreakdown } from '@/lib/types';
-import { Accent, Border, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
 
 const EMPTY_STATS: StudentStats = {
   totalTasks: 0,
@@ -49,9 +49,9 @@ export default function Stats() {
       <ScreenHeader title="İstatistiklerin" subtitle="Görev tamamlama geçmişin" onBack={() => router.back()} />
 
       <View style={styles.tiles}>
-        <StatTile icon="flame" color={Accent} value={String(stats.currentStreak)} label="Seri" />
-        <StatTile icon="checkmark-done" color={Accent} value={String(stats.doneTasks)} label="Tamamlanan" />
-        <StatTile icon="trending-up" color={Accent} value={`%${rate}`} label="Tamamlama" />
+        <StatTile icon="flame" color={DetailAccent} value={String(stats.currentStreak)} label="Seri" />
+        <StatTile icon="checkmark-done" color={DetailAccent} value={String(stats.doneTasks)} label="Tamamlanan" />
+        <StatTile icon="trending-up" color={DetailAccent} value={`%${rate}`} label="Tamamlama" />
       </View>
 
       <Card>
@@ -84,13 +84,13 @@ export default function Stats() {
             icon="checkmark-done-outline"
             title="Henüz tamamlanmış görev yok"
             subtitle="İlk görevini bitirdiğinde burada listelenecek."
-            color={Accent}
+            color={DetailAccent}
           />
         ) : (
           <View style={styles.list}>
             {completed.map((task) => (
               <Card key={task.id} style={styles.row}>
-                <IconBubble name="checkmark-circle" color={Palette.green} size={40} />
+                <IconBubble name="checkmark-circle" color={DetailAccent} size={40} />
                 <View style={styles.flex}>
                   <Txt variant="bodyStrong" numberOfLines={1}>
                     {task.title}

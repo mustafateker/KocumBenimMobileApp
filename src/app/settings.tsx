@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, StyleSheet, Switch, View } from 'react-native';
+import { StyleSheet, Switch, View } from 'react-native';
 
+import { AppDialog } from '@/components/app-dialog';
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, IconBubble, TextField, Txt } from '@/components/ui';
+import { Card, IconBubble, SectionLabel, TextField, Txt } from '@/components/ui';
 import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
 import { ApiError } from '@/lib/api-client';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
-import { Accent, Palette, Space } from '@/theme/tokens';
+import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 const DEFAULT_PREFS: Preferences = {
   taskNotifs: true,
@@ -26,6 +27,7 @@ export default function Settings() {
   const { signOut, setUser } = useSession();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     getPreferences()
@@ -88,40 +90,27 @@ export default function Settings() {
     }
   }, [savingParentEmail, parentEmailInput, setUser]);
 
-  const confirmDelete = useCallback(() => {
-    Alert.alert(
-      'Hesabını silmek istediğine emin misin?',
-      'Bu işlem geri alınamaz. Tüm görevlerin, sorularin ve odak geçmişin silinir.',
-      [
-        { text: 'Vazgeç', style: 'cancel' },
-        {
-          text: 'Hesabı Sil',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteAccount();
-            await signOut();
-            router.replace('/login');
-          },
-        },
-      ]
-    );
+  const confirmDelete = useCallback(() => setDeleteDialogOpen(true), []);
+
+  const deleteNow = useCallback(async () => {
+    setDeleteDialogOpen(false);
+    await deleteAccount();
+    await signOut();
+    router.replace('/login');
   }, [signOut, router]);
 
   return (
-    <Screen tint={Palette.text}>
+    <Screen>
       <ScreenHeader title="Ayarlar" subtitle="Hesabını ve tercihlerini yönet" onBack={() => router.back()} />
 
       {/* Hesap */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Hesap
-        </Txt>
+        <SectionLabel>Hesap</SectionLabel>
         <Card style={styles.list}>
-          <SettingRow icon="mail-outline" color={Accent} label="E-posta" trailing={student.email ?? '—'} />
+          <SettingRow icon="mail-outline" label="E-posta" trailing={student.email ?? '—'} />
           <PressScale onPress={() => setEditingParentEmail((c) => !c)}>
             <SettingRow
               icon="people-outline"
-              color={Accent}
               label="Veli E-postası"
               trailing={editingParentEmail ? undefined : (student.parentEmail ?? 'Ekle')}
               chevron
@@ -157,7 +146,7 @@ export default function Settings() {
           ) : null}
 
           <PressScale onPress={() => setChangingPassword((c) => !c)}>
-            <SettingRow icon="lock-closed-outline" color={Accent} label="Parolayı Değiştir" chevron />
+            <SettingRow icon="lock-closed-outline" label="Parolayı Değiştir" chevron />
           </PressScale>
 
           {changingPassword ? (
@@ -188,43 +177,35 @@ export default function Settings() {
 
       {/* Bildirim tercihleri */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Bildirim Tercihleri
-        </Txt>
+        <SectionLabel>Bildirim Tercihleri</SectionLabel>
         <Card style={styles.list}>
           <SettingRow
             icon="clipboard-outline"
-            color={Accent}
             label="Görev bildirimleri"
             control={
-              <Switch
+              <SettingsSwitch
                 value={prefs.taskNotifs}
                 onValueChange={(v) => togglePref('taskNotifs', v)}
-                trackColor={SWITCH_TRACK}
               />
             }
           />
           <SettingRow
             icon="flame-outline"
-            color={Accent}
             label="Seri hatırlatmaları"
             control={
-              <Switch
+              <SettingsSwitch
                 value={prefs.streakNotifs}
                 onValueChange={(v) => togglePref('streakNotifs', v)}
-                trackColor={SWITCH_TRACK}
               />
             }
           />
           <SettingRow
             icon="megaphone-outline"
-            color={Accent}
             label="Uygulama duyuruları"
             control={
-              <Switch
+              <SettingsSwitch
                 value={prefs.announcements}
                 onValueChange={(v) => togglePref('announcements', v)}
-                trackColor={SWITCH_TRACK}
               />
             }
           />
@@ -233,28 +214,20 @@ export default function Settings() {
 
       {/* Uygulama */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Uygulama
-        </Txt>
+        <SectionLabel>Uygulama</SectionLabel>
         <Card style={styles.list}>
           <SettingRow
             icon="volume-high-outline"
-            color={Accent}
             label="Ses efektleri"
             control={
-              <Switch value={prefs.sound} onValueChange={(v) => togglePref('sound', v)} trackColor={SWITCH_TRACK} />
+              <SettingsSwitch value={prefs.sound} onValueChange={(v) => togglePref('sound', v)} />
             }
           />
           <SettingRow
             icon="phone-portrait-outline"
-            color={Accent}
             label="Titreşim"
             control={
-              <Switch
-                value={prefs.haptics}
-                onValueChange={(v) => togglePref('haptics', v)}
-                trackColor={SWITCH_TRACK}
-              />
+              <SettingsSwitch value={prefs.haptics} onValueChange={(v) => togglePref('haptics', v)} />
             }
           />
         </Card>
@@ -262,62 +235,79 @@ export default function Settings() {
 
       {/* Destek ve yasal */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Destek ve Yasal
-        </Txt>
+        <SectionLabel>Destek ve Yasal</SectionLabel>
         <Card style={styles.list}>
           <PressScale onPress={() => router.push('/help')}>
-            <SettingRow icon="help-circle-outline" color={Accent} label="Yardım & Destek" chevron />
+            <SettingRow icon="help-circle-outline" label="Yardım & Destek" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/privacy-policy')}>
-            <SettingRow icon="shield-checkmark-outline" color={Palette.textDim} label="Gizlilik Politikası" chevron />
+            <SettingRow icon="shield-checkmark-outline" label="Gizlilik Politikası" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/terms')}>
-            <SettingRow icon="document-text-outline" color={Palette.textDim} label="Kullanım Şartları" chevron />
+            <SettingRow icon="document-text-outline" label="Kullanım Şartları" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/data-disclosure')}>
-            <SettingRow icon="reader-outline" color={Palette.textDim} label="Aydınlatma Metni" chevron />
+            <SettingRow icon="reader-outline" label="Aydınlatma Metni" chevron />
           </PressScale>
           <PressScale onPress={() => router.push('/diagnostics')}>
-            <SettingRow icon="bug-outline" color={Palette.textDim} label="Hata Kayıtları" chevron />
+            <SettingRow icon="bug-outline" label="Hata Kayıtları" chevron />
           </PressScale>
-          <SettingRow icon="information-circle-outline" color={Palette.textDim} label="Sürüm" trailing="1.0.0" />
+          <SettingRow icon="information-circle-outline" label="Sürüm" trailing="1.0.0" />
         </Card>
       </View>
 
       {/* Tehlikeli bolge */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.pink}>
-          Hesap İşlemleri
-        </Txt>
+        <SectionLabel>Hesap İşlemleri</SectionLabel>
         <GhostButton
           label="Çıkış Yap"
           icon="log-out-outline"
-          color={Palette.textDim}
+          color={Palette.text}
           full
           onPress={async () => {
             await signOut();
             router.replace('/login');
           }}
         />
-        <GhostButton label="Hesabı Sil" icon="trash-outline" color={Palette.pink} full onPress={confirmDelete} />
+        <GhostButton label="Hesabı Sil" icon="trash-outline" color={Palette.text} full onPress={confirmDelete} />
       </View>
+
+      <AppDialog
+        visible={deleteDialogOpen}
+        icon="trash-outline"
+        title="Hesabını silmek istiyor musun?"
+        message="Bu işlem geri alınamaz. Tüm görevlerin, soruların ve odak geçmişin kalıcı olarak silinir."
+        cancelLabel="Vazgeç"
+        confirmLabel="Hesabı Sil"
+        onCancel={() => setDeleteDialogOpen(false)}
+        onConfirm={deleteNow}
+      />
     </Screen>
   );
 }
 
 const SWITCH_TRACK = { false: Palette.border, true: Accent };
 
+function SettingsSwitch({ value, onValueChange }: { value: boolean; onValueChange: (value: boolean) => void }) {
+  return (
+    <Switch
+      value={value}
+      onValueChange={onValueChange}
+      trackColor={SWITCH_TRACK}
+      thumbColor={Palette.surface}
+      ios_backgroundColor={Palette.border}
+    />
+  );
+}
+
 function SettingRow({
   icon,
-  color,
   label,
   trailing,
   chevron,
   control,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
   label: string;
   trailing?: string;
   chevron?: boolean;
@@ -325,7 +315,7 @@ function SettingRow({
 }) {
   return (
     <View style={styles.row}>
-      <IconBubble name={icon} color={color} size={36} />
+      <IconBubble name={icon} color={DetailAccent} size={36} />
       <Txt variant="bodyStrong" style={styles.flex} numberOfLines={1}>
         {label}
       </Txt>

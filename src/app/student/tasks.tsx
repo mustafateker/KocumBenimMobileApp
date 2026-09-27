@@ -11,7 +11,7 @@ import { formatShortDate } from '@/lib/date';
 import { useStudent } from '@/lib/session';
 import type { Task } from '@/lib/types';
 import { categoryColor, categoryIcon, categoryLabel } from '@/lib/task-categories';
-import { Border, Palette, Space } from '@/theme/tokens';
+import { Border, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 type RangeKey = 'daily' | 'weekly' | 'monthly';
 
@@ -134,7 +134,7 @@ function TaskCard({
         <View style={styles.rowTop}>
           <IconBubble
             name={completed ? 'checkmark-circle' : categoryIcon(task.category)}
-            color={completed ? Palette.green : catColor}
+            color={DetailAccent}
             size={40}
           />
           <View style={styles.flex}>
@@ -150,7 +150,12 @@ function TaskCard({
             {task.done}/{task.target}
           </Txt>
         </View>
-        <ProgressBar progress={progress} color={completed ? Palette.green : catColor} height={7} />
+        <ProgressBar
+          progress={progress}
+          color={completed ? Palette.green : catColor}
+          track={Palette.bg}
+          height={7}
+        />
 
         {expanded ? (
           <View style={styles.details}>
@@ -236,8 +241,8 @@ const styles = StyleSheet.create({
     gap: Space.sm,
   },
   rowCompleted: {
-    borderColor: Palette.green,
-    backgroundColor: Palette.greenSoft,
+    borderColor: Palette.borderStrong,
+    backgroundColor: Palette.surface,
   },
   rowTop: {
     flexDirection: 'row',

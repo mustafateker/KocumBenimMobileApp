@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
+import { DetailAccent } from '@/theme/tokens';
+
 import { registerPushToken } from './api';
 import { logHandledError } from './crash-reporter';
 import { hrefForPush, type PushPayload } from './notification-route';
@@ -43,7 +45,7 @@ async function ensureAndroidChannel(
     // Gorev atamasi ekranda banner olarak gorunmeli; DEFAULT sessiz kalabiliyor.
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#8257E5',
+    lightColor: DetailAccent,
   });
 }
 
