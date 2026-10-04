@@ -196,6 +196,41 @@ export type TopicBreakdown = {
   attempts: number;
 };
 
+/** Ders → konu kirilimindaki sayaclar (backend: modules/tasks/breakdown.py). */
+export type TopicCounts = {
+  studyAssigned: number;
+  studyCompleted: number;
+  questionTasks: number;
+  questionTasksCompleted: number;
+  questionsAssigned: number;
+  correct: number;
+  wrong: number;
+  /** Sonucu girilmis gorevlerde hedef - dogru - yanlis. */
+  blank: number;
+  /** Dogru/yanlis girilmeden tamamlanan soru gorevi sayisi. */
+  unreportedTasks: number;
+  /** correct + wrong + blank */
+  solved: number;
+  /** correct / solved; hic sonuc yoksa null. */
+  successRate: number | null;
+};
+
+export type TopicReport = TopicCounts & { grade: number | null; topic: string; lastActivityAt: string | null };
+
+export type SubjectReport = TopicCounts & { subject: string; topics: TopicReport[] };
+
+/** Basari orani esigin altinda kalan konu; en dusukten baslayarak gelir. */
+export type WeakTopic = {
+  subject: string;
+  grade: number | null;
+  topic: string;
+  correct: number;
+  wrong: number;
+  blank: number;
+  solved: number;
+  successRate: number;
+};
+
 export type StudentStats = {
   totalTasks: number;
   doneTasks: number;
@@ -203,6 +238,9 @@ export type StudentStats = {
   currentStreak: number;
   last7Days: { day: string; minutes: number; tasksCompleted: number }[];
   byTopic: TopicBreakdown[];
+  /** Tum gorevlerin ders → konu kirilimi; eski sunucu surumleri bu alanlari dondurmez. */
+  subjects?: SubjectReport[];
+  weakTopics?: WeakTopic[];
 };
 
 export type Preferences = {

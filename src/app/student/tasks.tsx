@@ -117,6 +117,22 @@ function TaskCard({
     setCompleting(true);
   }, [task.target]);
 
+  // Dogru + yanlis hedefi asamaz: biri artinca gerekirse digeri azalir, kalan sorular bos sayilir.
+  const changeCorrect = useCallback(
+    (value: number) => {
+      setCorrect(value);
+      setWrong((current) => Math.min(current, task.target - value));
+    },
+    [task.target]
+  );
+  const changeWrong = useCallback(
+    (value: number) => {
+      setWrong(value);
+      setCorrect((current) => Math.min(current, task.target - value));
+    },
+    [task.target]
+  );
+
   const submit = useCallback(async () => {
     setBusy(true);
     try {
@@ -197,9 +213,12 @@ function TaskCard({
                   Kaç soru doğru, kaç soru yanlış yaptın?
                 </Txt>
                 <View style={styles.stepperRow}>
-                  <MiniStepper label="Doğru" value={correct} color={Palette.green} onChange={setCorrect} max={task.target} />
-                  <MiniStepper label="Yanlış" value={wrong} color={Palette.pink} onChange={setWrong} max={task.target} />
+                  <MiniStepper label="Doğru" value={correct} color={Palette.green} onChange={changeCorrect} max={task.target} />
+                  <MiniStepper label="Yanlış" value={wrong} color={Palette.pink} onChange={changeWrong} max={task.target} />
                 </View>
+                <Txt variant="tiny" color={Palette.textFaint} center>
+                  Boş bıraktığın: {task.target - correct - wrong} soru
+                </Txt>
                 <NeonButton label={busy ? 'Kaydediliyor…' : 'Kaydet ve Bitir'} color={Palette.green} disabled={busy} onPress={submit} full />
               </View>
             )}

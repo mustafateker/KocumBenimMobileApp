@@ -10,7 +10,7 @@ import { getCompletedTasks, getStats } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
-import type { StudentStats, Task, TopicBreakdown } from '@/lib/types';
+import type { StudentStats, Task, TopicBreakdown, TopicReport } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
 
 const EMPTY_STATS: StudentStats = {
@@ -45,6 +45,11 @@ export default function Stats() {
   const rate = Math.round(stats.completionRate * 100);
   // Dogru/yanlis girilmeyen gorevler (konu ve odakli calisma) bu listede %0 basari gibi gorunmesin.
   const answeredTopics = stats.byTopic.filter((topic) => topic.correct + topic.wrong > 0);
+  // Yalnizca sonucu girilmis ya da calisilmis konular; bekleyen gorevler Gorevlerim ekraninda duruyor.
+  const activeSubjects = (stats.subjects ?? [])
+    .map((subject) => ({ ...subject, topics: subject.topics.filter((topic) => topic.solved > 0 || topic.studyCompleted > 0) }))
+    .filter((subject) => subject.topics.length > 0);
+  const weakTopics = (stats.weakTopics ?? []).slice(0, 5);
 
   return (
     <Screen tint={Palette.blue}>
@@ -63,7 +68,53 @@ export default function Stats() {
         <WeekBars data={stats.last7Days} goalMinutes={Rules.dailyGoalMinutes} color={Accent} />
       </Card>
 
-      {answeredTopics.length > 0 ? (
+      {weakTopics.length > 0 ? (
+        <View style={styles.section}>
+          <Txt variant="smallStrong" color={Palette.textDim}>
+            Geliştirmen Gereken Konular
+          </Txt>
+          <Card style={styles.weakCard}>
+            {weakTopics.map((topic) => (
+              <View key={`${topic.subject}-${topic.grade}-${topic.topic}`} style={styles.weakRow}>
+                <Txt variant="smallStrong" color={DetailAccent} style={styles.weakRate}>
+                  %{Math.round(topic.successRate * 100)}
+                </Txt>
+                <View style={styles.flex}>
+                  <Txt variant="small" numberOfLines={1}>
+                    {topic.topic}
+                  </Txt>
+                  <Txt variant="tiny" color={Palette.textFaint}>
+                    {topic.subject} · {topic.correct} doğru, {topic.wrong} yanlış, {topic.blank} boş
+                  </Txt>
+                </View>
+              </View>
+            ))}
+          </Card>
+        </View>
+      ) : null}
+
+      {/* Sunucu ders → konu kirilimini dondurmuyorsa (eski surum) basliga gore eski liste gosterilir. */}
+      {stats.subjects ? (
+        activeSubjects.map((subject) => (
+          <View key={subject.subject} style={styles.section}>
+            <View style={styles.subjectHead}>
+              <Txt variant="smallStrong" color={Palette.textDim} style={styles.flex}>
+                {subject.subject}
+              </Txt>
+              {subject.successRate !== null ? (
+                <Txt variant="tiny" color={Palette.textFaint}>
+                  {subject.solved} soru · %{Math.round(subject.successRate * 100)} başarı
+                </Txt>
+              ) : null}
+            </View>
+            <View style={styles.list}>
+              {subject.topics.map((topic) => (
+                <TopicReportRow key={`${topic.grade}-${topic.topic}`} topic={topic} />
+              ))}
+            </View>
+          </View>
+        ))
+      ) : answeredTopics.length > 0 ? (
         <View style={styles.section}>
           <Txt variant="smallStrong" color={Palette.textDim}>
             Konu Bazlı Doğru / Yanlış
@@ -140,6 +191,39 @@ function TopicRow({ topic }: { topic: TopicBreakdown }) {
   );
 }
 
+/** Bir konunun sonucu: soru cozulduyse basari orani ve dogru/yanlis/bos, calisildiysa "Konu calisildi". */
+function TopicReportRow({ topic }: { topic: TopicReport }) {
+  const rate = topic.successRate;
+  // Panel ve rapordaki esikle ayni: %70'in altindaki konular gelistirilmesi gereken sayilir.
+  const color = rate !== null && Math.round(rate * 100) < 70 ? DetailAccent : Palette.green;
+
+  return (
+    <Card style={styles.topicRow}>
+      <View style={styles.topicHead}>
+        <Txt variant="bodyStrong" numberOfLines={2} style={styles.flex}>
+          {topic.topic}
+        </Txt>
+        {rate !== null ? (
+          <Txt variant="smallStrong" color={color}>
+            %{Math.round(rate * 100)}
+          </Txt>
+        ) : null}
+      </View>
+      {rate !== null ? <ProgressBar progress={rate} color={color} height={7} /> : null}
+      <View style={styles.topicFoot}>
+        <Txt variant="tiny" color={Palette.textDim}>
+          {rate !== null ? `${topic.correct} doğru · ${topic.wrong} yanlış · ${topic.blank} boş` : ''}
+        </Txt>
+        {topic.studyCompleted > 0 ? (
+          <Txt variant="tiny" color={Palette.green}>
+            Konu çalışıldı
+          </Txt>
+        ) : null}
+      </View>
+    </Card>
+  );
+}
+
 function StatTile({
   icon,
   color,
@@ -206,5 +290,21 @@ const styles = StyleSheet.create({
   topicFoot: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+  },
+  subjectHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+  },
+  weakCard: {
+    gap: Space.md,
+  },
+  weakRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+  },
+  weakRate: {
+    width: 44,
   },
 });
