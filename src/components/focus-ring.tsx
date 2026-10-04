@@ -5,7 +5,7 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
-import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import Svg, { Circle } from 'react-native-svg';
 
 import { Accent, Motion, Palette, glow } from '@/theme/tokens';
 
@@ -25,7 +25,7 @@ type Props = {
 };
 
 /**
- * Futuristik dairesel zamanlayici halkasi.
+ * Sade dairesel zamanlayici halkasi.
  *
  * Halka saat 12'den baslar ve saat yonunde dolar; bu yuzden -90 derece
  * dondurulmus bir SVG kullaniyoruz.
@@ -51,13 +51,6 @@ export function FocusRing({
   return (
     <View style={[styles.wrap, { width: size, height: size }, glow(color, 0.3)]}>
       <Svg width={size} height={size} style={styles.svg}>
-        <Defs>
-          <SvgGradient id="focusRing" x1="0" y1="0" x2="1" y2="1">
-            <Stop offset="0" stopColor={color} stopOpacity="1" />
-            <Stop offset="1" stopColor={Palette.purple} stopOpacity="1" />
-          </SvgGradient>
-        </Defs>
-
         {/* Zemin halkasi */}
         <Circle
           cx={size / 2}
@@ -73,7 +66,7 @@ export function FocusRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="url(#focusRing)"
+          stroke={color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="none"

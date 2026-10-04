@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PressScale } from './button';
 import { IconBubble, Txt } from './ui';
 
-import { Elevation, Motion, Palette, Radius, Space } from '@/theme/tokens';
+import { DetailAccent, Elevation, Motion, Palette, Radius, Space } from '@/theme/tokens';
 
 export type HamburgerMenuItem = {
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -105,7 +105,7 @@ export function HamburgerMenu({
                 }}
               >
                 <View style={styles.row}>
-                  <IconBubble name={item.icon} color={item.color ?? Palette.textDim} size={38} />
+                  <IconBubble name={item.icon} color={item.color ?? DetailAccent} size={38} />
                   <Txt variant="bodyStrong" color={item.color ?? Palette.text} style={styles.flex}>
                     {item.label}
                   </Txt>

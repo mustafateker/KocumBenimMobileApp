@@ -4,7 +4,6 @@ import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
   Keyboard,
   Modal,
   PanResponder,
@@ -17,6 +16,7 @@ import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppDialog } from '@/components/app-dialog';
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
 import { createQuestion } from '@/lib/api';
@@ -24,7 +24,7 @@ import { logHandledError } from '@/lib/crash-reporter';
 import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
 import type { CanvasItem } from '@/lib/types';
-import { Border, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
 const PENS = ['#FF3B5C', '#2B7FFF', '#12C46A', '#FFB020', '#111827'];
@@ -48,6 +48,7 @@ export default function Annotate() {
   const [photoAspect, setPhotoAspect] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const [uploadError, setUploadError] = useState<{ message: string; code: string } | null>(null);
 
   /** Metin araci: dokunulan noktaya not birakma penceresi. */
   const [textDraft, setTextDraft] = useState<{ x: number; y: number; value: string } | null>(null);
@@ -178,7 +179,7 @@ export default function Annotate() {
       // Mesaji ekrana bir metin satiri olarak basmiyoruz: alt panele sonradan
       // gorunur bir yazi eklemek ayni mount hatasini tetikliyor.
       const entry = logHandledError('QUESTION_UPLOAD', err);
-      Alert.alert('Soru gönderilemedi', `${entry.message}\n\nHata kodu: ${entry.code}`);
+      setUploadError({ message: entry.message, code: entry.code });
       setSaving(false);
     }
   }, [saving, uri, frame.w, frame.h, items, note, refresh, router]);
@@ -298,15 +299,15 @@ export default function Annotate() {
 
           {/* Alt arac cubugu */}
           <View style={[styles.toolbar, { paddingBottom: insets.bottom + Space.sm }]}>
-            <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={Palette.purple} onPress={() => setTool('pen')} />
+            <ToolButton icon="pencil" label="Kalem" active={tool === 'pen'} color={DetailAccent} onPress={() => setTool('pen')} />
             <ToolButton
               icon="color-fill"
               label="Vurgula"
               active={tool === 'highlight'}
-              color={Palette.gold}
+              color={DetailAccent}
               onPress={() => setTool('highlight')}
             />
-            <ToolButton icon="text" label="Metin" active={tool === 'text'} color={Palette.blue} onPress={() => setTool('text')} />
+            <ToolButton icon="text" label="Metin" active={tool === 'text'} color={DetailAccent} onPress={() => setTool('text')} />
             <ToolButton icon="arrow-undo" label="Geri Al" active={false} color={Palette.textDim} onPress={undo} disabled={items.length === 0} />
             <ToolButton icon="trash" label="Temizle" active={false} color={Palette.pink} onPress={clear} disabled={items.length === 0} />
           </View>
@@ -317,6 +318,7 @@ export default function Annotate() {
       <Modal visible={textDraft !== null} transparent animationType="fade" onRequestClose={() => setTextDraft(null)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
+            <View style={styles.modalAccent} />
             <Txt variant="section">Not ekle</Txt>
             <Txt variant="small" color={Palette.textDim}>
               Bu not fotoğrafın üstünde dokunduğun yerde görünecek.
@@ -333,11 +335,20 @@ export default function Annotate() {
             />
             <View style={styles.modalActions}>
               <GhostButton label="Vazgeç" onPress={() => setTextDraft(null)} style={styles.flex} full />
-              <NeonButton label="Ekle" color={Palette.blue} onPress={commitText} style={styles.flex} full />
+              <NeonButton label="Ekle" color={Accent} onPress={commitText} style={styles.flex} full />
             </View>
           </View>
         </View>
       </Modal>
+
+      <AppDialog
+        visible={uploadError !== null}
+        icon="cloud-offline-outline"
+        title="Soru gönderilemedi"
+        message={uploadError ? `${uploadError.message}\nHata kodu: ${uploadError.code}` : ''}
+        confirmLabel="Tamam"
+        onConfirm={() => setUploadError(null)}
+      />
     </View>
   );
 }
@@ -388,7 +399,7 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(40),
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Palette.purple,
+    backgroundColor: Accent,
   },
   saveButtonDisabled: {
     opacity: 0.6,
@@ -488,8 +499,20 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: Space.md,
     padding: Space.xl,
+    paddingTop: Space.xxl,
     borderRadius: Radius.lg,
+    borderWidth: Border.thin,
+    borderColor: Palette.borderStrong,
     backgroundColor: Palette.surface,
+    overflow: 'hidden',
+  },
+  modalAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: DetailAccent,
   },
   modalInput: {
     height: 48,

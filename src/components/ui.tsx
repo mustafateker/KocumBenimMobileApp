@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   StyleSheet,
   Text,
@@ -12,7 +11,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Border, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
 import { PressScale } from './button';
 
@@ -47,7 +46,7 @@ export function Card({
     <View
       style={[
         styles.card,
-        accent ? { borderColor: accent, backgroundColor: softOf(accent) } : null,
+        accent ? { borderLeftColor: accent, borderLeftWidth: 3 } : null,
         style,
       ]}
       {...rest}
@@ -66,12 +65,7 @@ export function AccentCard({
 }: ViewProps & { accent: string }) {
   return (
     <View style={[styles.card, styles.accentCard, style]} {...rest}>
-      <LinearGradient
-        colors={[accent, accent + '00']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.accentStripe}
-      />
+      <View style={[styles.accentStripe, { backgroundColor: accent }]} />
       {children}
     </View>
   );
@@ -81,7 +75,7 @@ export function AccentCard({
 
 export function Pill({
   label,
-  color = Palette.blue,
+  color = DetailAccent,
   icon,
   style,
 }: {
@@ -90,10 +84,11 @@ export function Pill({
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   style?: StyleProp<ViewStyle>;
 }) {
+  const detail = color === DetailAccent;
   return (
-    <View style={[styles.pill, { backgroundColor: color + '22', borderColor: color + '55' }, style]}>
-      {icon ? <Ionicons name={icon} size={12} color={color} /> : null}
-      <Txt variant="tiny" color={color}>
+    <View style={[styles.pill, { backgroundColor: detail ? DetailAccent : softOf(color), borderColor: Palette.border }, style]}>
+      {icon ? <Ionicons name={icon} size={12} color={detail ? Palette.text : color} /> : null}
+      <Txt variant="tiny" color={detail ? Palette.text : color}>
         {label}
       </Txt>
     </View>
@@ -103,13 +98,14 @@ export function Pill({
 /** Yuvarlak ikon kabarcigi — kart basliklarinda ve bos durumlarda. */
 export function IconBubble({
   name,
-  color = Palette.blue,
+  color = DetailAccent,
   size = 44,
 }: {
   name: React.ComponentProps<typeof Ionicons>['name'];
   color?: string;
   size?: number;
 }) {
+  const detail = color === DetailAccent;
   return (
     <View
       style={[
@@ -118,12 +114,12 @@ export function IconBubble({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: color + '1F',
-          borderColor: color + '44',
+          backgroundColor: detail ? DetailAccent : softOf(color),
+          borderColor: Palette.border,
         },
       ]}
     >
-      <Ionicons name={name} size={size * 0.48} color={color} />
+      <Ionicons name={name} size={size * 0.48} color={detail ? Palette.text : color} />
     </View>
   );
 }
@@ -132,7 +128,7 @@ export function IconBubble({
 
 export function ProgressBar({
   progress,
-  color = Palette.blue,
+  color = Accent,
   height = 8,
   track = Palette.surfaceHi,
 }: {
@@ -145,12 +141,7 @@ export function ProgressBar({
   const clamped = Math.max(0, Math.min(1, progress));
   return (
     <View style={[styles.track, { height, borderRadius: height / 2, backgroundColor: track }]}>
-      <LinearGradient
-        colors={[color + 'AA', color]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={{ width: `${clamped * 100}%`, height: '100%', borderRadius: height / 2 }}
-      />
+      <View style={{ width: `${clamped * 100}%`, height: '100%', borderRadius: height / 2, backgroundColor: color }} />
     </View>
   );
 }
@@ -261,7 +252,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Palette.surface,
     borderRadius: Radius.lg,
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
     borderColor: Palette.border,
     padding: Space.lg,
   },
@@ -284,13 +275,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     // 15 (tiny satir yuksekligi) + 10 (dikey dolgu) + 4 (kenarlik) = 29
     borderRadius: pillRadius(29),
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
     alignSelf: 'flex-start',
   },
   bubble: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
   },
   track: {
     width: '100%',
@@ -313,9 +304,9 @@ const styles = StyleSheet.create({
   field: {
     height: 52,
     borderRadius: Radius.md,
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
     borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+    backgroundColor: Palette.bg,
     paddingHorizontal: Space.lg,
     color: Palette.text,
     fontFamily: Font.regular,
@@ -336,10 +327,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Space.xs,
     padding: Space.xs,
-    backgroundColor: Palette.surfaceHi,
+    backgroundColor: Palette.bg,
     // 38 (oge) + 8 (dolgu) + 4 (kenarlik) = 50
     borderRadius: pillRadius(50),
-    borderWidth: Border.thick,
+    borderWidth: Border.thin,
     borderColor: Palette.border,
   },
   segmentedItem: {

@@ -1,13 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
-import { Accent, Border, deepOf, Font, gradientOf, Motion, OnColor, Palette, Space } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-const AnimatedGradient = Animated.createAnimatedComponent(LinearGradient);
 
 /** Dokunmatik geri bildirim — web'de haptics yok, sessizce atlanir. */
 function tap(style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light) {
@@ -73,16 +71,10 @@ type ChunkyButtonProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/**
- * Duolingo'nun imza mekanigi: dinlenirken rengin koyu tonundan 4px'lik bir
- * "3D basma" seridi gorunur; basinca ic katman asagi kayar ve seridi yutar.
- * Ust yuzey artik acikdan-koyuya yumusak bir gradyan (bkz `gradientOf`) —
- * canlilik gradyandan, kat/basma hiyerarsisi yine kontur + koyu seritten gelir.
- */
+/** Sakin, tek yuzeyli aksiyon butonu. Renk hiyerarsi kurar; efekt yaristirmaz. */
 function ChunkyButton({
   label,
   onPress,
-  color = Accent,
   icon,
   disabled,
   size = 'md',
@@ -93,22 +85,20 @@ function ChunkyButton({
   style,
 }: ChunkyButtonProps & { fill: string; textColor: string; borderColor?: string }) {
   const height = size === 'lg' ? 56 : 46;
-  const lift = Border.chunky;
   const press = useSharedValue(0);
 
   const innerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: press.value * lift }],
+    transform: [{ scale: 1 - press.value * 0.025 }],
+    opacity: 1 - press.value * 0.08,
   }));
 
   return (
     <Pressable
       disabled={disabled}
       onPressIn={() => {
-         
         press.value = withTiming(1, { duration: Motion.duration.fast });
       }}
       onPressOut={() => {
-         
         press.value = withTiming(0, { duration: Motion.duration.base });
       }}
       onPress={() => {
@@ -118,51 +108,38 @@ function ChunkyButton({
       }}
       style={[full && styles.full, disabled && styles.disabled, style]}
     >
-      <View
+      <Animated.View
         style={[
-          styles.slab,
+          styles.solid,
           {
-            height: height + lift,
+            height,
             borderRadius: height / 2,
-            backgroundColor: deepOf(color),
+            backgroundColor: fill,
+            borderWidth: Border.thick,
+            borderColor: borderColor ?? fill,
           },
+          innerStyle,
         ]}
       >
-        <AnimatedGradient
-          colors={gradientOf(fill)}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={[
-            styles.solid,
-            {
-              height,
-              borderRadius: height / 2,
-              borderWidth: borderColor ? Border.thick : 0,
-              borderColor,
-            },
-            innerStyle,
-          ]}
+        {icon ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={textColor} /> : null}
+        <Animated.Text
+          style={[size === 'lg' ? styles.labelLg : styles.labelMd, { color: textColor }]}
+          numberOfLines={1}
         >
-          {icon ? <Ionicons name={icon} size={size === 'lg' ? 20 : 17} color={textColor} /> : null}
-          <Animated.Text
-            style={[size === 'lg' ? styles.labelLg : styles.labelMd, { color: textColor }]}
-            numberOfLines={1}
-          >
-            {label}
-          </Animated.Text>
-        </AnimatedGradient>
-      </View>
+          {label}
+        </Animated.Text>
+      </Animated.View>
     </Pressable>
   );
 }
 
-/** Birincil aksiyon — vurgu renginde duz dolgu, chunky 3D basma. */
+/** Birincil aksiyon — marka renginde duz ve yuksek kontrastli dolgu. */
 export function NeonButton(props: ChunkyButtonProps) {
   const color = props.color ?? Accent;
   return <ChunkyButton {...props} fill={color} textColor={OnColor} />;
 }
 
-/** Ikincil aksiyon — beyaz dolgu, renkli kati kenarlik, ayni chunky mekanik. */
+/** Ikincil aksiyon — beyaz dolgu ve sakin kontur. */
 export function GhostButton(props: Omit<ChunkyButtonProps, 'size'>) {
   const color = props.color ?? Palette.textDim;
   return <ChunkyButton {...props} fill={Palette.surface} textColor={color} borderColor={color} />;
@@ -192,12 +169,12 @@ export function IconButton({
             width: size,
             height: size,
             borderRadius: size / 2,
-            backgroundColor: color + '18',
-            borderColor: color + '55',
+            backgroundColor: DetailAccent,
+            borderColor: Palette.border,
           },
         ]}
       >
-        <Ionicons name={icon} size={size * 0.46} color={color} />
+        <Ionicons name={icon} size={size * 0.46} color={color === DetailAccent ? Palette.text : color} />
       </View>
     </PressScale>
   );
@@ -206,10 +183,6 @@ export function IconButton({
 const styles = StyleSheet.create({
   full: { alignSelf: 'stretch' },
   disabled: { opacity: 0.45 },
-  slab: {
-    justifyContent: 'flex-start',
-    overflow: 'hidden',
-  },
   solid: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -218,12 +191,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.xl,
   },
   labelMd: {
-    fontFamily: Font.black,
+    fontFamily: Font.semibold,
     fontSize: 15,
     lineHeight: 20,
   },
   labelLg: {
-    fontFamily: Font.black,
+    fontFamily: Font.semibold,
     fontSize: 17,
     lineHeight: 22,
   },

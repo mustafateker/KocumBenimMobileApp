@@ -1,8 +1,9 @@
 import { isRunningInExpoGo, requireOptionalNativeModule } from 'expo';
-import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform } from 'react-native';
+
+import { DetailAccent } from '@/theme/tokens';
 
 import { registerPushToken } from './api';
 import { logHandledError } from './crash-reporter';
@@ -31,17 +32,9 @@ function canRegisterPush(): boolean {
 }
 
 /**
- * Expo push servisi tokeni bu kimlige baglar. EAS projesine bagli olmayan bir
- * derlemede `getExpoPushTokenAsync()` "No projectId found" diye firlatir ve
- * telefona hicbir bildirim ulasmaz — sorunun en sik sebebi budur, o yuzden
- * sessizce yutmak yerine tanilama gunlugune yaziyoruz.
+ * Android'de kanal, izin isteginden ve native token alinmadan once var olmali
+ * (Expo SDK 57 dokumani).
  */
-function projectId(): string | undefined {
-  const fromExtra = Constants.expoConfig?.extra?.eas?.projectId as string | undefined;
-  return fromExtra ?? process.env.EXPO_PUBLIC_EAS_PROJECT_ID;
-}
-
-/** Android'de kanal, izin isteginden once var olmali (SDK 57 dokumani). */
 async function ensureAndroidChannel(
   Notifications: typeof import('expo-notifications')
 ): Promise<void> {
@@ -52,7 +45,7 @@ async function ensureAndroidChannel(
     // Gorev atamasi ekranda banner olarak gorunmeli; DEFAULT sessiz kalabiliyor.
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#8257E5',
+    lightColor: DetailAccent,
   });
 }
 
@@ -84,16 +77,20 @@ export async function registerForPushNotifications(): Promise<void> {
       return;
     }
 
-    const id = projectId();
-    if (!id) {
+    // expo-notifications native cihaz tokeni Android'de FCM, iOS'ta APNs tokenidir.
+    // Backend dogrudan FCM kullandigi icin ham APNs tokenini Firebase'e kaydetme.
+    if (Platform.OS !== 'android') {
       logHandledError(
-        'PUSH_NO_PROJECT_ID',
-        'EAS projectId bulunamadi. app.json > expo.extra.eas.projectId (ya da EXPO_PUBLIC_EAS_PROJECT_ID) tanimlanmadan Expo push tokeni alinamaz.'
+        'PUSH_UNSUPPORTED_PLATFORM',
+        'Dogrudan FCM token kaydi su anda yalnizca Android icin yapilandirildi.'
       );
       return;
     }
 
-    const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId: id });
+    const tokenResponse = await Notifications.getDevicePushTokenAsync();
+    if (typeof tokenResponse.data !== 'string') {
+      throw new Error('FCM cihaz tokeni beklenen string biciminde degil.');
+    }
     await registerPushToken(tokenResponse.data);
   } catch (err) {
     // Push kaydi en iyi caba niteligindedir; basarisiz olursa bildirimler

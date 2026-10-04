@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 
 import { dayLabel, todayKey } from '@/lib/date';
@@ -15,7 +14,7 @@ import { Txt } from './ui';
 export function WeekBars({
   data,
   goalMinutes,
-  color = Palette.blue,
+  color = Accent,
   height = 132,
 }: {
   data: { day: string; minutes: number }[];
@@ -40,10 +39,7 @@ export function WeekBars({
 
           return (
             <View key={d.day} style={styles.barCol}>
-              <LinearGradient
-                colors={isToday ? [color, color + '55'] : [Palette.surfaceHi, Palette.surfaceHi]}
-                style={[styles.bar, { height: barHeight, backgroundColor: barColor }]}
-              />
+              <View style={[styles.bar, { height: barHeight, backgroundColor: barColor }]} />
               <Txt variant="tiny" color={isToday ? color : Palette.textFaint}>
                 {dayLabel(d.day)}
               </Txt>

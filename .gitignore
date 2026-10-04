@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+.npm/
 
 # Expo
 .expo/
@@ -17,6 +18,8 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.keystore
+*.hprof
 
 # Metro
 .metro-health-check*
@@ -32,16 +35,35 @@ yarn-error.*
 
 # IDE
 .idea/
+.fleet/
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
 
 # typescript
 *.tsbuildinfo
 
-example
+# tests and tool caches
+coverage/
+.eslintcache
+.turbo/
+.cache/
+__pycache__/
+*.py[cod]
+
+# Firebase Admin credentials are private and must never enter the mobile repo.
+# google-services.json is intentionally not ignored: it is the public Android
+# build configuration referenced by app.json, not a Service Account key.
+firebase-service-account*.json
+service-account*.json
+*firebase-adminsdk*.json
+
+# local scratch directory
+/example/
 
 # generated native folders
 /ios
 /android
-

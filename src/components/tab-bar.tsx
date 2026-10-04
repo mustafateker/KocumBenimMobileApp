@@ -5,14 +5,13 @@ import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
 export type TabMeta = {
   label: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
 };
 
 /**
@@ -32,7 +31,7 @@ export type TabBarState = {
   };
 };
 
-/** Ekranin uzerinde yuzen, secili sekmesi renkli parlayan tab cubugu. */
+/** Tum ekranlarda ayni marka vurgusunu kullanan sakin alt gezinme cubugu. */
 export function TabBar({
   state,
   navigation,
@@ -94,14 +93,14 @@ function TabButton({
 
   return (
     <Pressable onPress={onPress} style={styles.tab} hitSlop={6}>
-      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: meta.color }]}>
+      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: DetailAccent }]}>
         <Ionicons
           name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
           size={21}
-          color={focused ? OnColor : Palette.textFaint}
+          color={focused ? Accent : Palette.textFaint}
         />
       </Animated.View>
-      <Txt variant="tiny" color={focused ? meta.color : Palette.textFaint}>
+      <Txt variant="tiny" color={focused ? Accent : Palette.textFaint}>
         {meta.label}
       </Txt>
     </Pressable>
@@ -114,19 +113,19 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: Space.lg,
-    paddingTop: Space.xl,
+    backgroundColor: Palette.surface,
+    borderTopWidth: Border.thin,
+    borderTopColor: Palette.border,
+    paddingHorizontal: Space.md,
+    paddingTop: Space.sm,
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Palette.surface,
-    borderRadius: Radius.xl,
-    borderWidth: Border.thick,
-    borderColor: Palette.border,
-    paddingVertical: Space.sm,
-    paddingHorizontal: Space.sm,
+    paddingVertical: Space.xs,
+    paddingHorizontal: Space.xs,
   },
   tab: {
     flex: 1,

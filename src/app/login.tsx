@@ -46,7 +46,7 @@ export default function Login() {
   }, [submitting, email, password, remember, signIn, router]);
 
   return (
-    <ScreenBackground tint={Accent}>
+    <ScreenBackground tint={Accent} pattern>
       {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
           odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
       <KeyboardAwareScrollView

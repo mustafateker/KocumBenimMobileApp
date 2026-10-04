@@ -20,7 +20,7 @@ import { AppErrorBoundary } from '@/components/app-error-boundary';
 import { installCrashReporter } from '@/lib/crash-reporter';
 import { NotificationCenterProvider } from '@/lib/notification-center';
 import { SessionProvider } from '@/lib/session';
-import { Brand, Palette } from '@/theme/tokens';
+import { Accent, Brand, Palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // Native ekran, uzerine binen JS katmaniyla yumusak devrolsun.
@@ -33,7 +33,7 @@ installCrashReporter();
 /** Kok yigindaki bir hata bu ekrani gosterir — beyaz ekran/sessiz kapanma yerine. */
 export { AppErrorBoundary as ErrorBoundary };
 
-/** Uygulama acik pastel tema uzerine kurulu; navigasyon temasini da ona esitle. */
+/** Uygulamanin sicak notr temasini navigasyon katmanina da uygula. */
 const NavTheme = {
   ...DefaultTheme,
   colors: {
@@ -42,7 +42,7 @@ const NavTheme = {
     card: Palette.surface,
     text: Palette.text,
     border: Palette.border,
-    primary: Palette.blue,
+    primary: Accent,
   },
 };
 

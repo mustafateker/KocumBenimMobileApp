@@ -12,9 +12,9 @@ import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/u
 import { getTasks, getUpcomingLessons } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
-import { categoryColor, categoryIcon } from '@/lib/task-categories';
+import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
 import type { PrivateLesson, Task } from '@/lib/types';
-import { Accent, Border, Palette, Radius, Space, pillRadius, softOf } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const DURATIONS = [
   { label: '25 dk', seconds: 25 * 60 },
@@ -84,7 +84,7 @@ export default function Home() {
   const draftSeconds = draft % 60;
 
   return (
-    <Screen tint={Accent} pattern>
+    <Screen>
       {/* Ust bar */}
       <View style={styles.topBar}>
         {/* Menu sol ustte, bildirim sag ustte — tum ogrenci ekranlarinda ayni yerde. */}
@@ -109,11 +109,13 @@ export default function Home() {
 
       {/* Odak zamani secici */}
       <PressScale onPress={openPicker} scaleTo={0.98}>
-        <FocusRing progress={ringProgress} color={Accent} size={252}>
+        <FocusRing progress={ringProgress} color={DetailAccent} track={Palette.border} size={252}>
           <Txt variant="tiny" color={Palette.textFaint}>
             ODAK ZAMANI
           </Txt>
-          <Txt variant="timer">{clockFormat(duration)}</Txt>
+          <Txt variant="timer" color={Palette.text}>
+            {clockFormat(duration)}
+          </Txt>
           <View style={styles.editHint}>
             <Ionicons name="pencil" size={12} color={Palette.textFaint} />
             <Txt variant="small" color={Palette.textDim}>
@@ -162,8 +164,8 @@ export default function Home() {
 
       {/* Hizli soru sor */}
       <PressScale onPress={() => router.push('/student/questions')}>
-        <Card accent={Palette.orange} style={styles.quickCard}>
-          <IconBubble name="camera" color={Palette.orange} size={48} />
+        <Card accent={Accent} style={styles.quickCard}>
+          <IconBubble name="camera" color={DetailAccent} size={48} />
           <View style={styles.flex}>
             <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
             <Txt variant="tiny" color={Palette.textDim}>
@@ -177,8 +179,8 @@ export default function Home() {
       {/* Yaklasan ozel ders */}
       {nextLesson ? (
         <PressScale onPress={() => router.push('/lessons')}>
-          <Card accent={Palette.purple} style={styles.quickCard}>
-            <IconBubble name="calendar" color={Palette.purple} size={48} />
+          <Card accent={Accent} style={styles.quickCard}>
+            <IconBubble name="calendar" color={DetailAccent} size={48} />
             <View style={styles.flex}>
               <Txt variant="bodyStrong">Yaklaşan Özel Ders</Txt>
               <Txt variant="tiny" color={Palette.textDim}>
@@ -220,6 +222,7 @@ export default function Home() {
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
+            <View style={styles.modalAccent} />
             <Txt variant="section" center>
               Odak süresini ayarla
             </Txt>
@@ -265,7 +268,7 @@ function Stepper({
       <View style={styles.stepperControls}>
         <IconButton icon="remove" onPress={onDec} />
         <Txt variant="title">{value}</Txt>
-        <IconButton icon="add" color={Accent} onPress={onInc} />
+        <IconButton icon="add" color={DetailAccent} onPress={onInc} />
       </View>
     </View>
   );
@@ -278,14 +281,14 @@ function MiniTaskCard({ task }: { task: Task }) {
 
   return (
     <View style={[styles.miniCard, done && { borderColor: Palette.green }]}>
-      <IconBubble name={done ? 'checkmark-circle' : categoryIcon(task.category)} color={color} size={32} />
+      <IconBubble name={done ? 'checkmark-circle' : categoryIcon(task.category)} color={DetailAccent} size={32} />
       <Txt variant="tiny" color={Palette.textDim} numberOfLines={2} style={styles.miniTitle}>
         {task.title}
       </Txt>
       <Txt variant="smallStrong" color={done ? Palette.green : Palette.text}>
-        {task.done}/{task.target}
+        {taskGoalLabel(task)}
       </Txt>
-      <ProgressBar progress={progress} color={color} height={5} />
+      <ProgressBar progress={progress} color={color} track={Palette.border} height={5} />
     </View>
   );
 }
@@ -339,7 +342,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipActive: {
-    backgroundColor: softOf(Accent),
+    backgroundColor: Palette.surface,
     borderColor: Accent,
   },
   quickCard: {
@@ -383,10 +386,20 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: Space.xl,
     padding: Space.xl,
+    paddingTop: Space.xxl,
     borderRadius: Radius.lg,
     borderWidth: Border.thick,
     borderColor: Palette.border,
     backgroundColor: Palette.surface,
+    overflow: 'hidden',
+  },
+  modalAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 5,
+    backgroundColor: DetailAccent,
   },
   stepperRow: {
     flexDirection: 'row',

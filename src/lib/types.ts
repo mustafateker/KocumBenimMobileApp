@@ -1,7 +1,7 @@
 /**
  * Backend API'sinin dondurdugu veri sekilleri — docs API_SPEC.md ile birebir.
- * Kocluk su an yalnizca matematik icin veriliyor; ders secimi arayuzden
- * tamamen kaldirildi, `subject` alanlari sunucu tarafinda hep "Matematik".
+ * Ogrenci arayuzunde ders secimi yok; soru ve odak oturumlarinda `subject` sunucu
+ * tarafinda hep "Matematik". Gorevlerde dersi ve konuyu ogretmen panelden secer.
  */
 
 export type Role = 'student' | 'teacher';
@@ -58,8 +58,15 @@ export type Task = {
   id: number;
   studentId: number;
   title: string;
+  /** Ogretmenin sectigi ders; konu secilmeden atanan gorevlerde sunucunun varsayilani ("Matematik"). */
   subject: string;
+  /** Konunun sinifi (1-12) ve mufredattaki adi; konu secilmeden atanan gorevlerde null. */
+  grade: number | null;
+  topic: string | null;
+  /** Hedef; birimi gorev turune gore degisir (bkz. task-categories.ts `taskGoal`). */
   target: number;
+  /** Dakika: soru cozmede istege bagli sure siniri, odakli calismada calisma suresi. */
+  durationMinutes: number | null;
   category: TaskCategory;
   done: number;
   correctCount: number;
@@ -189,6 +196,41 @@ export type TopicBreakdown = {
   attempts: number;
 };
 
+/** Ders → konu kirilimindaki sayaclar (backend: modules/tasks/breakdown.py). */
+export type TopicCounts = {
+  studyAssigned: number;
+  studyCompleted: number;
+  questionTasks: number;
+  questionTasksCompleted: number;
+  questionsAssigned: number;
+  correct: number;
+  wrong: number;
+  /** Sonucu girilmis gorevlerde hedef - dogru - yanlis. */
+  blank: number;
+  /** Dogru/yanlis girilmeden tamamlanan soru gorevi sayisi. */
+  unreportedTasks: number;
+  /** correct + wrong + blank */
+  solved: number;
+  /** correct / solved; hic sonuc yoksa null. */
+  successRate: number | null;
+};
+
+export type TopicReport = TopicCounts & { grade: number | null; topic: string; lastActivityAt: string | null };
+
+export type SubjectReport = TopicCounts & { subject: string; topics: TopicReport[] };
+
+/** Basari orani esigin altinda kalan konu; en dusukten baslayarak gelir. */
+export type WeakTopic = {
+  subject: string;
+  grade: number | null;
+  topic: string;
+  correct: number;
+  wrong: number;
+  blank: number;
+  solved: number;
+  successRate: number;
+};
+
 export type StudentStats = {
   totalTasks: number;
   doneTasks: number;
@@ -196,6 +238,9 @@ export type StudentStats = {
   currentStreak: number;
   last7Days: { day: string; minutes: number; tasksCompleted: number }[];
   byTopic: TopicBreakdown[];
+  /** Tum gorevlerin ders → konu kirilimi; eski sunucu surumleri bu alanlari dondurmez. */
+  subjects?: SubjectReport[];
+  weakTopics?: WeakTopic[];
 };
 
 export type Preferences = {

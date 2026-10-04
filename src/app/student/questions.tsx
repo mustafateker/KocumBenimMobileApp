@@ -16,7 +16,7 @@ import { relativeTime } from '@/lib/date';
 import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
-import { OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   pending: { label: 'Hocada bekliyor', color: Palette.gold, icon: 'hourglass' },
@@ -30,7 +30,7 @@ export default function Questions() {
   const [mode, setMode] = useState<'camera' | 'list'>(initialMode === 'list' ? 'list' : 'camera');
 
   return (
-    <ScreenBackground tint={Palette.orange}>
+    <ScreenBackground tint={Accent}>
       <Header mode={mode} onChange={setMode} />
       {mode === 'camera' ? <CameraPane /> : <QuestionList />}
     </ScreenBackground>
@@ -44,7 +44,7 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
     <View style={[styles.header, { paddingTop: insets.top + Space.md }]}>
       <View style={styles.titleRow}>
         <MenuButton />
-        <Txt variant="title" style={styles.flex}>
+        <Txt variant="title" center style={styles.flex}>
           Şipşak Soru
         </Txt>
         <NotificationBell />
@@ -58,9 +58,9 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
                 <Ionicons
                   name={m === 'camera' ? 'camera' : 'albums'}
                   size={15}
-                  color={active ? OnColor : Palette.textDim}
+                  color={active ? Palette.text : Palette.textDim}
                 />
-                <Txt variant="smallStrong" color={active ? OnColor : Palette.textDim}>
+                <Txt variant="smallStrong" color={active ? Palette.text : Palette.textDim}>
                   {m === 'camera' ? 'Çek' : 'Sorularım'}
                 </Txt>
               </View>
@@ -133,14 +133,14 @@ function CameraPane() {
   if (!permission.granted) {
     return (
       <View style={styles.permission}>
-        <IconBubble name="camera" color={Palette.orange} size={72} />
+        <IconBubble name="camera" color={DetailAccent} size={72} />
         <Txt variant="section" center>
           Kamera izni gerekiyor
         </Txt>
         <Txt variant="small" color={Palette.textDim} center>
           Takıldığın soruyu fotoğraflayıp üzerine çizebilmen için kameraya erişmemiz lazım.
         </Txt>
-        <NeonButton label="İzin ver" icon="lock-open" color={Palette.orange} onPress={requestPermission} />
+        <NeonButton label="İzin ver" icon="lock-open" color={Accent} onPress={requestPermission} />
       </View>
     );
   }
@@ -226,7 +226,7 @@ function QuestionList() {
         icon="camera-outline"
         title="Henüz soru göndermedin"
         subtitle="Takıldığın soruyu çek, üstüne çiz, hocaya yolla. Her soru için +10 XP."
-        color={Palette.orange}
+        color={DetailAccent}
       />
     );
   }
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(38),
   },
   segmentItemActive: {
-    backgroundColor: Palette.orange,
+    backgroundColor: DetailAccent,
   },
   pane: {
     flex: 1,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 4,
-    borderColor: Palette.orange,
+    borderColor: DetailAccent,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.surface,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: Palette.orange,
+    backgroundColor: DetailAccent,
   },
   listContent: {
     paddingHorizontal: Space.lg,
