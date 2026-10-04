@@ -12,7 +12,7 @@ import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/u
 import { getTasks, getUpcomingLessons } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useSession, useStudent } from '@/lib/session';
-import { categoryColor, categoryIcon } from '@/lib/task-categories';
+import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
 import type { PrivateLesson, Task } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
@@ -286,7 +286,7 @@ function MiniTaskCard({ task }: { task: Task }) {
         {task.title}
       </Txt>
       <Txt variant="smallStrong" color={done ? Palette.green : Palette.text}>
-        {task.done}/{task.target}
+        {taskGoalLabel(task)}
       </Txt>
       <ProgressBar progress={progress} color={color} track={Palette.border} height={5} />
     </View>

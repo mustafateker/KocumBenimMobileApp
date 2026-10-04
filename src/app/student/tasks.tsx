@@ -10,7 +10,7 @@ import { completeTask, getTasks } from '@/lib/api';
 import { formatShortDate } from '@/lib/date';
 import { useStudent } from '@/lib/session';
 import type { Task } from '@/lib/types';
-import { categoryColor, categoryIcon, categoryLabel } from '@/lib/task-categories';
+import { categoryColor, categoryIcon, categoryLabel, taskGoal, taskGoalLabel, taskTopicLabel } from '@/lib/task-categories';
 import { Border, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 type RangeKey = 'daily' | 'weekly' | 'monthly';
@@ -103,6 +103,8 @@ function TaskCard({
   const completed = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
   const catColor = categoryColor(task.category);
+  const goal = taskGoal(task);
+  const topicLabel = taskTopicLabel(task);
 
   const [completing, setCompleting] = useState(false);
   const [correct, setCorrect] = useState(task.target);
@@ -118,7 +120,8 @@ function TaskCard({
   const submit = useCallback(async () => {
     setBusy(true);
     try {
-      const updated = await completeTask(task.id, correct, wrong);
+      // Dogru/yanlis yalnizca soru hedefli gorevlerde sorulur; konu ve odak gorevlerinde 0 gider.
+      const updated = goal === 'questions' ? await completeTask(task.id, correct, wrong) : await completeTask(task.id, 0, 0);
       onCompleted(updated);
       setCompleting(false);
     } catch {
@@ -126,7 +129,7 @@ function TaskCard({
     } finally {
       setBusy(false);
     }
-  }, [task.id, correct, wrong, onCompleted]);
+  }, [task.id, goal, correct, wrong, onCompleted]);
 
   return (
     <PressScale onPress={onToggle} scaleTo={0.99}>
@@ -141,13 +144,18 @@ function TaskCard({
             <Txt variant="bodyStrong" numberOfLines={1}>
               {task.title}
             </Txt>
+            {topicLabel ? (
+              <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
+                {topicLabel}
+              </Txt>
+            ) : null}
             <Txt variant="tiny" color={Palette.textFaint}>
               {categoryLabel(task.category)} ·{' '}
               {completed ? `Tamamlandı: ${formatShortDate(task.completedAt!)}` : `Teslim: ${formatShortDate(task.dueDate)}`}
             </Txt>
           </View>
           <Txt variant="smallStrong" color={completed ? Palette.green : Palette.text}>
-            {task.done}/{task.target}
+            {taskGoalLabel(task)}
           </Txt>
         </View>
         <ProgressBar
@@ -160,20 +168,30 @@ function TaskCard({
         {expanded ? (
           <View style={styles.details}>
             <DetailRow label="Görev türü" value={categoryLabel(task.category)} />
+            {task.topic ? (
+              <>
+                <DetailRow label="Ders" value={task.grade ? `${task.subject} · ${task.grade}. Sınıf` : task.subject} />
+                <DetailRow label="Konu" value={task.topic} />
+              </>
+            ) : null}
             <DetailRow label="Atanma tarihi" value={formatShortDate(task.createdAt)} />
             {completed ? (
               <DetailRow label="Tamamlanma tarihi" value={formatShortDate(task.completedAt!)} />
             ) : (
               <DetailRow label="Teslim tarihi" value={formatShortDate(task.dueDate)} />
             )}
-            <DetailRow label="Hedef soru sayısı" value={`${task.target} soru`} />
-            {completed && <DetailRow label="Sonuç" value={`${task.correctCount} doğru · ${task.wrongCount} yanlış`} />}
+            {goal === 'questions' && <DetailRow label="Hedef soru sayısı" value={`${task.target} soru`} />}
+            {goal === 'questions' && task.durationMinutes ? <DetailRow label="Süre" value={`${task.durationMinutes} dk`} /> : null}
+            {goal === 'minutes' && <DetailRow label="Çalışma süresi" value={`${task.durationMinutes} dk`} />}
+            {completed && goal === 'questions' && (
+              <DetailRow label="Sonuç" value={`${task.correctCount} doğru · ${task.wrongCount} yanlış`} />
+            )}
 
             {!completed && !completing && (
               <NeonButton label="Görevi Tamamla" icon="checkmark" color={Palette.green} onPress={startCompleting} full />
             )}
 
-            {!completed && completing && (
+            {!completed && completing && goal === 'questions' && (
               <View style={styles.completeForm}>
                 <Txt variant="small" color={Palette.textDim}>
                   Kaç soru doğru, kaç soru yanlış yaptın?
@@ -183,6 +201,17 @@ function TaskCard({
                   <MiniStepper label="Yanlış" value={wrong} color={Palette.pink} onChange={setWrong} max={task.target} />
                 </View>
                 <NeonButton label={busy ? 'Kaydediliyor…' : 'Kaydet ve Bitir'} color={Palette.green} disabled={busy} onPress={submit} full />
+              </View>
+            )}
+
+            {!completed && completing && goal !== 'questions' && (
+              <View style={styles.completeForm}>
+                <Txt variant="small" color={Palette.textDim}>
+                  {goal === 'minutes'
+                    ? `${task.durationMinutes} dakikalık çalışmanı tamamladın mı?`
+                    : 'Bu konuyu çalışmayı tamamladın mı?'}
+                </Txt>
+                <NeonButton label={busy ? 'Kaydediliyor…' : 'Evet, Bitir'} color={Palette.green} disabled={busy} onPress={submit} full />
               </View>
             )}
           </View>
@@ -198,7 +227,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
       <Txt variant="small" color={Palette.textFaint}>
         {label}
       </Txt>
-      <Txt variant="smallStrong">{value}</Txt>
+      <Txt variant="smallStrong" style={styles.detailValue}>
+        {value}
+      </Txt>
     </View>
   );
 }
@@ -260,6 +291,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Space.md,
+  },
+  // Uzun konu adlari satira sigmayinca etiketi itmeden alt satira insin.
+  detailValue: {
+    flexShrink: 1,
+    textAlign: 'right',
   },
   completeForm: {
     gap: Space.md,

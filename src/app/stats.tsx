@@ -43,6 +43,8 @@ export default function Stats() {
   );
 
   const rate = Math.round(stats.completionRate * 100);
+  // Dogru/yanlis girilmeyen gorevler (konu ve odakli calisma) bu listede %0 basari gibi gorunmesin.
+  const answeredTopics = stats.byTopic.filter((topic) => topic.correct + topic.wrong > 0);
 
   return (
     <Screen tint={Palette.blue}>
@@ -61,13 +63,13 @@ export default function Stats() {
         <WeekBars data={stats.last7Days} goalMinutes={Rules.dailyGoalMinutes} color={Accent} />
       </Card>
 
-      {stats.byTopic.length > 0 ? (
+      {answeredTopics.length > 0 ? (
         <View style={styles.section}>
           <Txt variant="smallStrong" color={Palette.textDim}>
             Konu Bazlı Doğru / Yanlış
           </Txt>
           <View style={styles.list}>
-            {stats.byTopic.map((topic) => (
+            {answeredTopics.map((topic) => (
               <TopicRow key={topic.title} topic={topic} />
             ))}
           </View>

@@ -1,7 +1,7 @@
 /**
  * Backend API'sinin dondurdugu veri sekilleri — docs API_SPEC.md ile birebir.
- * Kocluk su an yalnizca matematik icin veriliyor; ders secimi arayuzden
- * tamamen kaldirildi, `subject` alanlari sunucu tarafinda hep "Matematik".
+ * Ogrenci arayuzunde ders secimi yok; soru ve odak oturumlarinda `subject` sunucu
+ * tarafinda hep "Matematik". Gorevlerde dersi ve konuyu ogretmen panelden secer.
  */
 
 export type Role = 'student' | 'teacher';
@@ -58,8 +58,15 @@ export type Task = {
   id: number;
   studentId: number;
   title: string;
+  /** Ogretmenin sectigi ders; konu secilmeden atanan gorevlerde sunucunun varsayilani ("Matematik"). */
   subject: string;
+  /** Konunun sinifi (1-12) ve mufredattaki adi; konu secilmeden atanan gorevlerde null. */
+  grade: number | null;
+  topic: string | null;
+  /** Hedef; birimi gorev turune gore degisir (bkz. task-categories.ts `taskGoal`). */
   target: number;
+  /** Dakika: soru cozmede istege bagli sure siniri, odakli calismada calisma suresi. */
+  durationMinutes: number | null;
   category: TaskCategory;
   done: number;
   correctCount: number;
