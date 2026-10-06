@@ -1,8 +1,10 @@
 import { Image } from 'expo-image';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Path, Text as SvgText } from 'react-native-svg';
 
 import type { CanvasData } from '@/lib/types';
+import { apiMediaUrl } from '@/lib/api-client';
 import { Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
@@ -26,11 +28,26 @@ export function CanvasView({
   fallbackNote?: string | null;
 }) {
   const hasImage = imageUri.length > 0;
+  const [loading, setLoading] = useState(hasImage);
+  const [failed, setFailed] = useState(false);
 
   return (
     <View style={[styles.wrap, style]}>
       {hasImage ? (
-        <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} contentFit="contain" />
+        <Image
+          source={{ uri: apiMediaUrl(imageUri) }}
+          style={StyleSheet.absoluteFill}
+          contentFit="contain"
+          onLoadStart={() => {
+            setLoading(true);
+            setFailed(false);
+          }}
+          onLoad={() => setLoading(false)}
+          onError={() => {
+            setLoading(false);
+            setFailed(true);
+          }}
+        />
       ) : (
         <View style={styles.fallback}>
           <Txt variant="small" color={Palette.textDim}>
@@ -38,6 +55,13 @@ export function CanvasView({
           </Txt>
         </View>
       )}
+
+      {loading && !failed ? <ActivityIndicator style={styles.status} color={Palette.textDim} /> : null}
+      {failed ? (
+        <View style={styles.fallback}>
+          <Txt variant="small" color={Palette.textDim}>Fotoğraf yüklenemedi</Txt>
+        </View>
+      ) : null}
 
       {canvas.items.length > 0 ? (
         <Svg
@@ -92,5 +116,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: Space.lg,
+  },
+  status: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: '45%',
   },
 });

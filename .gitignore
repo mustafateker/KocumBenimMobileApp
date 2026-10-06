@@ -67,3 +67,10 @@ service-account*.json
 # generated native folders
 /ios
 /android
+
+# Store build artifacts
+/builds/
+*.aab
+*.apk
+
+designes/

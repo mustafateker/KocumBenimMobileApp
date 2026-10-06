@@ -58,7 +58,8 @@
           "color": "#FBAE75",
           "defaultChannel": "default"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -66,6 +67,18 @@
     },
     "ios": {
       "bundleIdentifier": "com.triworkster.kocumbenimmobileapp"
-    }
+    },
+    "extra": {
+      "router": {
+        "headers": {
+          "Cross-Origin-Embedder-Policy": "credentialless",
+          "Cross-Origin-Opener-Policy": "same-origin"
+        }
+      },
+      "eas": {
+        "projectId": "1f34a333-ba28-496b-9b22-cc93db101e58"
+      }
+    },
+    "owner": "triworkster"
   }
 }

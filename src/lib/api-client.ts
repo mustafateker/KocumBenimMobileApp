@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch as expoFetch } from 'expo/fetch';
 import { File } from 'expo-file-system';
 
 /**
@@ -7,6 +8,12 @@ import { File } from 'expo-file-system';
  * (DB baglantisi, JWT_SECRET, AWS anahtarlari) tutulmaz, sadece bu URL.
  */
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+
+/** API'nin dondurdugu goreli medya yollarini HTTPS API adresine baglar. */
+export function apiMediaUrl(value: string): string {
+  if (!value || /^https?:\/\//i.test(value)) return value;
+  return `${BASE_URL.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
+}
 
 const ACCESS_TOKEN_KEY = 'kocumbenim.auth.accessToken';
 const REFRESH_TOKEN_KEY = 'kocumbenim.auth.refreshToken';
@@ -130,7 +137,7 @@ async function doFetch(url: string, init: RequestInit): Promise<Response> {
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    return await fetch(url, { ...init, signal: controller.signal });
+    return await expoFetch(url, { ...init, signal: controller.signal });
   } catch (err) {
     if (controller.signal.aborted) {
       throw new ApiError(
