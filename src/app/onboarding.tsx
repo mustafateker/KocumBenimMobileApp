@@ -11,16 +11,17 @@ import { completeOnboarding } from '@/lib/api';
 import {
   ALL_STEPS,
   CAREERS,
+  COMMITMENT_DURATIONS,
   DAILY_HOURS,
   DEPARTMENTS,
+  DISCIPLINE_MEANINGS,
   GOALS,
   GRADES,
   HIGH_SCHOOLS,
-  MATH_TOPICS,
+  LISE_GRADES,
+  LISE_ONCESI_GRADES,
   MOTIVATIONS,
-  ORTAOKUL_GRADES,
   STEP_META,
-  TIMEFRAMES,
   UNIVERSITIES,
   progressCheer,
   type StepKey,
@@ -44,9 +45,9 @@ type FormState = {
   highSchool: string;
   university: string;
   department: string;
-  mathTopics: string[];
   dailyHours: string;
-  timeframe: string;
+  disciplineMeaning: string[];
+  commitmentDuration: string;
   motivation: string[];
 };
 
@@ -59,9 +60,9 @@ const EMPTY_FORM: FormState = {
   highSchool: '',
   university: '',
   department: '',
-  mathTopics: [],
   dailyHours: '',
-  timeframe: '',
+  disciplineMeaning: [],
+  commitmentDuration: '',
   motivation: [],
 };
 
@@ -70,8 +71,8 @@ const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
 
 /**
  * "Ilk Kurulum" sihirbazi — kayittan hemen sonra ogrenciyi taniyip hedeflerini
- * kaydeder. Tek ekran, adimlar arasinda index ile gezinir; lise/universite/
- * bolum adimlari yalnizca ortaokul (5-8. sinif) icin gosterilir.
+ * kaydeder. Tek ekran, adimlar arasinda index ile gezinir; lise hedefi 1-8,
+ * universite ve bolum hedefleri ise 9-12. sinif icin gosterilir.
  */
 export default function Onboarding() {
   // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
@@ -84,15 +85,17 @@ export default function Onboarding() {
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const isOrtaokul = ORTAOKUL_GRADES.has(form.grade);
+  const isLiseOncesi = LISE_ONCESI_GRADES.has(form.grade);
+  const isLise = LISE_GRADES.has(form.grade);
 
   const steps = useMemo(
     () =>
       ALL_STEPS.filter((key) => {
-        if (key === 'highSchool' || key === 'university' || key === 'department') return isOrtaokul;
+        if (key === 'highSchool') return isLiseOncesi;
+        if (key === 'university' || key === 'department') return isLise;
         return true;
       }),
-    [isOrtaokul]
+    [isLiseOncesi, isLise]
   );
 
   const step = steps[Math.min(index, steps.length - 1)];
@@ -102,7 +105,7 @@ export default function Onboarding() {
     setForm((f) => ({ ...f, [key]: value }));
   }, []);
 
-  const toggleMulti = useCallback((key: 'mathTopics' | 'motivation', value: string) => {
+  const toggleMulti = useCallback((key: 'disciplineMeaning' | 'motivation', value: string) => {
     setForm((f) => {
       const list = f[key];
       const next = list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
@@ -128,12 +131,12 @@ export default function Onboarding() {
         return form.university.trim().length > 0;
       case 'department':
         return form.department.trim().length > 0;
-      case 'mathTopics':
-        return form.mathTopics.length > 0;
       case 'dailyHours':
         return form.dailyHours !== '';
-      case 'timeframe':
-        return form.timeframe !== '';
+      case 'disciplineMeaning':
+        return form.disciplineMeaning.length > 0;
+      case 'commitmentDuration':
+        return form.commitmentDuration !== '';
       case 'motivation':
         return form.motivation.length > 0;
       case 'summary':
@@ -151,12 +154,12 @@ export default function Onboarding() {
         grade: form.grade,
         goal: form.goal.trim(),
         career: form.career.trim(),
-        targetHighSchool: form.highSchool.trim(),
-        targetUniversity: form.university.trim(),
-        targetDepartment: form.department.trim(),
-        mathTopics: form.mathTopics,
+        targetHighSchool: isLiseOncesi ? form.highSchool.trim() : '',
+        targetUniversity: isLise ? form.university.trim() : '',
+        targetDepartment: isLise ? form.department.trim() : '',
         dailyHours: form.dailyHours,
-        timeframe: form.timeframe,
+        disciplineMeaning: form.disciplineMeaning,
+        commitmentDuration: form.commitmentDuration,
         motivation: form.motivation,
       });
       // updated.onboardingCompletedAt burada dolu gelir; ayri bir GET /me
@@ -168,7 +171,7 @@ export default function Onboarding() {
     } finally {
       setSaving(false);
     }
-  }, [saving, form, setUser, router]);
+  }, [saving, form, isLiseOncesi, isLise, setUser, router]);
 
   const next = useCallback(() => {
     if (!valid) return;
@@ -315,11 +318,11 @@ export default function Onboarding() {
               />
             ) : null}
 
-            {step === 'mathTopics' ? (
+            {step === 'disciplineMeaning' ? (
               <CheckList
-                options={MATH_TOPICS}
-                values={form.mathTopics}
-                onToggle={(v) => toggleMulti('mathTopics', v)}
+                options={DISCIPLINE_MEANINGS}
+                values={form.disciplineMeaning}
+                onToggle={(v) => toggleMulti('disciplineMeaning', v)}
                 color={meta.color}
               />
             ) : null}
@@ -333,11 +336,11 @@ export default function Onboarding() {
               />
             ) : null}
 
-            {step === 'timeframe' ? (
+            {step === 'commitmentDuration' ? (
               <OptionList
-                options={TIMEFRAMES}
-                value={form.timeframe}
-                onSelect={(v) => set('timeframe', v)}
+                options={COMMITMENT_DURATIONS}
+                value={form.commitmentDuration}
+                onSelect={(v) => set('commitmentDuration', v)}
                 color={meta.color}
               />
             ) : null}
@@ -362,7 +365,18 @@ export default function Onboarding() {
                   label="Günlük Çalışma"
                   value={form.dailyHours}
                 />
-                <SummaryRow icon="calendar" color={DetailAccent} label="Hedef Süre" value={form.timeframe} />
+                <SummaryRow
+                  icon="shield-checkmark"
+                  color={DetailAccent}
+                  label="Disiplin"
+                  value={form.disciplineMeaning.join(', ')}
+                />
+                <SummaryRow
+                  icon="calendar"
+                  color={DetailAccent}
+                  label="Devam Süresi"
+                  value={form.commitmentDuration}
+                />
               </View>
             ) : null}
           </View>

@@ -14,9 +14,9 @@ export type StepKey =
   | 'highSchool'
   | 'university'
   | 'department'
-  | 'mathTopics'
   | 'dailyHours'
-  | 'timeframe'
+  | 'disciplineMeaning'
+  | 'commitmentDuration'
   | 'motivation'
   | 'summary';
 
@@ -30,9 +30,9 @@ export const ALL_STEPS: StepKey[] = [
   'highSchool',
   'university',
   'department',
-  'mathTopics',
   'dailyHours',
-  'timeframe',
+  'disciplineMeaning',
+  'commitmentDuration',
   'motivation',
   'summary',
 ];
@@ -109,25 +109,25 @@ export const STEP_META: Record<
     subtitle: 'İlgilendiğin bölümü seç ya da yazabilirsin.',
     mood: 'think',
   },
-  mathTopics: {
-    icon: 'calculator',
-    color: Accent,
-    title: 'Matematikte seni en çok korkutan konular neler?',
-    subtitle: 'Korkma, birlikte çalışacağımız konuları seçelim.',
-    mood: 'think',
-  },
   dailyHours: {
     icon: 'time',
     color: Accent,
-    title: 'Günlük kaç saat çalışmayı planlıyorsun?',
-    subtitle: 'Gerçekçi bir süre seçmek çok önemli!',
+    title: 'Günlük kaç saat çalışabilirsin?',
+    subtitle: 'Günlük düzenine gerçekten uyan süreyi seç.',
     mood: 'happy',
   },
-  timeframe: {
+  disciplineMeaning: {
+    icon: 'shield-checkmark',
+    color: Accent,
+    title: 'Disiplin senin için ne ifade ediyor?',
+    subtitle: 'Sana uyan birden fazla seçeneği işaretleyebilirsin.',
+    mood: 'think',
+  },
+  commitmentDuration: {
     icon: 'calendar',
     color: Accent,
-    title: 'Hedeflerine ne kadar sürede ulaşmak istiyorsun?',
-    subtitle: 'Sabırlı ol, istikrarlı ilerle!',
+    title: 'Bu çalışma düzenini ne kadar sürdürebilirsin?',
+    subtitle: 'Sürdürülebilir bir hedef, güçlü bir başlangıçtır.',
     mood: 'happy',
   },
   motivation: {
@@ -168,10 +168,17 @@ export const GRADES = [
   '6. Sınıf',
   '7. Sınıf',
   '8. Sınıf',
+  '9. Sınıf',
+  '10. Sınıf',
+  '11. Sınıf',
+  '12. Sınıf',
 ];
 
-/** "Hangi lisede/universitede/bolumde" adimlari yalnizca ortaokul (5-8) icin sorulur. */
-export const ORTAOKUL_GRADES = new Set(['5. Sınıf', '6. Sınıf', '7. Sınıf', '8. Sınıf']);
+/** Lise hedefi, henüz liseye başlamamış 1-8. sınıf öğrencilerine sorulur. */
+export const LISE_ONCESI_GRADES = new Set(GRADES.slice(0, 8));
+
+/** Üniversite ve bölüm hedefleri yalnızca lise öğrencilerine sorulur. */
+export const LISE_GRADES = new Set(GRADES.slice(8));
 
 export const GOALS = [
   'Odak yeteneğimi geliştirmek istiyorum.',
@@ -356,30 +363,6 @@ export const DEPARTMENTS = [
   'Mimari Restorasyon',
 ];
 
-/** Ortaokul MEB muhtevasindan sik korkulan/zorlanilan konu basliklari. */
-export const MATH_TOPICS = [
-  'Doğal Sayılar ve İşlemler',
-  'Tam Sayılar',
-  'Kesirler',
-  'Ondalık Sayılar',
-  'Yüzdeler',
-  'Oran ve Orantı',
-  'Cebirsel İfadeler',
-  'Denklemler',
-  'Eşitsizlikler',
-  'Üslü Sayılar',
-  'Kareköklü Sayılar',
-  'Veri Analizi',
-  'Olasılık',
-  'Doğrular ve Açılar',
-  'Üçgenler',
-  'Dörtgenler ve Çokgenler',
-  'Çember ve Daire',
-  'Alan ve Çevre Hesaplamaları',
-  'Geometrik Cisimler (Prizma, Silindir, Küre)',
-  'Simetri ve Öteleme',
-];
-
 export const DAILY_HOURS = [
   '30 dakika',
   '1 saat',
@@ -391,6 +374,14 @@ export const DAILY_HOURS = [
   '6 saat',
 ];
 
-export const TIMEFRAMES = ['3 ay', '6 ay', '1 yıl', '2 yıl', 'Daha uzun'];
+export const DISCIPLINE_MEANINGS = [
+  'Her gün küçük adımlar atmak',
+  'Planıma sadık kalmak',
+  'Canım istemese de başlayabilmek',
+  'Dikkat dağıtıcılardan uzak durmak',
+  'Başladığım işi tamamlamak',
+];
+
+export const COMMITMENT_DURATIONS = ['1 ay', '3 ay', '6 ay', '1 yıl', 'Hedefime ulaşana kadar'];
 
 export const MOTIVATIONS = ['Ailem', 'Geleceğim', 'Başarılarım', 'Arkadaşlarım', 'Hayallerim'];

@@ -22,9 +22,9 @@ export type Student = {
   targetHighSchool: string | null;
   targetUniversity: string | null;
   targetDepartment: string | null;
-  mathTopics: string[];
   dailyHours: string | null;
-  timeframe: string | null;
+  disciplineMeaning: string[];
+  commitmentDuration: string | null;
   motivationSources: string[];
   onboardingCompletedAt: string | null;
 
@@ -46,9 +46,9 @@ export type OnboardingInput = {
   targetHighSchool: string;
   targetUniversity: string;
   targetDepartment: string;
-  mathTopics: string[];
   dailyHours: string;
-  timeframe: string;
+  disciplineMeaning: string[];
+  commitmentDuration: string;
   motivation: string[];
 };
 
