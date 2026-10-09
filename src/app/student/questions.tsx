@@ -72,8 +72,6 @@ function Header({ mode, onChange }: { mode: 'camera' | 'list'; onChange: (m: 'ca
   );
 }
 
-/* ---------------------------------- kamera --------------------------------- */
-
 function CameraPane() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -117,8 +115,7 @@ function CameraPane() {
       const uri = await persistCapturedPhoto(photo.uri);
       router.push({ pathname: '/annotate', params: { uri } });
     } catch (err) {
-      // Eskiden bu hata yakalanmiyordu: yakalanmamis reddedilen soz
-      // uygulamayi hicbir sey gostermeden kapatiyordu.
+      // Yakalanmayan reddedilmis soz uygulamayi sessizce kapatir.
       const entry = logHandledError('CAMERA_CAPTURE', err);
       setCaptureError(`Fotoğraf çekilemedi (${entry.code}). Tekrar dene.`);
     } finally {
@@ -197,8 +194,6 @@ function CameraPane() {
     </View>
   );
 }
-
-/* -------------------------------- soru listesi ------------------------------ */
 
 function QuestionList() {
   useStudent();

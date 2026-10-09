@@ -6,9 +6,8 @@ import { CrashScreen } from './crash-screen';
 import { logFatalError } from '@/lib/crash-reporter';
 
 /**
- * Render sirasinda olusan hatalari yakalar. Onceden bu hatalar uygulamayi
- * sessizce kapatiyordu; artik kullanici bir hata kodu goruyor, kayit da
- * Ayarlar > Hata Kayitlari listesine dusuyor.
+ * Render sirasinda olusan hatalari yakalar; kullanici bir hata kodu gorur, kayit da
+ * Ayarlar > Hata Kayitlari listesine duser.
  *
  * `useMemo` bilerek: ayni hata icin ikinci bir render kaydi cogaltmasin.
  */

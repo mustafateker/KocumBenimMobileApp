@@ -213,10 +213,6 @@ type UploadFileOptions = {
  * dosyayi dogrudan FormData'ya koyabiliyoruz; boylece yukleme de diger tum
  * isteklerle ayni yoldan gecer: ayni `doFetch`, ayni Authorization basligi,
  * ayni zaman asimi ve ayni 401 -> refresh -> tekrar dene mantigi.
- *
- * Onceki surum native `File#upload` kullaniyordu; orada Authorization basligi
- * sunucuya ulasmiyordu ve backend her soru gonderiminde "Kimlik dogrulama
- * gerekli." (401) donuyordu.
  */
 async function uploadFile<T>(path: string, options: UploadFileOptions, retried = false): Promise<T> {
   const { fieldName, fileUri, fields, auth = true } = options;

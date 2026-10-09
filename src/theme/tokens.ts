@@ -60,7 +60,7 @@ export const Brand = {
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */
-export const SoftOf: Record<string, string> = {
+const SoftOf: Record<string, string> = {
   [Palette.amber]: Palette.amberSoft,
   [Palette.orange]: Palette.orangeSoft,
 };
@@ -91,10 +91,8 @@ export const Radius = {
  *
  * Android'in yeni mimarisinde bir yuzeyin arka plani, kose yaricapi kendi
  * boyutundan buyuk verildiginde duz kose cizilir — kenarlik yolu dogru
- * yuvarlanir ama dolgu kare kalir. Eskiden kullandigimiz `Radius.pill = 999`
- * bu yuzden "Gunluk / Haftalik / Aylik" secicisinin secili kutusunu kare
- * gosteriyordu. Cozum sabit bir buyuk sayi degil, ogenin kendi yuksekliginin
- * yarisi: her iki platformda da tam kapsul verir.
+ * yuvarlanir ama dolgu kare kalir. Bu yuzden sabit bir buyuk sayi (or. 999) degil, ogenin kendi
+ * yuksekliginin yarisi kullanilmali: her iki platformda da tam kapsul verir.
  *
  * @param height Ogenin kenarlik dahil toplam yuksekligi (px).
  */
@@ -109,7 +107,7 @@ export const Border = {
 } as const;
 
 /**
- * Yumusak renkli golge — artik yalnizca gercekten yuzen ogelerde (modal,
+ * Yumusak renkli golge — yalnizca gercekten yuzen ogelerde (modal,
  * hamburger menu) kullanilir. Kartlarda ve butonlarda hiyerarsiyi kalin
  * kenarlik tasir, golge degil.
  */
@@ -156,9 +154,6 @@ export const Elevation = {
     elevation: 10,
   },
 } as const;
-
-/** Kartlarin varsayilan cok hafif golgesi — asil hiyerarsi kenarliktan gelir. */
-export const cardShadow = Elevation.sm;
 
 /**
  * Sure ve yay ayarlari. Chunky butonlarin basma animasyonu hizli-kesin

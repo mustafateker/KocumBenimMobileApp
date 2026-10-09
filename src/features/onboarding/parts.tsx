@@ -13,7 +13,7 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
  * devam eden 45 derece dondurulmus bir kare — boylece balonun konturuyla
  * kesintisiz birlesir.
  */
-export function SpeechBubble({
+function SpeechBubble({
   color = Accent,
   tail = 'left',
   style,
@@ -131,7 +131,7 @@ export function StepProgress({
 }
 
 /** Tek secimlik satir — sinif, sinav turu, sure gibi listelerde. */
-export function OptionRow({
+function OptionRow({
   label,
   selected,
   onPress,
@@ -164,7 +164,7 @@ export function OptionRow({
 }
 
 /** Coklu secim satiri — konu, motivasyon listeleri. */
-export function CheckRow({
+function CheckRow({
   label,
   checked,
   onPress,
@@ -232,36 +232,6 @@ export function CheckList({
       {options.map((o) => (
         <CheckRow key={o} label={o} checked={values.includes(o)} onPress={() => onToggle(o)} color={color} />
       ))}
-    </View>
-  );
-}
-
-/** Serbest metin adimlari — "En büyük hedefin ne?" gibi. */
-export function BigTextArea({
-  value,
-  onChangeText,
-  placeholder,
-  helper,
-}: {
-  value: string;
-  onChangeText: (v: string) => void;
-  placeholder: string;
-  helper?: string;
-}) {
-  return (
-    <View style={styles.list}>
-      <TextField
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        multiline
-        autoCapitalize="sentences"
-      />
-      {helper ? (
-        <Txt variant="tiny" color={Palette.textFaint}>
-          {helper}
-        </Txt>
-      ) : null}
     </View>
   );
 }

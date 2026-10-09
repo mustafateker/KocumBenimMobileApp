@@ -1,4 +1,4 @@
-import { StyleSheet, View, type ScrollViewProps, type ViewProps } from 'react-native';
+import { StyleSheet, View, type ScrollViewProps } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -37,8 +37,8 @@ export function ScreenBackground({
  * Kaydirilabilir ekran govdesi. Alt tab cubugunun altinda kalmayi onler.
  *
  * Android SDK 54'ten beri edge-to-edge zorunlu; bu modda `adjustResize`
- * pencereyi artik kucultmuyor, uygulama klavyenin altina ciziyor ve odaklanan
- * girdi klavyenin arkasinda kaliyordu. `KeyboardAwareScrollView` klavye
+ * pencereyi kucultmuyor, uygulama klavyenin altina ciziyor ve odaklanan
+ * girdi klavyenin arkasinda kalir. `KeyboardAwareScrollView` klavye
  * yuksekligini olcup icerigi yukari kaydiriyor — RN'in kendi
  * KeyboardAvoidingView'i bu modda ise yaramiyor.
  */
@@ -67,25 +67,6 @@ export function Screen({
       >
         {children}
       </KeyboardAwareScrollView>
-    </ScreenBackground>
-  );
-}
-
-/** Kaydirmayan ekranlar icin (kamera, oyun tahtasi). */
-export function FixedScreen({
-  tint,
-  pattern,
-  style,
-  children,
-  ...rest
-}: ViewProps & { tint?: string; pattern?: boolean }) {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <ScreenBackground tint={tint} pattern={pattern}>
-      <View style={[styles.fixed, { paddingTop: insets.top, paddingBottom: insets.bottom }, style]} {...rest}>
-        {children}
-      </View>
     </ScreenBackground>
   );
 }
@@ -133,9 +114,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Space.lg,
     gap: Space.lg,
-  },
-  fixed: {
-    flex: 1,
   },
   header: {
     flexDirection: 'row',

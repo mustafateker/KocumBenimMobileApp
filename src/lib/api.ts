@@ -14,8 +14,6 @@ import type {
   Task,
 } from './types';
 
-/* -------------------------------- kimlik dogrulama ------------------------------- */
-
 export type AuthResponse = { user: Student; tokens: { accessToken: string; refreshToken: string | null } };
 
 export function studentSignup(email: string, password: string) {
@@ -37,8 +35,6 @@ export function changePassword(currentPassword: string, newPassword: string) {
 export function deleteAccount() {
   return api.delete<void>('/me');
 }
-
-/* ------------------------------------- profil ------------------------------------ */
 
 export function getMe() {
   return api.get<Student>('/me');
@@ -72,17 +68,9 @@ export function getCompletedTasks(limit = 30) {
   return api.get<Task[]>(`/me/tasks/completed?limit=${limit}`);
 }
 
-/* ---------------------------------- odak oturumlari ------------------------------- */
-
 export function logFocusSession(input: { plannedSec: number; actualSec: number; startedAt: string }) {
   return api.post<{ minutes: number; xp: number; streak: number }>('/focus-sessions', input);
 }
-
-export function getDailyMinutes(days = 7) {
-  return api.get<{ day: string; minutes: number }[]>(`/focus-sessions/daily-minutes?days=${days}`);
-}
-
-/* --------------------------------------- gorevler ---------------------------------- */
 
 export type TaskRange = 'day' | 'week' | 'month';
 
@@ -94,8 +82,6 @@ export function getTasks(range: TaskRange = 'day', date?: string) {
 export function completeTask(taskId: number, correct: number, wrong: number) {
   return api.patch<Task>(`/tasks/${taskId}/complete`, { correct, wrong });
 }
-
-/* --------------------------------------- sorular ----------------------------------- */
 
 export function createQuestion(input: { imageUri: string; strokes: CanvasData; note: string }) {
   return api.uploadFile<Question>('/questions', {
@@ -116,15 +102,11 @@ export function resolveQuestion(id: number) {
   return api.patch<Question>(`/questions/${id}/resolve`);
 }
 
-/* -------------------------------------- liderlik ------------------------------------ */
-
 export type LeaderboardRange = 'weekly' | 'monthly' | 'all';
 
 export function getLeaderboard(range: LeaderboardRange) {
   return api.get<LeaderboardRow[]>(`/leaderboard?range=${range}`);
 }
-
-/* ------------------------------------ bildirimler ------------------------------------ */
 
 export function getNotifications(limit = 30) {
   return api.get<{ data: AppNotification[]; nextCursor: string | null }>(`/notifications?limit=${limit}`);
@@ -137,8 +119,6 @@ export function markNotificationRead(id: number) {
 export function registerPushToken(fcmToken: string) {
   return api.post<void>('/notifications/register-push', { fcmToken });
 }
-
-/* ------------------------------------- ozel dersler ----------------------------------- */
 
 export function getUpcomingLessons(limit = 5) {
   return api.get<PrivateLesson[]>(`/lessons/upcoming?limit=${limit}`);

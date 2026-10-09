@@ -29,6 +29,9 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# Play service account (CI writes it at build time)
+play-service-account.json
+
 # macOS
 .DS_Store
 *.pem
@@ -74,3 +77,5 @@ service-account*.json
 *.apk
 
 designes/
+# Local release secrets
+.env.release

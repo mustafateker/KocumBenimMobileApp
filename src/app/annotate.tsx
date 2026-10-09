@@ -175,7 +175,6 @@ export default function Annotate() {
       // (kirmizi ekran) dusuruyordu. Ekran zaten kapandigi icin bayragi
       // sifirlamaya gerek de yok.
     } catch (err) {
-      // Eskiden yakalanmayan bu hata sessiz bir cokmeye donusuyordu.
       // Mesaji ekrana bir metin satiri olarak basmiyoruz: alt panele sonradan
       // gorunur bir yazi eklemek ayni mount hatasini tetikliyor.
       const entry = logHandledError('QUESTION_UPLOAD', err);

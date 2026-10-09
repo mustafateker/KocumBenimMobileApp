@@ -15,8 +15,6 @@ import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, Ty
 
 import { PressScale } from './button';
 
-/* ----------------------------------- yazi ---------------------------------- */
-
 type TxtVariant = keyof typeof Type;
 
 export function Txt({
@@ -33,8 +31,6 @@ export function Txt({
     />
   );
 }
-
-/* ----------------------------------- kart ---------------------------------- */
 
 export function Card({
   style,
@@ -55,23 +51,6 @@ export function Card({
     </View>
   );
 }
-
-/** Ust kenarinda ince renkli bir seritle vurgulanan kart. */
-export function AccentCard({
-  accent,
-  style,
-  children,
-  ...rest
-}: ViewProps & { accent: string }) {
-  return (
-    <View style={[styles.card, styles.accentCard, style]} {...rest}>
-      <View style={[styles.accentStripe, { backgroundColor: accent }]} />
-      {children}
-    </View>
-  );
-}
-
-/* --------------------------------- rozetler -------------------------------- */
 
 export function Pill({
   label,
@@ -124,8 +103,6 @@ export function IconBubble({
   );
 }
 
-/* -------------------------------- ilerleme --------------------------------- */
-
 export function ProgressBar({
   progress,
   color = Accent,
@@ -145,8 +122,6 @@ export function ProgressBar({
     </View>
   );
 }
-
-/* --------------------------------- sekmeler --------------------------------- */
 
 /** Sekme secicinin kutu yuksekligi — kose yaricapi bundan turetilir. */
 const SEGMENT_HEIGHT = 38;
@@ -181,8 +156,6 @@ export function Segmented<T extends string>({
   );
 }
 
-/* --------------------------------- girdiler --------------------------------- */
-
 /** Formlarda kullanilan ortak metin girisi — auth ve onboarding ekranlarinda. */
 export function TextField({
   style,
@@ -205,8 +178,6 @@ export function TextField({
     />
   );
 }
-
-/* ------------------------------- bos durumlar ------------------------------ */
 
 export function EmptyState({
   icon,
@@ -234,10 +205,6 @@ export function EmptyState({
   );
 }
 
-export function Divider({ style }: { style?: StyleProp<ViewStyle> }) {
-  return <View style={[styles.divider, style]} />;
-}
-
 /** Basliklarda kullanilan bolum etiketi. */
 export function SectionLabel({ children, color = Palette.textFaint }: { children: string; color?: string }) {
   return (
@@ -255,17 +222,6 @@ const styles = StyleSheet.create({
     borderWidth: Border.thin,
     borderColor: Palette.border,
     padding: Space.lg,
-  },
-  accentCard: {
-    overflow: 'hidden',
-    paddingTop: Space.lg + 3,
-  },
-  accentStripe: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 3,
   },
   pill: {
     flexDirection: 'row',
@@ -293,10 +249,6 @@ const styles = StyleSheet.create({
     gap: Space.md,
     paddingVertical: Space.huge,
     paddingHorizontal: Space.xl,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Palette.border,
   },
   sectionLabel: {
     letterSpacing: 1.2,

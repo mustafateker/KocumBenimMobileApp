@@ -8,7 +8,7 @@
 export const SUPPORT_EMAIL = 'infokocumbenim@gmail.com';
 export const APP_NAME = 'Koçum Benim';
 export const APP_OWNER = 'Koçum Benim';
-export const MAILTO_SUPPORT = `mailto:${SUPPORT_EMAIL}`;
+const MAILTO_SUPPORT = `mailto:${SUPPORT_EMAIL}`;
 
 export function mailtoWithSubject(subject: string): string {
   return `${MAILTO_SUPPORT}?subject=${encodeURIComponent(subject)}`;

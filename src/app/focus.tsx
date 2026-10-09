@@ -182,8 +182,6 @@ function PulseGlow({ color }: { color: string }) {
   return <Animated.View pointerEvents="none" style={[styles.pulseGlow, { backgroundColor: color }, animatedStyle]} />;
 }
 
-/* ------------------------------- basari ekrani ------------------------------ */
-
 function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; onDone: () => void }) {
   return (
     <View style={[styles.root, styles.resultRoot]}>
@@ -211,8 +209,6 @@ function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; o
     </View>
   );
 }
-
-/* ------------------------------ durduruldu ekrani ---------------------------- */
 
 function DiscardedScreen({ onDone }: { onDone: () => void }) {
   return (

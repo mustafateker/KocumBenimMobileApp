@@ -5,8 +5,6 @@ import { Accent, Palette, Radius, Space } from '@/theme/tokens';
 
 import { Txt } from './ui';
 
-/* ------------------------------ haftalik bar ------------------------------- */
-
 /**
  * Son gunlerin odak dakikalari. Bugun vurgulanir, hedef cizgisi
  * gunluk hedefin nerede oldugunu gosterir.
@@ -51,66 +49,6 @@ export function WeekBars({
   );
 }
 
-/* --------------------------- saat bazli dagilim ---------------------------- */
-
-/**
- * 24 saatlik odak yogunlugu seridi. Ogrencinin ne zaman verimli oldugunu
- * gorsel olarak gosterir; metin analizi `peakWindow` ile uretilir.
- */
-export function HourStrip({ buckets, color = Accent }: { buckets: number[]; color?: string }) {
-  const peak = Math.max(1, ...buckets);
-
-  return (
-    <View>
-      <View style={styles.hourRow}>
-        {buckets.map((minutes, hour) => (
-          <View
-            key={hour}
-            style={[
-              styles.hourCell,
-              {
-                backgroundColor: minutes === 0 ? Palette.surfaceHi : color,
-                opacity: minutes === 0 ? 0.4 : 0.25 + (minutes / peak) * 0.75,
-              },
-            ]}
-          />
-        ))}
-      </View>
-      <View style={styles.hourLabels}>
-        <Txt variant="tiny" color={Palette.textFaint}>
-          00:00
-        </Txt>
-        <Txt variant="tiny" color={Palette.textFaint}>
-          12:00
-        </Txt>
-        <Txt variant="tiny" color={Palette.textFaint}>
-          23:00
-        </Txt>
-      </View>
-    </View>
-  );
-}
-
-/**
- * En verimli 2 saatlik pencereyi bulur.
- * Hic veri yoksa null doner — ekran o zaman analiz cumlesini gizler.
- */
-export function peakWindow(buckets: number[]): { start: number; end: number; minutes: number } | null {
-  const total = buckets.reduce((a, b) => a + b, 0);
-  if (total === 0) return null;
-
-  let bestStart = 0;
-  let bestSum = -1;
-  for (let h = 0; h < 23; h++) {
-    const sum = buckets[h] + buckets[h + 1];
-    if (sum > bestSum) {
-      bestSum = sum;
-      bestStart = h;
-    }
-  }
-  return { start: bestStart, end: bestStart + 2, minutes: bestSum };
-}
-
 const styles = StyleSheet.create({
   barsRow: {
     flexDirection: 'row',
@@ -133,19 +71,5 @@ const styles = StyleSheet.create({
     right: 0,
     height: 1,
     backgroundColor: Palette.green + '66',
-  },
-  hourRow: {
-    flexDirection: 'row',
-    gap: 2,
-    height: 26,
-  },
-  hourCell: {
-    flex: 1,
-    borderRadius: 3,
-  },
-  hourLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
   },
 });

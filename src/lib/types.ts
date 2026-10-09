@@ -4,8 +4,6 @@
  * tarafinda hep "Matematik". Gorevlerde dersi ve konuyu ogretmen panelden secer.
  */
 
-export type Role = 'student' | 'teacher';
-
 export type Student = {
   id: number;
   role: 'student';
@@ -77,22 +75,10 @@ export type Task = {
   createdAt: string;
 };
 
-export type FocusSession = {
-  id: number;
-  studentId: number;
-  subject: string;
-  plannedSec: number;
-  actualSec: number;
-  startedAt: string;
-  endedAt: string;
-  day: string;
-  completed: boolean;
-};
-
 export type QuestionStatus = 'pending' | 'in_lesson' | 'answered';
 
 /** Kanvas uzerinde tek bir cizim hareketi. */
-export type StrokeItem = {
+type StrokeItem = {
   kind: 'stroke';
   /** SVG path verisi */
   d: string;
@@ -103,7 +89,7 @@ export type StrokeItem = {
 };
 
 /** Kanvasa birakilan not. Koordinatlar piksel uzayinda, w/h ile birlikte olcekli. */
-export type TextItem = {
+type TextItem = {
   kind: 'text';
   x: number;
   y: number;
@@ -118,8 +104,6 @@ export type CanvasData = {
   h: number;
   items: CanvasItem[];
 };
-
-export const EMPTY_CANVAS: CanvasData = { w: 1, h: 1, items: [] };
 
 export type Question = {
   id: number;
@@ -157,7 +141,7 @@ export type AppNotification = {
   createdAt: string;
 };
 
-export type LessonStatus = 'scheduled' | 'cancelled';
+type LessonStatus = 'scheduled' | 'cancelled';
 
 /** Ogretmenin ogrenciyle birebir yapacagi ozel ders — gorev takviminden ayri bir kavram. */
 export type PrivateLesson = {
@@ -197,7 +181,7 @@ export type TopicBreakdown = {
 };
 
 /** Ders → konu kirilimindaki sayaclar (backend: modules/tasks/breakdown.py). */
-export type TopicCounts = {
+type TopicCounts = {
   studyAssigned: number;
   studyCompleted: number;
   questionTasks: number;
@@ -217,10 +201,10 @@ export type TopicCounts = {
 
 export type TopicReport = TopicCounts & { grade: number | null; topic: string; lastActivityAt: string | null };
 
-export type SubjectReport = TopicCounts & { subject: string; topics: TopicReport[] };
+type SubjectReport = TopicCounts & { subject: string; topics: TopicReport[] };
 
 /** Basari orani esigin altinda kalan konu; en dusukten baslayarak gelir. */
-export type WeakTopic = {
+type WeakTopic = {
   subject: string;
   grade: number | null;
   topic: string;
@@ -250,11 +234,3 @@ export type Preferences = {
   sound: boolean;
   haptics: boolean;
 };
-
-/** Emoji avatarlarin yerine gecen isim bas harfleri. */
-export function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return '?';
-  if (parts.length === 1) return parts[0].slice(0, 2).toLocaleUpperCase('tr');
-  return (parts[0][0] + parts[parts.length - 1][0]).toLocaleUpperCase('tr');
-}

@@ -36,7 +36,7 @@ import { Txt } from './ui';
 const MASCOT_WIDTH = 159;
 
 /** Katmanin toplam omru — _layout bu sureden sonra bilesen kaldirilir. */
-export const SPLASH_DURATION = 1700;
+const SPLASH_DURATION = 1700;
 
 export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
   const pop = useSharedValue(1);
