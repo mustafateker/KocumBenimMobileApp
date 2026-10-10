@@ -17,6 +17,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AnimatedSplash } from '@/components/animated-splash';
 import { AppErrorBoundary } from '@/components/app-error-boundary';
+import { UpdatePrompt } from '@/components/update-prompt';
 import { installCrashReporter } from '@/lib/crash-reporter';
 import { ErrorDialogProvider } from '@/lib/error-dialog';
 import { NotificationCenterProvider } from '@/lib/notification-center';
@@ -116,6 +117,7 @@ export default function RootLayout() {
         </SafeAreaProvider>
       </KeyboardProvider>
 
+      <UpdatePrompt enabled={!splashVisible} />
       {splashVisible ? <AnimatedSplash onFinish={dismissSplash} /> : null}
     </GestureHandlerRootView>
   );
