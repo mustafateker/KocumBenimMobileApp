@@ -11,8 +11,8 @@ import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
 import { getQuestions, resolveQuestion } from '@/lib/api';
-import { logHandledError } from '@/lib/crash-reporter';
 import { relativeTime } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
@@ -80,6 +80,7 @@ function CameraPane() {
   const [torch, setTorch] = useState(false);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { showMessage, showError } = useErrorDialog();
 
   /** Ayni anda tek bir kamera onizlemesi acik olabilir; sekmeden
    *  cikildiginda kamerayi sokup takiyoruz. */
@@ -95,18 +96,16 @@ function CameraPane() {
   );
 
   const cameraRef = useRef<CameraView>(null);
-  const [captureError, setCaptureError] = useState<string | null>(null);
 
   const shoot = useCallback(async () => {
     // `ready` kontrolu sart: onizleme hazir degilken ya da duraklatilmisken
     // takePictureAsync Android'de dogrudan firlatiyor (SDK 57 dokumani).
     if (!ready || busy) return;
     setBusy(true);
-    setCaptureError(null);
     try {
       const photo = await cameraRef.current?.takePictureAsync({ quality: 0.75 });
       if (!photo?.uri) {
-        setCaptureError('Fotoğraf alınamadı, tekrar dene.');
+        showMessage('Fotoğraf alınamadı', 'Kamera fotoğrafı vermedi. Tekrar dene.');
         return;
       }
 
@@ -116,12 +115,11 @@ function CameraPane() {
       router.push({ pathname: '/annotate', params: { uri } });
     } catch (err) {
       // Yakalanmayan reddedilmis soz uygulamayi sessizce kapatir.
-      const entry = logHandledError('CAMERA_CAPTURE', err);
-      setCaptureError(`Fotoğraf çekilemedi (${entry.code}). Tekrar dene.`);
+      showError(err, { title: 'Fotoğraf çekilemedi', code: 'CAMERA_CAPTURE' });
     } finally {
       setBusy(false);
     }
-  }, [ready, busy, router]);
+  }, [ready, busy, router, showMessage, showError]);
 
   if (!permission) {
     return <View style={styles.pane} />;
@@ -162,13 +160,8 @@ function CameraPane() {
         <View style={[styles.corner, styles.cornerBR]} />
       </View>
 
-      <Txt
-        variant="small"
-        color={captureError ? Palette.pink : Palette.textDim}
-        center
-        style={styles.hint}
-      >
-        {captureError ?? 'Soruyu çerçeveye sığdır, sonra üzerine çizip hocaya yolla.'}
+      <Txt variant="small" color={Palette.textDim} center style={styles.hint}>
+        Soruyu çerçeveye sığdır, sonra üzerine çizip hocaya yolla.
       </Txt>
 
       <View style={[styles.shutterRow, { paddingBottom: insets.bottom + 100 }]}>
@@ -199,16 +192,14 @@ function QuestionList() {
   useStudent();
   const insets = useSafeAreaInsets();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const { showError } = useErrorDialog();
 
   useFocusEffect(
     useCallback(() => {
       getQuestions()
         .then(setQuestions)
-        .catch((err) => {
-          // Aglama hatasi ekrani bozmasin; liste bos gorunur, sebebi kayda dussun.
-          logHandledError('QUESTIONS_LOAD', err);
-        });
-    }, [])
+        .catch((err) => showError(err, { title: 'Sorular yüklenemedi', code: 'QUESTIONS_LOAD' }));
+    }, [showError])
   );
 
   const handleResolved = useCallback((updated: Question) => {
@@ -241,6 +232,7 @@ function QuestionList() {
 function QuestionCard({ question, onResolved }: { question: Question; onResolved: (q: Question) => void }) {
   const meta = STATUS_META[question.status];
   const [busy, setBusy] = useState(false);
+  const { showError } = useErrorDialog();
 
   const markResolved = useCallback(async () => {
     setBusy(true);
@@ -248,12 +240,11 @@ function QuestionCard({ question, onResolved }: { question: Question; onResolved
       const updated = await resolveQuestion(question.id);
       onResolved(updated);
     } catch (err) {
-      // Aglama hatasi karti bozmasin; kullanici tekrar deneyebilir.
-      logHandledError('QUESTION_RESOLVE', err);
+      showError(err, { title: 'Soru güncellenemedi', code: 'QUESTION_RESOLVE' });
     } finally {
       setBusy(false);
     }
-  }, [question.id, onResolved]);
+  }, [question.id, onResolved, showError]);
 
   return (
     <Card accent={meta.color} style={styles.questionCard}>

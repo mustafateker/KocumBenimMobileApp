@@ -13,7 +13,9 @@ import { PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
 import { Txt } from '@/components/ui';
 import { logFocusSession } from '@/lib/api';
+import { ApiError } from '@/lib/api-client';
 import { clockFormat } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { Accent, Border, OnColor, Palette, Space, Type, pillRadius, softOf } from '@/theme/tokens';
@@ -30,6 +32,7 @@ export default function Focus() {
   const router = useRouter();
   useStudent();
   const { refresh } = useSession();
+  const { showError } = useErrorDialog();
 
   const { seconds } = useLocalSearchParams<{ seconds?: string }>();
   const plannedSec = Math.max(60, Number(seconds) || 25 * 60);
@@ -50,13 +53,16 @@ export default function Focus() {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         }
         await refresh();
-      } catch {
-        // Sunucu cok kisa oturumu reddettiyse (SESSION_TOO_SHORT) ya da aglama
-        // hatasi olduysa XP uydurmaktansa "kaydedilmedi" ekranini goster.
+      } catch (err) {
+        // Sunucu cok kisa oturumu reddettiyse (SESSION_TOO_SHORT) beklenen bir durum;
+        // diger hatalarda (ag, sunucu) XP uydurmaktansa "kaydedilmedi" ekranini goster.
+        if (!(err instanceof ApiError && err.code === 'SESSION_TOO_SHORT')) {
+          showError(err, { title: 'Oturum kaydedilemedi', code: 'FOCUS_SESSION_SAVE' });
+        }
         setDiscarded(true);
       }
     },
-    [refresh]
+    [refresh, showError]
   );
 
   const timer = useFocusTimer({ onComplete: handleComplete });

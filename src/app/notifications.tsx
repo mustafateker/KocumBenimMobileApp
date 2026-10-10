@@ -9,6 +9,7 @@ import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
 import { getNotifications, markNotificationRead } from '@/lib/api';
 import { logHandledError } from '@/lib/crash-reporter';
 import { relativeTime } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useNotificationCenter } from '@/lib/notification-center';
 import { hrefForNotification } from '@/lib/notification-route';
 import { useStudent } from '@/lib/session';
@@ -27,6 +28,7 @@ const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Io
 
 export default function Notifications() {
   useStudent();
+  const { showError } = useErrorDialog();
   const router = useRouter();
   const { markOneRead, refresh } = useNotificationCenter();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -39,11 +41,8 @@ export default function Notifications() {
           // Baslikta duran rozeti sunucudaki gercekle esitle.
           refresh();
         })
-        .catch((err) => {
-          // Aglama hatasi ekrani bozmasin; liste bos gorunur.
-          logHandledError('NOTIFICATIONS_LOAD', err);
-        });
-    }, [refresh])
+        .catch((err) => showError(err, { title: 'Bildirimler yüklenemedi', code: 'NOTIFICATIONS_LOAD' }));
+    }, [refresh, showError])
   );
 
   /**

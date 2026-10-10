@@ -9,8 +9,10 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, SectionLabel, TextField, Txt } from '@/components/ui';
 import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
 import { ApiError } from '@/lib/api-client';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
+import { EMAIL_RE } from '@/lib/validation';
 import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 const DEFAULT_PREFS: Preferences = {
@@ -25,6 +27,7 @@ export default function Settings() {
   const student = useStudent();
   const router = useRouter();
   const { signOut, setUser } = useSession();
+  const { showMessage, showError } = useErrorDialog();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -32,72 +35,89 @@ export default function Settings() {
   useEffect(() => {
     getPreferences()
       .then(setPrefs)
-      .catch(() => {
-        // Aglama hatasi ekrani bozmasin; varsayilan degerler kalir.
-      });
-  }, []);
+      .catch((err) => showError(err, { title: 'Tercihler yüklenemedi', code: 'PREFERENCES_LOAD' }));
+  }, [showError]);
 
-  const togglePref = useCallback((key: keyof Preferences, value: boolean) => {
-    setPrefs((p) => ({ ...p, [key]: value }));
-    patchPreferences({ [key]: value }).catch(() => {
-      // Sunucuya yazilamadiysa bir sonraki acilista eski deger geri gelir.
-    });
-  }, []);
+  const togglePref = useCallback(
+    (key: keyof Preferences, value: boolean) => {
+      setPrefs((p) => ({ ...p, [key]: value }));
+      patchPreferences({ [key]: value }).catch((err) => {
+        setPrefs((p) => ({ ...p, [key]: !value }));
+        showError(err, { title: 'Tercih kaydedilemedi', code: 'PREFERENCE_SAVE' });
+      });
+    },
+    [showError]
+  );
 
   const [changingPassword, setChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [savingPassword, setSavingPassword] = useState(false);
 
   const submitPassword = useCallback(async () => {
     if (savingPassword) return;
+    if (!currentPassword) {
+      showMessage('Eksik bilgi', 'Mevcut parolanı gir.');
+      return;
+    }
     if (newPassword.length < 4) {
-      setPasswordError('Yeni parola en az 4 karakter olmalı.');
+      showMessage('Parola çok kısa', 'Yeni parola en az 4 karakter olmalı.');
       return;
     }
     setSavingPassword(true);
-    setPasswordError(null);
     try {
       await changePassword(currentPassword, newPassword);
       setChangingPassword(false);
       setCurrentPassword('');
       setNewPassword('');
+      showMessage('Parola güncellendi', 'Yeni parolan kaydedildi.');
     } catch (err) {
-      setPasswordError(err instanceof ApiError ? 'Mevcut parola hatalı.' : 'Bir hata oluştu, tekrar dene.');
+      if (err instanceof ApiError && (err.code === 'INVALID_CREDENTIALS' || err.status === 401 || err.status === 403)) {
+        showMessage('Parola değiştirilemedi', 'Mevcut parola hatalı.');
+      } else {
+        showError(err, { title: 'Parola değiştirilemedi', code: 'PASSWORD_CHANGE' });
+      }
     } finally {
       setSavingPassword(false);
     }
-  }, [savingPassword, newPassword, currentPassword]);
+  }, [savingPassword, newPassword, currentPassword, showMessage, showError]);
 
   const [editingParentEmail, setEditingParentEmail] = useState(false);
   const [parentEmailInput, setParentEmailInput] = useState(student.parentEmail ?? '');
-  const [parentEmailError, setParentEmailError] = useState<string | null>(null);
   const [savingParentEmail, setSavingParentEmail] = useState(false);
 
   const submitParentEmail = useCallback(async () => {
     if (savingParentEmail) return;
+    const email = parentEmailInput.trim();
+    if (email && !EMAIL_RE.test(email)) {
+      showMessage('Geçersiz e-posta', 'Geçerli bir veli e-posta adresi gir.');
+      return;
+    }
     setSavingParentEmail(true);
-    setParentEmailError(null);
     try {
-      const updated = await patchMe({ parentEmail: parentEmailInput.trim() || null });
+      const updated = await patchMe({ parentEmail: email || null });
       setUser(updated);
       setEditingParentEmail(false);
-    } catch {
-      setParentEmailError('Kaydedilemedi, tekrar dene.');
+    } catch (err) {
+      showError(err, { title: 'Kaydedilemedi', code: 'PARENT_EMAIL_SAVE' });
     } finally {
       setSavingParentEmail(false);
     }
-  }, [savingParentEmail, parentEmailInput, setUser]);
+  }, [savingParentEmail, parentEmailInput, setUser, showMessage, showError]);
 
   const confirmDelete = useCallback(() => setDeleteDialogOpen(true), []);
 
   const deleteNow = useCallback(async () => {
     setDeleteDialogOpen(false);
-    await deleteAccount();
+    try {
+      await deleteAccount();
+    } catch (err) {
+      showError(err, { title: 'Hesap silinemedi', code: 'ACCOUNT_DELETE' });
+      return;
+    }
     await signOut();
     router.replace('/login');
-  }, [signOut, router]);
+  }, [signOut, router, showError]);
 
   return (
     <Screen>
@@ -126,15 +146,9 @@ export default function Settings() {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-              {parentEmailError ? (
-                <Txt variant="small" color={Palette.pink}>
-                  {parentEmailError}
-                </Txt>
-              ) : (
-                <Txt variant="small" color={Palette.textDim}>
-                  İlerleme raporların bu adrese gönderilebilir.
-                </Txt>
-              )}
+              <Txt variant="small" color={Palette.textDim}>
+                İlerleme raporların bu adrese gönderilebilir.
+              </Txt>
               <NeonButton
                 label={savingParentEmail ? 'Kaydediliyor…' : 'Kaydet'}
                 color={Accent}
@@ -158,11 +172,6 @@ export default function Settings() {
                 secureTextEntry
               />
               <TextField value={newPassword} onChangeText={setNewPassword} placeholder="Yeni parola" secureTextEntry />
-              {passwordError ? (
-                <Txt variant="small" color={Palette.pink}>
-                  {passwordError}
-                </Txt>
-              ) : null}
               <NeonButton
                 label={savingPassword ? 'Kaydediliyor…' : 'Parolayı Güncelle'}
                 color={Accent}

@@ -18,6 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AnimatedSplash } from '@/components/animated-splash';
 import { AppErrorBoundary } from '@/components/app-error-boundary';
 import { installCrashReporter } from '@/lib/crash-reporter';
+import { ErrorDialogProvider } from '@/lib/error-dialog';
 import { NotificationCenterProvider } from '@/lib/notification-center';
 import { SessionProvider } from '@/lib/session';
 import { Accent, Brand, Palette } from '@/theme/tokens';
@@ -74,42 +75,44 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root} onLayout={onReady}>
       <KeyboardProvider>
         <SafeAreaProvider>
-          <SessionProvider>
-            <NotificationCenterProvider>
-              <ThemeProvider value={NavTheme}>
-                <StatusBar style={splashVisible ? 'light' : 'dark'} />
-                <Stack
-                  // Tek tek ekranlarda olusan render hatalari da uygulamayi
-                  // kapatmak yerine hata kodlu ekrana dussun.
-                  unstable_screenErrorBoundary={AppErrorBoundary}
-                  screenOptions={{
-                    headerShown: false,
-                    contentStyle: { backgroundColor: Palette.bg },
-                    animation: 'fade',
-                  }}
-                >
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="login" />
-                  <Stack.Screen name="signup" />
-                  <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-                  <Stack.Screen name="student" />
-                  <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="diagnostics" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="lessons" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
-                  <Stack.Screen
-                    name="annotate"
-                    options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
-                  />
-                  <Stack.Screen
-                    name="focus"
-                    options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
-                  />
-                </Stack>
-              </ThemeProvider>
-            </NotificationCenterProvider>
-          </SessionProvider>
+          <ErrorDialogProvider>
+            <SessionProvider>
+              <NotificationCenterProvider>
+                <ThemeProvider value={NavTheme}>
+                  <StatusBar style={splashVisible ? 'light' : 'dark'} />
+                  <Stack
+                    // Tek tek ekranlarda olusan render hatalari da uygulamayi
+                    // kapatmak yerine hata kodlu ekrana dussun.
+                    unstable_screenErrorBoundary={AppErrorBoundary}
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: Palette.bg },
+                      animation: 'fade',
+                    }}
+                  >
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="login" />
+                    <Stack.Screen name="signup" />
+                    <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+                    <Stack.Screen name="student" />
+                    <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="diagnostics" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="lessons" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen
+                      name="annotate"
+                      options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+                    />
+                    <Stack.Screen
+                      name="focus"
+                      options={{ presentation: 'fullScreenModal', animation: 'fade', gestureEnabled: false }}
+                    />
+                  </Stack>
+                </ThemeProvider>
+              </NotificationCenterProvider>
+            </SessionProvider>
+          </ErrorDialogProvider>
         </SafeAreaProvider>
       </KeyboardProvider>
 

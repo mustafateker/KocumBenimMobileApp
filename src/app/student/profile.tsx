@@ -8,6 +8,7 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
 import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useStudent } from '@/lib/session';
 import type { LeaderboardRow, StudentSummary } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
@@ -22,6 +23,7 @@ const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
 
 export default function Profile() {
   const student = useStudent();
+  const { showError } = useErrorDialog();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
   const [boardRange, setBoardRange] = useState<BoardRange>('weekly');
@@ -31,20 +33,16 @@ export default function Profile() {
     useCallback(() => {
       getSummary()
         .then(setSummary)
-        .catch(() => {
-          // Aglama hatasi ekrani bozmasin.
-        });
-    }, [])
+        .catch((err) => showError(err, { title: 'Profil yüklenemedi', code: 'SUMMARY_LOAD' }));
+    }, [showError])
   );
 
   useFocusEffect(
     useCallback(() => {
       getLeaderboard(boardRange)
         .then(setBoard)
-        .catch(() => {
-          // Aglama hatasi ekrani bozmasin.
-        });
-    }, [boardRange])
+        .catch((err) => showError(err, { title: 'Sıralama yüklenemedi', code: 'LEADERBOARD_LOAD' }));
+    }, [boardRange, showError])
   );
 
   return (

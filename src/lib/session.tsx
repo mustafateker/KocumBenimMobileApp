@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
-  ApiError,
   clearTokens,
   getRefreshToken,
   hasAccessToken,
@@ -12,14 +11,14 @@ import { getMe, login as apiLogin, logout as apiLogout, studentSignup } from './
 import { registerForPushNotifications } from './push-notifications';
 import type { Student } from './types';
 
-export type SignUpResult = { ok: true } | { ok: false; error: string };
-
 type SessionValue = {
   user: Student | null;
   /** Ilk acilista kayitli oturum okunana kadar true. */
   loading: boolean;
-  signIn: (email: string, password: string, remember?: boolean) => Promise<boolean>;
-  signUp: (email: string, password: string) => Promise<SignUpResult>;
+  /** Basarisizsa ApiError firlatir; hatayi gosterme isi cagirana aittir. */
+  signIn: (email: string, password: string, remember?: boolean) => Promise<void>;
+  /** Basarisizsa ApiError firlatir (CONFLICT: e-posta zaten kayitli). */
+  signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   /** XP/coin degistikten sonra ust bardaki degerleri tazelemek icin. */
   refresh: () => Promise<void>;
@@ -68,30 +67,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string, remember = true) => {
-    try {
-      const { user: signedInUser, tokens } = await apiLogin(email.trim(), password, remember);
-      await persistTokens(tokens, remember);
-      setUser(signedInUser);
-      return true;
-    } catch (err) {
-      if (err instanceof ApiError) return false;
-      throw err;
-    }
+    const { user: signedInUser, tokens } = await apiLogin(email.trim(), password, remember);
+    await persistTokens(tokens, remember);
+    setUser(signedInUser);
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string): Promise<SignUpResult> => {
-    try {
-      const { user: newUser, tokens } = await studentSignup(email.trim().toLowerCase(), password);
-      await persistTokens(tokens, true);
-      setUser(newUser);
-      return { ok: true };
-    } catch (err) {
-      if (err instanceof ApiError) {
-        const message = err.code === 'CONFLICT' ? 'Bu e-posta ile zaten bir hesap var.' : err.message;
-        return { ok: false, error: message };
-      }
-      throw err;
-    }
+  const signUp = useCallback(async (email: string, password: string) => {
+    const { user: newUser, tokens } = await studentSignup(email.trim().toLowerCase(), password);
+    await persistTokens(tokens, true);
+    setUser(newUser);
   }, []);
 
   const signOut = useCallback(async () => {

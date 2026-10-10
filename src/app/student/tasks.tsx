@@ -8,6 +8,7 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Segmented, Txt } from '@/components/ui';
 import { completeTask, getTasks } from '@/lib/api';
 import { formatShortDate } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useStudent } from '@/lib/session';
 import type { Task } from '@/lib/types';
 import { categoryColor, categoryIcon, categoryLabel, taskGoal, taskGoalLabel, taskTopicLabel } from '@/lib/task-categories';
@@ -29,6 +30,7 @@ const API_RANGE: Record<RangeKey, 'day' | 'week' | 'month'> = {
 
 export default function Tasks() {
   useStudent();
+  const { showError } = useErrorDialog();
 
   const [range, setRange] = useState<RangeKey>('daily');
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -37,10 +39,10 @@ export default function Tasks() {
   const load = useCallback(async () => {
     try {
       setTasks(await getTasks(API_RANGE[range]));
-    } catch {
-      // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+    } catch (err) {
+      showError(err, { title: 'Görevler yüklenemedi', code: 'TASKS_LOAD' });
     }
-  }, [range]);
+  }, [range, showError]);
 
   useFocusEffect(
     useCallback(() => {
@@ -100,6 +102,7 @@ function TaskCard({
   onToggle: () => void;
   onCompleted: (task: Task) => void;
 }) {
+  const { showError } = useErrorDialog();
   const completed = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
   const catColor = categoryColor(task.category);
@@ -140,12 +143,12 @@ function TaskCard({
       const updated = goal === 'questions' ? await completeTask(task.id, correct, wrong) : await completeTask(task.id, 0, 0);
       onCompleted(updated);
       setCompleting(false);
-    } catch {
-      // Aglama hatasi karti bozmasin; kullanici tekrar deneyebilir.
+    } catch (err) {
+      showError(err, { title: 'Görev tamamlanamadı', code: 'TASK_COMPLETE' });
     } finally {
       setBusy(false);
     }
-  }, [task.id, goal, correct, wrong, onCompleted]);
+  }, [task.id, goal, correct, wrong, onCompleted, showError]);
 
   return (
     <PressScale onPress={onToggle} scaleTo={0.99}>

@@ -33,6 +33,7 @@ import {
   StepHeader,
   StepProgress,
 } from '@/features/onboarding/parts';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
 
@@ -78,6 +79,7 @@ export default function Onboarding() {
   // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
   useStudent();
   const { setUser } = useSession();
+  const { showError } = useErrorDialog();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -168,10 +170,12 @@ export default function Onboarding() {
       // /student -> onboarding yonlendirme dongusune sokmasin.
       setUser(updated);
       router.replace('/student');
+    } catch (err) {
+      showError(err, { title: 'Bilgilerin kaydedilemedi', code: 'ONBOARDING_SAVE' });
     } finally {
       setSaving(false);
     }
-  }, [saving, form, isLiseOncesi, isLise, setUser, router]);
+  }, [saving, form, isLiseOncesi, isLise, setUser, router, showError]);
 
   const next = useCallback(() => {
     if (!valid) return;

@@ -9,6 +9,8 @@ import { NeonButton, PressScale } from '@/components/button';
 import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
+import { ApiError } from '@/lib/api-client';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession } from '@/lib/session';
 import { Accent, Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
@@ -17,33 +19,38 @@ export default function Login() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signIn } = useSession();
+  const { showMessage, showError } = useErrorDialog();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = useCallback(async () => {
     if (submitting) return;
     if (!email.trim() || !password) {
-      setError('E-posta ve parolanı gir.');
+      setHasError(true);
+      showMessage('Eksik bilgi', 'E-posta ve parolanı gir.');
       return;
     }
 
     setSubmitting(true);
-    setError(null);
+    setHasError(false);
     try {
-      const ok = await signIn(email, password, remember);
-      if (ok) {
-        router.replace('/');
+      await signIn(email, password, remember);
+      router.replace('/');
+    } catch (err) {
+      setHasError(true);
+      if (err instanceof ApiError && (err.code === 'INVALID_CREDENTIALS' || err.status === 401)) {
+        showMessage('Giriş yapılamadı', 'E-posta veya parola hatalı.');
       } else {
-        setError('E-posta veya parola hatalı.');
+        showError(err, { title: 'Giriş yapılamadı', code: 'LOGIN' });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [submitting, email, password, remember, signIn, router]);
+  }, [submitting, email, password, remember, signIn, router, showMessage, showError]);
 
   return (
     <ScreenBackground tint={Accent} pattern>
@@ -74,12 +81,12 @@ export default function Login() {
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
-                setError(null);
+                setHasError(false);
               }}
               placeholder="ornek@eposta.com"
               keyboardType="email-address"
               autoComplete="email"
-              error={!!error}
+              error={hasError}
             />
           </Field>
 
@@ -88,12 +95,12 @@ export default function Login() {
               value={password}
               onChangeText={(v) => {
                 setPassword(v);
-                setError(null);
+                setHasError(false);
               }}
               placeholder="Parolanı gir"
               secureTextEntry
               autoComplete="password"
-              error={!!error}
+              error={hasError}
             />
           </Field>
 
@@ -105,12 +112,6 @@ export default function Login() {
               Beni hatırla
             </Txt>
           </PressScale>
-
-          {error ? (
-            <Txt variant="small" color={Palette.pink}>
-              {error}
-            </Txt>
-          ) : null}
 
           <NeonButton
             label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}

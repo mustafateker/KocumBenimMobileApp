@@ -6,6 +6,7 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, SectionLabel, Txt } from '@/components/ui';
 import { getLessons } from '@/lib/api';
 import { formatLessonDateTime, relativeTime } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useStudent } from '@/lib/session';
 import type { PrivateLesson } from '@/lib/types';
 import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
@@ -21,6 +22,7 @@ function upcomingRelativeLabel(iso: string): string {
 
 export default function Lessons() {
   useStudent();
+  const { showError } = useErrorDialog();
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [upcoming, setUpcoming] = useState<PrivateLesson[]>([]);
@@ -35,11 +37,11 @@ export default function Lessons() {
           setPast(all.filter((l) => Date.parse(l.scheduledAt) < now));
           setLoaded(true);
         })
-        .catch(() => {
-          // Aglama hatasi ekrani bozmasin; liste bos gorunur.
+        .catch((err) => {
           setLoaded(true);
+          showError(err, { title: 'Dersler yüklenemedi', code: 'LESSONS_LOAD' });
         });
-    }, [])
+    }, [showError])
   );
 
   const isEmpty = loaded && upcoming.length === 0 && past.length === 0;

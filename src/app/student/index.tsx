@@ -11,6 +11,7 @@ import { Screen } from '@/components/screen';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
 import { getTasks, getUpcomingLessons } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
 import type { PrivateLesson, Task } from '@/lib/types';
@@ -29,6 +30,7 @@ export default function Home() {
   const router = useRouter();
   const student = useStudent();
   const { refresh } = useSession();
+  const { showError } = useErrorDialog();
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -41,16 +43,16 @@ export default function Home() {
   const load = useCallback(async () => {
     try {
       setTasks(await getTasks('day'));
-    } catch {
-      // Aglama hatasi ekrani bozmasin; gorevler bos gorunur, sonraki focus'ta tekrar denenir.
+    } catch (err) {
+      showError(err, { title: 'Görevler yüklenemedi', code: 'HOME_TASKS_LOAD' });
     }
     try {
       const upcoming = await getUpcomingLessons(1);
       setNextLesson(upcoming[0] ?? null);
-    } catch {
-      // Aglama hatasi ekrani bozmasin; banner gorunmez.
+    } catch (err) {
+      showError(err, { title: 'Ders bilgisi yüklenemedi', code: 'HOME_LESSON_LOAD' });
     }
-  }, []);
+  }, [showError]);
 
   useFocusEffect(
     useCallback(() => {

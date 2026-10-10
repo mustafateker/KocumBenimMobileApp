@@ -8,52 +8,60 @@ import { NeonButton, PressScale } from '@/components/button';
 import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
+import { ApiError } from '@/lib/api-client';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession } from '@/lib/session';
+import { EMAIL_RE } from '@/lib/validation';
 import { Accent, Palette, Space } from '@/theme/tokens';
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Kayit: e-posta + parola. Basarili olursa direkt "Ilk Kurulum" sihirbazina gecer. */
 export default function SignUp() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signUp } = useSession();
+  const { showMessage, showError } = useErrorDialog();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [invalidField, setInvalidField] = useState<'email' | 'password' | 'confirm' | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const submit = useCallback(async () => {
     if (submitting) return;
 
     if (!EMAIL_RE.test(email.trim())) {
-      setError('Geçerli bir e-posta adresi gir.');
+      setInvalidField('email');
+      showMessage('Geçersiz e-posta', 'Geçerli bir e-posta adresi gir.');
       return;
     }
     if (password.length < 4) {
-      setError('Parola en az 4 karakter olmalı.');
+      setInvalidField('password');
+      showMessage('Parola çok kısa', 'Parola en az 4 karakter olmalı.');
       return;
     }
     if (password !== confirm) {
-      setError('Parolalar eşleşmiyor.');
+      setInvalidField('confirm');
+      showMessage('Parolalar eşleşmiyor', 'Parola ve parola tekrarı aynı olmalı.');
       return;
     }
 
     setSubmitting(true);
-    setError(null);
+    setInvalidField(null);
     try {
-      const result = await signUp(email, password);
-      if (result.ok) {
-        router.replace('/onboarding');
+      await signUp(email, password);
+      router.replace('/onboarding');
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'CONFLICT') {
+        setInvalidField('email');
+        showMessage('Kayıt olunamadı', 'Bu e-posta ile zaten bir hesap var.');
       } else {
-        setError(result.error);
+        showError(err, { title: 'Kayıt olunamadı', code: 'SIGNUP' });
       }
     } finally {
       setSubmitting(false);
     }
-  }, [submitting, email, password, confirm, signUp, router]);
+  }, [submitting, email, password, confirm, signUp, router, showMessage, showError]);
 
   return (
     <ScreenBackground tint={Accent} pattern>
@@ -84,12 +92,12 @@ export default function SignUp() {
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
-                setError(null);
+                setInvalidField(null);
               }}
               placeholder="ornek@eposta.com"
               keyboardType="email-address"
               autoComplete="email"
-              error={!!error}
+              error={invalidField === 'email'}
             />
           </Field>
 
@@ -98,12 +106,12 @@ export default function SignUp() {
               value={password}
               onChangeText={(v) => {
                 setPassword(v);
-                setError(null);
+                setInvalidField(null);
               }}
               placeholder="En az 4 karakter"
               secureTextEntry
               autoComplete="password-new"
-              error={!!error}
+              error={invalidField === 'password' || invalidField === 'confirm'}
             />
           </Field>
 
@@ -112,20 +120,14 @@ export default function SignUp() {
               value={confirm}
               onChangeText={(v) => {
                 setConfirm(v);
-                setError(null);
+                setInvalidField(null);
               }}
               placeholder="Parolanı tekrar gir"
               secureTextEntry
               autoComplete="password-new"
-              error={!!error}
+              error={invalidField === 'confirm'}
             />
           </Field>
-
-          {error ? (
-            <Txt variant="small" color={Palette.pink}>
-              {error}
-            </Txt>
-          ) : null}
 
           <NeonButton
             label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}

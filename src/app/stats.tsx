@@ -8,6 +8,7 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Txt } from '@/components/ui';
 import { getCompletedTasks, getStats } from '@/lib/api';
 import { relativeTime } from '@/lib/date';
+import { useErrorDialog } from '@/lib/error-dialog';
 import { Rules } from '@/lib/gamification';
 import { useStudent } from '@/lib/session';
 import type { StudentStats, Task, TopicBreakdown, TopicReport } from '@/lib/types';
@@ -24,6 +25,7 @@ const EMPTY_STATS: StudentStats = {
 
 export default function Stats() {
   useStudent();
+  const { showError } = useErrorDialog();
   const router = useRouter();
 
   const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
@@ -36,10 +38,8 @@ export default function Stats() {
           setStats(s);
           setCompleted(c);
         })
-        .catch(() => {
-          // Aglama hatasi ekrani bozmasin.
-        });
-    }, [])
+        .catch((err) => showError(err, { title: 'İstatistikler yüklenemedi', code: 'STATS_LOAD' }));
+    }, [showError])
   );
 
   const rate = Math.round(stats.completionRate * 100);
