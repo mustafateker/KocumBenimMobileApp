@@ -10,7 +10,7 @@
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#F5EFF1",
+        "backgroundColor": "#BAE6CE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -54,7 +54,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/android-icon-monochrome.png",
+          "icon": "./assets/images/notification-icon.png",
           "color": "#FBAE75",
           "defaultChannel": "default"
         }
@@ -68,6 +68,12 @@
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true
           }
+        }
+      ],
+      [
+        "./plugins/with-notification-large-icon",
+        {
+          "icon": "./assets/images/notification-large-icon.png"
         }
       ]
     ],
