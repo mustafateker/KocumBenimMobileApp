@@ -5,20 +5,22 @@ import { StyleSheet, View } from 'react-native';
 
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, IconBubble, Pill, Segmented, Txt } from '@/components/ui';
-import { getLeaderboard, getSummary, type LeaderboardRange } from '@/lib/api';
+import { Card, IconBubble, Pill, Txt } from '@/components/ui';
+import { getSummary } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useStudent } from '@/lib/session';
-import type { LeaderboardRow, StudentSummary } from '@/lib/types';
+import type { Student, StudentSummary } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
 
-type BoardRange = LeaderboardRange;
+type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-const BOARD_OPTIONS: { key: BoardRange; label: string }[] = [
-  { key: 'weekly', label: 'Haftalık' },
-  { key: 'monthly', label: 'Aylık' },
-  { key: 'all', label: 'Tüm Zamanlar' },
+/** Hayal bolumundeki kutular — ikonlar onboarding adimlariyla ayni. */
+const DREAM_ITEMS: { icon: IconName; label: string; pick: (s: Student) => string | null }[] = [
+  { icon: 'briefcase', label: 'Mesleğim', pick: (s) => s.career },
+  { icon: 'business', label: 'Gideceğim Lise', pick: (s) => s.targetHighSchool },
+  { icon: 'library', label: 'Gideceğim Üniversite', pick: (s) => s.targetUniversity },
+  { icon: 'book', label: 'Okuyacağım Bölüm', pick: (s) => s.targetDepartment },
 ];
 
 export default function Profile() {
@@ -26,8 +28,6 @@ export default function Profile() {
   const { showError } = useErrorDialog();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
-  const [boardRange, setBoardRange] = useState<BoardRange>('weekly');
-  const [board, setBoard] = useState<LeaderboardRow[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,19 +37,15 @@ export default function Profile() {
     }, [showError])
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      getLeaderboard(boardRange)
-        .then(setBoard)
-        .catch((err) => showError(err, { title: 'Sıralama yüklenemedi', code: 'LEADERBOARD_LOAD' }));
-    }, [boardRange, showError])
-  );
+  const dreams = DREAM_ITEMS.map((item) => ({ ...item, value: item.pick(student) })).filter((item) => item.value);
+  const discipline = student.disciplineMeaning ?? [];
+  const motivation = student.motivationSources ?? [];
 
   return (
     <Screen tint={Accent}>
       <ScreenHeader
         title="Profil"
-        subtitle="Karakterin, hedeflerin ve rakiplerin."
+        subtitle="Karakterin ve hedeflerin."
         left={<MenuButton />}
         right={<NotificationBell />}
       />
@@ -97,45 +93,62 @@ export default function Profile() {
         </View>
       </View>
 
-      {/* Liderlik tablosu */}
-      <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Liderlik Tablosu
-        </Txt>
-        <Segmented options={BOARD_OPTIONS} value={boardRange} onChange={setBoardRange} color={Accent} />
+      {/* En buyuk hedef */}
+      {student.goal ? (
+        <Card accent={Accent} style={styles.goalHero}>
+          <View style={styles.goalHeroHead}>
+            <IconBubble name="trophy" color={Accent} size={36} />
+            <Txt variant="tiny" color={Accent} style={styles.goalHeroLabel}>
+              EN BÜYÜK HEDEFİM
+            </Txt>
+          </View>
+          <Txt variant="title" color={Palette.text}>
+            {student.goal}
+          </Txt>
+        </Card>
+      ) : null}
 
-        <Card style={styles.boardCard}>
-          {board.map((row, index) => {
-            const isMe = row.id === student.id;
-            const isFirst = index === 0;
-
-            return (
-              <View key={row.id} style={[styles.boardRow, isMe && styles.boardRowMe]}>
-                {isFirst ? (
-                  <Ionicons name="trophy" size={18} color={Palette.gold} style={styles.rank} />
-                ) : (
-                  <Txt variant="bodyStrong" color={Palette.textDim} style={styles.rank}>
-                    {index + 1}
-                  </Txt>
-                )}
-                <View style={styles.flex}>
-                  <Txt variant="smallStrong" numberOfLines={1}>
-                    {row.nickname}
-                    {isMe ? ' (sen)' : ''}
-                  </Txt>
-                  <Txt variant="tiny" color={Palette.textFaint}>
-                    {row.xp} XP
-                  </Txt>
-                </View>
-                <Txt variant="bodyStrong" color={isMe ? Accent : Palette.textDim}>
-                  {row.minutes} dk
+      {/* Hayallerim */}
+      {dreams.length > 0 ? (
+        <View style={styles.section}>
+          <Txt variant="smallStrong" color={Palette.textDim}>
+            Hayallerim
+          </Txt>
+          <View style={styles.dreamGrid}>
+            {dreams.map((item) => (
+              <View key={item.label} style={styles.dreamTile}>
+                <IconBubble name={item.icon} color={Accent} size={36} />
+                <Txt variant="tiny" color={Palette.textDim}>
+                  {item.label}
+                </Txt>
+                <Txt variant="bodyStrong" color={Palette.text}>
+                  {item.value}
                 </Txt>
               </View>
-            );
-          })}
-        </Card>
-      </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Disiplin ve motivasyon */}
+      {discipline.length > 0 ? <ChipSection title="Disiplin benim için" icon="shield-checkmark" values={discipline} /> : null}
+      {motivation.length > 0 ? <ChipSection title="Beni motive edenler" icon="star" values={motivation} /> : null}
     </Screen>
+  );
+}
+
+function ChipSection({ title, icon, values }: { title: string; icon: IconName; values: string[] }) {
+  return (
+    <View style={styles.section}>
+      <Txt variant="smallStrong" color={Palette.textDim}>
+        {title}
+      </Txt>
+      <View style={styles.chips}>
+        {values.map((value) => (
+          <Pill key={value} label={value} color={Accent} icon={icon} />
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -214,23 +227,35 @@ const styles = StyleSheet.create({
   section: {
     gap: Space.sm,
   },
-  boardCard: {
-    padding: Space.sm,
-    gap: 2,
+  goalHero: {
+    gap: Space.md,
   },
-  boardRow: {
+  goalHeroHead: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: Space.sm,
+  },
+  goalHeroLabel: {
+    letterSpacing: 1,
+  },
+  dreamGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: Space.md,
-    paddingVertical: Space.md,
-    paddingHorizontal: Space.md,
-    borderRadius: Radius.md,
   },
-  boardRowMe: {
-    backgroundColor: softOf(Accent),
+  dreamTile: {
+    flexBasis: '47%',
+    flexGrow: 1,
+    gap: 4,
+    padding: Space.lg,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    backgroundColor: Palette.surface,
   },
-  rank: {
-    width: 26,
-    textAlign: 'center',
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Space.sm,
   },
 });

@@ -126,7 +126,7 @@ export function ProgressBar({
 /** Sekme secicinin kutu yuksekligi — kose yaricapi bundan turetilir. */
 const SEGMENT_HEIGHT = 38;
 
-/** Kapsul icinde yer degistiren sekme secici — Gorevlerim, Liderlik Tablosu. */
+/** Kapsul icinde yer degistiren sekme secici — Gorevlerim. */
 export function Segmented<T extends string>({
   options,
   value,

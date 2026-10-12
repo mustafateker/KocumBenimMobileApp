@@ -3,7 +3,6 @@ import { localImageUri } from './photo-store';
 import type {
   AppNotification,
   CanvasData,
-  LeaderboardRow,
   OnboardingInput,
   Preferences,
   PrivateLesson,
@@ -100,12 +99,6 @@ export function getQuestions() {
 
 export function resolveQuestion(id: number) {
   return api.patch<Question>(`/questions/${id}/resolve`);
-}
-
-export type LeaderboardRange = 'weekly' | 'monthly' | 'all';
-
-export function getLeaderboard(range: LeaderboardRange) {
-  return api.get<LeaderboardRow[]>(`/leaderboard?range=${range}`);
 }
 
 export function getNotifications(limit = 30) {

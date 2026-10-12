@@ -32,7 +32,7 @@ npx expo start        # sonra a (Android) / i (iOS) / w (web)
 - **Oyun** — günlük odak hedefi tutunca açılan zeka molası (2048, Sudoku, Hafıza)
 - **Market** — kazanılan coin ile koçun belirlediği ödülleri alma
 - **Ben** — RPG tarzı seviye/karakter kartı, haftalık grafik, en verimli saat analizi,
-  takma adlarla liderlik tablosu
+  ilk kurulumda verilen hedef profili
 
 **Öğretmen** (`src/app/teacher/`)
 - **Öğrenciler** — kim şu an çalışıyor, haftalık hedefin yüzde kaçı tamam

@@ -156,13 +156,6 @@ export type PrivateLesson = {
   updatedAt: string;
 };
 
-export type LeaderboardRow = {
-  id: number;
-  nickname: string;
-  xp: number;
-  minutes: number;
-};
-
 /** GET /me/summary yaniti — Ana Sayfa/Gorevlerim/Profil ekranlarinin ozeti. */
 export type StudentSummary = {
   todayMinutes: number;
