@@ -127,7 +127,7 @@ export default function Settings() {
       <View style={styles.section}>
         <SectionLabel>Hesap</SectionLabel>
         <Card style={styles.list}>
-          <SettingRow icon="mail-outline" label="E-posta" trailing={student.email ?? '—'} />
+          <SettingRow icon="person-outline" label="Kullanıcı adı" trailing={student.email ?? '—'} />
           <PressScale onPress={() => setEditingParentEmail((c) => !c)}>
             <SettingRow
               icon="people-outline"

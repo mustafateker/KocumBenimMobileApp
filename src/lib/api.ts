@@ -1,4 +1,4 @@
-import { api } from './api-client';
+import { api, getRefreshToken } from './api-client';
 import { localImageUri } from './photo-store';
 import type {
   AppNotification,
@@ -28,7 +28,14 @@ export function logout(refreshToken: string | null) {
 }
 
 export function changePassword(currentPassword: string, newPassword: string) {
-  return api.patch<void>('/me/password', { currentPassword, newPassword });
+  // Sunucu parola degisince tum oturumlari kapatir; bu cihazin refresh token'ini gondererek
+  // yalnizca diger cihazlarin cikis yapmasini, buranin acik kalmasini saglariz. Govde gonderim
+  // aninda uretilir: access token suresi dolmussa yenilenen refresh token kullanilir.
+  return api.patch<void>('/me/password', () => ({
+    currentPassword,
+    newPassword,
+    refreshToken: getRefreshToken(),
+  }));
 }
 
 export function deleteAccount() {

@@ -67,6 +67,17 @@ const EMPTY_FORM: FormState = {
   motivation: [],
 };
 
+/**
+ * Kocun panelden actigi hesapta ad soyad hazir gelir; ilk adimda tekrar yazdirmayalim.
+ * Kendi kaydini yapan ogrencide `name` e-postanin on kismi oldugu icin onerilmez.
+ */
+function prefillName(student: { name: string; teacherId: number | null }): Pick<FormState, 'firstName' | 'lastName'> {
+  if (student.teacherId == null) return { firstName: '', lastName: '' };
+  const parts = student.name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { firstName: parts[0] ?? '', lastName: '' };
+  return { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1] };
+}
+
 /** Bu adimlarda icerik ScrollView icinde dikeyde ortalanir. */
 const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
 
@@ -77,13 +88,13 @@ const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
  */
 export default function Onboarding() {
   // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
-  useStudent();
+  const student = useStudent();
   const { setUser } = useSession();
   const { showError } = useErrorDialog();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(() => ({ ...EMPTY_FORM, ...prefillName(student) }));
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 

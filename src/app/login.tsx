@@ -11,10 +11,14 @@ import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
 import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
 import { Accent, Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
-/** Giris: e-posta + parola. Hesap yoksa kayit ekranina yonlendirir. */
+/**
+ * Giris: kullanici adi (veya e-posta) + parola. Hesabi kocu acar ve bilgileri paylasir;
+ * kayit ekrani gecis doneminde `STUDENT_SELF_SIGNUP_ENABLED` ile acik tutulur.
+ */
 export default function Login() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -31,7 +35,7 @@ export default function Login() {
     if (submitting) return;
     if (!email.trim() || !password) {
       setHasError(true);
-      showMessage('Eksik bilgi', 'E-posta ve parolanı gir.');
+      showMessage('Eksik bilgi', 'Kullanıcı adı ve parolanı gir.');
       return;
     }
 
@@ -43,7 +47,7 @@ export default function Login() {
     } catch (err) {
       setHasError(true);
       if (err instanceof ApiError && (err.code === 'INVALID_CREDENTIALS' || err.status === 401)) {
-        showMessage('Giriş yapılamadı', 'E-posta veya parola hatalı.');
+        showMessage('Giriş yapılamadı', 'Kullanıcı adı veya parola hatalı.');
       } else {
         showError(err, { title: 'Giriş yapılamadı', code: 'LOGIN' });
       }
@@ -76,16 +80,17 @@ export default function Login() {
         </View>
 
         <View style={styles.form}>
-          <Field label="E-posta">
+          <Field label="Kullanıcı adı veya e-posta">
             <TextField
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
                 setHasError(false);
               }}
-              placeholder="ornek@eposta.com"
-              keyboardType="email-address"
-              autoComplete="email"
+              placeholder="kullanıcı adın"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="username"
               error={hasError}
             />
           </Field>
@@ -125,14 +130,20 @@ export default function Login() {
           />
         </View>
 
-        <PressScale onPress={() => router.push('/signup')}>
-          <Txt variant="small" color={Palette.textDim} center>
-            Hesabın yok mu?{' '}
-            <Txt variant="smallStrong" color={Accent}>
-              Kayıt ol
+        {STUDENT_SELF_SIGNUP_ENABLED ? (
+          <PressScale onPress={() => router.push('/signup')}>
+            <Txt variant="small" color={Palette.textDim} center>
+              Hesabın yok mu?{' '}
+              <Txt variant="smallStrong" color={Accent}>
+                Kayıt ol
+              </Txt>
             </Txt>
+          </PressScale>
+        ) : (
+          <Txt variant="small" color={Palette.textDim} center>
+            Giriş bilgilerini koçundan alabilirsin.
           </Txt>
-        </PressScale>
+        )}
       </KeyboardAwareScrollView>
     </ScreenBackground>
   );

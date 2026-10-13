@@ -124,7 +124,11 @@ async function doRefresh(): Promise<boolean> {
 
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
-  body?: unknown;
+  /**
+   * Govde ya da govdeyi GONDERIM ANINDA ureten fonksiyon. 401 sonrasi token yenilenip istek
+   * tekrarlandiginda govde yeniden uretilir; yenilenen refresh token'i gonderen uclar icin gerekli.
+   */
+  body?: unknown | (() => unknown);
   /** Bu istek kimlik dogrulama gerektirmiyorsa false (ornek: /auth/login). Varsayilan true. */
   auth?: boolean;
 };
@@ -173,10 +177,12 @@ async function request<T>(path: string, options: RequestOptions = {}, retried = 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (auth && accessToken) headers.Authorization = `Bearer ${accessToken}`;
 
+  const resolvedBody = typeof body === 'function' ? (body as () => unknown)() : body;
+
   const res = await doFetch(`${BASE_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: resolvedBody !== undefined ? JSON.stringify(resolvedBody) : undefined,
   });
 
   if (res.status === 401 && auth && !retried) {

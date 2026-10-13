@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
@@ -10,12 +10,19 @@ import { ScreenBackground } from '@/components/screen';
 import { TextField, Txt } from '@/components/ui';
 import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
 import { EMAIL_RE } from '@/lib/validation';
 import { Accent, Palette, Space } from '@/theme/tokens';
 
 /** Kayit: e-posta + parola. Basarili olursa direkt "Ilk Kurulum" sihirbazina gecer. */
 export default function SignUp() {
+  // Kayit kapatildiginda eski derin baglantilar da girise donsun.
+  if (!STUDENT_SELF_SIGNUP_ENABLED) return <Redirect href="/login" />;
+  return <SignUpForm />;
+}
+
+function SignUpForm() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { signUp } = useSession();
