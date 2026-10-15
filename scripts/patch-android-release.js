@@ -11,10 +11,17 @@ for (const name of ["KEYSTORE_PATH", "KEYSTORE_PASSWORD", "KEY_ALIAS", "KEY_PASS
 
 const releaseSigning = `
         release {
-            storeFile file(System.getenv("KEYSTORE_PATH"))
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            // Release sonrasi ayni native klasor debug build icin de kullanilabilir.
+            // Ortam degiskenleri yeni terminalde yoksa file(null) ile Gradle
+            // konfigurasyonunu dusurme; release gorevi zaten bu betik tarafindan
+            // tum degerler dogrulandiktan sonra calistirilir.
+            def releaseKeystorePath = System.getenv("KEYSTORE_PATH")
+            if (releaseKeystorePath) {
+                storeFile file(releaseKeystorePath)
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            }
         }`;
 
 const patched = gradle

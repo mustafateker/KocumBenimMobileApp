@@ -15,10 +15,14 @@ import { Accent, Palette, softOf } from '@/theme/tokens';
 export function PatternBackground({
   /** Tepe bandinin rengi — pastel tonu kullanilir. */
   color = Accent,
+  backgroundColor = Palette.bg,
+  blobColor = Palette.bgDeep,
   /** Tepe bandinin ekran yuksekligine orani. 0 verilirse band cizilmez. */
   bandRatio = 0.28,
 }: {
   color?: string;
+  backgroundColor?: string;
+  blobColor?: string;
   bandRatio?: number;
 }) {
   const { width, height } = useWindowDimensions();
@@ -27,7 +31,7 @@ export function PatternBackground({
   return (
     <View style={styles.layer} pointerEvents="none">
       <Svg width={width} height={height}>
-        <Rect x={0} y={0} width={width} height={height} fill={Palette.bg} />
+        <Rect x={0} y={0} width={width} height={height} fill={backgroundColor} />
 
         {/* Baslik alanini sessizce ayiran tek renkli organik bant. */}
         {bandRatio > 0 ? (
@@ -37,8 +41,8 @@ export function PatternBackground({
             opacity={0.78}
           />
         ) : null}
-        <Circle cx={width + 42} cy={height * 0.44} r={96} fill={Palette.bgDeep} opacity={0.18} />
-        <Circle cx={-35} cy={height * 0.78} r={72} fill={Palette.bgDeep} opacity={0.14} />
+        <Circle cx={width + 42} cy={height * 0.44} r={96} fill={blobColor} opacity={0.18} />
+        <Circle cx={-35} cy={height * 0.78} r={72} fill={blobColor} opacity={0.14} />
       </Svg>
     </View>
   );

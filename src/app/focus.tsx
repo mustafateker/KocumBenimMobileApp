@@ -112,7 +112,7 @@ export default function Focus() {
           <FocusRing
             progress={timer.progress}
             color={Palette.orange}
-            track="rgba(245,239,241,0.22)"
+            track="rgba(253,232,208,0.22)"
             size={280}
             strokeWidth={16}
           >

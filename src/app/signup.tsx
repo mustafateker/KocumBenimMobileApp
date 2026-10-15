@@ -13,7 +13,7 @@ import { useErrorDialog } from '@/lib/error-dialog';
 import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
 import { EMAIL_RE } from '@/lib/validation';
-import { Accent, Palette, Space } from '@/theme/tokens';
+import { OnboardingPalette, Space } from '@/theme/tokens';
 
 /** Kayit: e-posta + parola. Basarili olursa direkt "Ilk Kurulum" sihirbazina gecer. */
 export default function SignUp() {
@@ -71,7 +71,12 @@ function SignUpForm() {
   }, [submitting, email, password, confirm, signUp, router, showMessage, showError]);
 
   return (
-    <ScreenBackground tint={Accent} pattern>
+    <ScreenBackground
+      tint={OnboardingPalette.accentBright}
+      backgroundColor={OnboardingPalette.bg}
+      blobColor={OnboardingPalette.blob}
+      pattern
+    >
       {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
           odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
       <KeyboardAwareScrollView
@@ -84,11 +89,11 @@ function SignUpForm() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brand}>
-          <Mascot width={118} mood="cheer" />
-          <Txt variant="hero" center>
+          <Mascot width={144} mood="cheer" />
+          <Txt variant="hero" color={OnboardingPalette.text} center>
             Hesap Oluştur
           </Txt>
-          <Txt variant="small" color={Palette.textDim} center>
+          <Txt variant="small" color={OnboardingPalette.textDim} center>
             Birkaç adımda seni tanıyalım, sonra yolculuğa başlayalım.
           </Txt>
         </View>
@@ -105,6 +110,7 @@ function SignUpForm() {
               keyboardType="email-address"
               autoComplete="email"
               error={invalidField === 'email'}
+              tone="onboarding"
             />
           </Field>
 
@@ -119,6 +125,7 @@ function SignUpForm() {
               secureTextEntry
               autoComplete="password-new"
               error={invalidField === 'password' || invalidField === 'confirm'}
+              tone="onboarding"
             />
           </Field>
 
@@ -133,13 +140,14 @@ function SignUpForm() {
               secureTextEntry
               autoComplete="password-new"
               error={invalidField === 'confirm'}
+              tone="onboarding"
             />
           </Field>
 
           <NeonButton
             label={submitting ? 'Kaydediliyor…' : 'Kayıt Ol'}
             icon="arrow-forward"
-            color={Accent}
+            color={OnboardingPalette.accent}
             size="lg"
             full
             disabled={submitting}
@@ -149,9 +157,9 @@ function SignUpForm() {
         </View>
 
         <PressScale onPress={() => router.replace('/login')}>
-          <Txt variant="small" color={Palette.textDim} center>
+          <Txt variant="small" color={OnboardingPalette.textDim} center>
             Zaten hesabın var mı?{' '}
-            <Txt variant="smallStrong" color={Accent}>
+            <Txt variant="smallStrong" color={OnboardingPalette.accent}>
               Giriş yap
             </Txt>
           </Txt>
@@ -164,7 +172,7 @@ function SignUpForm() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
-      <Txt variant="smallStrong" color={Palette.textDim}>
+      <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
         {label}
       </Txt>
       {children}

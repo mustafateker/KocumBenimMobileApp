@@ -4,7 +4,14 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { PressScale } from '@/components/button';
 import { Mascot, type MascotMood } from '@/components/mascot';
 import { TextField, Txt } from '@/components/ui';
-import { Accent, Border, Palette, Radius, Space, pillRadius, softOf } from '@/theme/tokens';
+import {
+  Border,
+  OnboardingPalette,
+  Radius,
+  Space,
+  pillRadius,
+  softOf,
+} from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -14,7 +21,7 @@ type IconName = React.ComponentProps<typeof Ionicons>['name'];
  * kesintisiz birlesir.
  */
 function SpeechBubble({
-  color = Accent,
+  color = OnboardingPalette.accent,
   tail = 'left',
   style,
   children,
@@ -56,12 +63,12 @@ export function StepHeader({
   if (hero) {
     return (
       <View style={styles.heroHead}>
-        <Mascot width={150} mood={mood} />
+        <Mascot width={184} mood={mood} />
         <SpeechBubble color={color} tail="up" style={styles.stretch}>
-          <Txt variant="section" center>
+          <Txt variant="section" color={OnboardingPalette.text} center>
             {title}
           </Txt>
-          <Txt variant="small" color={Palette.textDim} center style={styles.bubbleSub}>
+          <Txt variant="small" color={OnboardingPalette.textDim} center style={styles.bubbleSub}>
             {subtitle}
           </Txt>
         </SpeechBubble>
@@ -71,13 +78,13 @@ export function StepHeader({
 
   return (
     <View style={styles.head}>
-      <Txt variant="title" center>
+      <Txt variant="title" color={OnboardingPalette.text} center>
         {title}
       </Txt>
       <View style={styles.saysRow}>
-        <Mascot width={74} mood={mood} />
+        <Mascot width={88} mood={mood} />
         <SpeechBubble color={color} style={styles.flex}>
-          <Txt variant="small" color={Palette.textDim}>
+          <Txt variant="small" color={OnboardingPalette.textDim}>
             {subtitle}
           </Txt>
         </SpeechBubble>
@@ -113,7 +120,7 @@ export function StepProgress({
             {cheer}
           </Txt>
         </View>
-        <Txt variant="tiny" color={Palette.textFaint}>
+        <Txt variant="tiny" color={OnboardingPalette.textFaint}>
           {index + 1} / {total}
         </Txt>
       </View>
@@ -122,7 +129,7 @@ export function StepProgress({
         {Array.from({ length: total }, (_, i) => (
           <View
             key={i}
-            style={[styles.segment, { backgroundColor: i <= index ? color : Palette.surfaceHi }]}
+            style={[styles.segment, { backgroundColor: i <= index ? color : OnboardingPalette.track }]}
           />
         ))}
       </View>
@@ -135,7 +142,7 @@ function OptionRow({
   label,
   selected,
   onPress,
-  color = Accent,
+  color = OnboardingPalette.accent,
 }: {
   label: string;
   selected: boolean;
@@ -150,7 +157,7 @@ function OptionRow({
           selected && { borderColor: color, backgroundColor: color + '14' },
         ]}
       >
-        <Txt variant="bodyStrong" color={selected ? color : Palette.text} style={styles.flex}>
+        <Txt variant="bodyStrong" color={selected ? color : OnboardingPalette.text} style={styles.flex}>
           {label}
         </Txt>
         {selected ? (
@@ -168,7 +175,7 @@ function CheckRow({
   label,
   checked,
   onPress,
-  color = Accent,
+  color = OnboardingPalette.accent,
 }: {
   label: string;
   checked: boolean;
@@ -183,13 +190,13 @@ function CheckRow({
           checked && { borderColor: color, backgroundColor: color + '14' },
         ]}
       >
-        <Txt variant="bodyStrong" color={checked ? color : Palette.text} style={styles.flex}>
+        <Txt variant="bodyStrong" color={checked ? color : OnboardingPalette.text} style={styles.flex}>
           {label}
         </Txt>
         <Ionicons
           name={checked ? 'checkbox' : 'square-outline'}
           size={22}
-          color={checked ? color : Palette.textFaint}
+          color={checked ? color : OnboardingPalette.textFaint}
         />
       </View>
     </PressScale>
@@ -247,7 +254,7 @@ export function SearchPicker({
   placeholder,
   popularLabel,
   options,
-  color = Accent,
+  color = OnboardingPalette.accent,
 }: {
   value: string;
   onChangeText: (v: string) => void;
@@ -264,12 +271,13 @@ export function SearchPicker({
   return (
     <View style={styles.list}>
       <View style={styles.searchBox}>
-        <Ionicons name="search" size={16} color={Palette.textFaint} />
+        <Ionicons name="search" size={16} color={OnboardingPalette.textFaint} />
         <TextField
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
           autoCapitalize="words"
+          tone="onboarding"
           style={styles.searchField}
         />
       </View>
@@ -287,7 +295,7 @@ export function SearchPicker({
 
       {filtered.length > 0 ? (
         <>
-          <Txt variant="tiny" color={Palette.textFaint} style={styles.popularLabel}>
+          <Txt variant="tiny" color={OnboardingPalette.textFaint} style={styles.popularLabel}>
             {popularLabel.toUpperCase()}
           </Txt>
           <View style={styles.list}>
@@ -297,7 +305,7 @@ export function SearchPicker({
           </View>
         </>
       ) : !canAddCustom ? (
-        <Txt variant="small" color={Palette.textFaint}>
+        <Txt variant="small" color={OnboardingPalette.textFaint}>
           Listede yok mu? Yukarı yazdığın metin olduğu gibi kaydedilecek.
         </Txt>
       ) : null}
@@ -395,8 +403,8 @@ const styles = StyleSheet.create({
     paddingVertical: Space.sm,
     borderRadius: Radius.md,
     borderWidth: Border.thick,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
   },
   addRow: {
     borderStyle: 'dashed',
@@ -406,7 +414,7 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: Border.thick,
-    borderColor: Palette.border,
+    borderColor: OnboardingPalette.border,
   },
   searchBox: {
     flexDirection: 'row',

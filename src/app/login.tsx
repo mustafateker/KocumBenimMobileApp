@@ -13,7 +13,7 @@ import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
-import { Accent, Border, OnColor, Palette, Radius, Space } from '@/theme/tokens';
+import { Border, OnboardingPalette, Radius, Space } from '@/theme/tokens';
 
 /**
  * Giris: kullanici adi (veya e-posta) + parola. Hesabi kocu acar ve bilgileri paylasir;
@@ -57,7 +57,12 @@ export default function Login() {
   }, [submitting, email, password, remember, signIn, router, showMessage, showError]);
 
   return (
-    <ScreenBackground tint={Accent} pattern>
+    <ScreenBackground
+      tint={OnboardingPalette.accentBright}
+      backgroundColor={OnboardingPalette.bg}
+      blobColor={OnboardingPalette.blob}
+      pattern
+    >
       {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
           odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
       <KeyboardAwareScrollView
@@ -70,11 +75,11 @@ export default function Login() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.brand}>
-          <Mascot width={130} mood="wink" />
-          <Txt variant="hero" center>
+          <Mascot width={150} mood="wink" />
+          <Txt variant="hero" color={OnboardingPalette.text} center>
             Koçum Benim
           </Txt>
-          <Txt variant="small" color={Palette.textDim} center>
+          <Txt variant="small" color={OnboardingPalette.textDim} center>
             Odaklan, seviye atla, hedefine yaklaş.
           </Txt>
         </View>
@@ -92,6 +97,7 @@ export default function Login() {
               autoCorrect={false}
               autoComplete="username"
               error={hasError}
+              tone="onboarding"
             />
           </Field>
 
@@ -106,14 +112,15 @@ export default function Login() {
               secureTextEntry
               autoComplete="password"
               error={hasError}
+              tone="onboarding"
             />
           </Field>
 
           <PressScale onPress={() => setRemember((r) => !r)} style={styles.rememberRow}>
             <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
-              {remember ? <Ionicons name="checkmark" size={14} color={OnColor} /> : null}
+              {remember ? <Ionicons name="checkmark" size={14} color={OnboardingPalette.surface} /> : null}
             </View>
-            <Txt variant="small" color={Palette.textDim}>
+            <Txt variant="small" color={OnboardingPalette.textDim}>
               Beni hatırla
             </Txt>
           </PressScale>
@@ -121,7 +128,7 @@ export default function Login() {
           <NeonButton
             label={submitting ? 'Giriş yapılıyor…' : 'Giriş Yap'}
             icon="log-in"
-            color={Accent}
+            color={OnboardingPalette.accent}
             size="lg"
             full
             disabled={submitting}
@@ -132,15 +139,15 @@ export default function Login() {
 
         {STUDENT_SELF_SIGNUP_ENABLED ? (
           <PressScale onPress={() => router.push('/signup')}>
-            <Txt variant="small" color={Palette.textDim} center>
+            <Txt variant="small" color={OnboardingPalette.textDim} center>
               Hesabın yok mu?{' '}
-              <Txt variant="smallStrong" color={Accent}>
+              <Txt variant="smallStrong" color={OnboardingPalette.accent}>
                 Kayıt ol
               </Txt>
             </Txt>
           </PressScale>
         ) : (
-          <Txt variant="small" color={Palette.textDim} center>
+          <Txt variant="small" color={OnboardingPalette.textDim} center>
             Giriş bilgilerini koçundan alabilirsin.
           </Txt>
         )}
@@ -152,7 +159,7 @@ export default function Login() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
-      <Txt variant="smallStrong" color={Palette.textDim}>
+      <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
         {label}
       </Txt>
       {children}
@@ -191,12 +198,12 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: Radius.sm,
     borderWidth: Border.thick,
-    borderColor: Palette.border,
+    borderColor: OnboardingPalette.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Accent,
-    borderColor: Accent,
+    backgroundColor: OnboardingPalette.accent,
+    borderColor: OnboardingPalette.accent,
   },
 });

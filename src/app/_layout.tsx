@@ -80,7 +80,7 @@ export default function RootLayout() {
             <SessionProvider>
               <NotificationCenterProvider>
                 <ThemeProvider value={NavTheme}>
-                  <StatusBar style={splashVisible ? 'light' : 'dark'} />
+                  <StatusBar style="dark" />
                   <Stack
                     // Tek tek ekranlarda olusan render hatalari da uygulamayi
                     // kapatmak yerine hata kodlu ekrana dussun.

@@ -35,7 +35,13 @@ import {
 } from '@/features/onboarding/parts';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
-import { Accent, Border, DetailAccent, Palette, Radius, Space } from '@/theme/tokens';
+import {
+  Border,
+  DetailAccent,
+  OnboardingPalette,
+  Radius,
+  Space,
+} from '@/theme/tokens';
 
 type FormState = {
   firstName: string;
@@ -206,7 +212,11 @@ export default function Onboarding() {
   // durum cubugu kadar asagi kayardi. Guvenli alan boslugunu ilk cocuk verir.
   return (
     <View style={styles.root}>
-      <PatternBackground color={meta.color} />
+      <PatternBackground
+        color={meta.color}
+        backgroundColor={OnboardingPalette.bg}
+        blobColor={OnboardingPalette.blob}
+      />
 
       <View style={[styles.progressWrap, { paddingTop: insets.top + Space.sm }]}>
         <StepProgress
@@ -241,7 +251,7 @@ export default function Onboarding() {
 
           <View style={styles.body}>
             {step === 'welcome' ? (
-              <Txt variant="body" color={Palette.textDim} center>
+              <Txt variant="body" color={OnboardingPalette.textDim} center>
                 Sınıfını, hedeflerini ve çalışma tarzını öğrenip sana özel bir yolculuk
                 hazırlayacağız. Hazırsan başlayalım!
               </Txt>
@@ -250,7 +260,7 @@ export default function Onboarding() {
             {step === 'name' ? (
               <View style={styles.body}>
                 <View style={styles.field}>
-                  <Txt variant="smallStrong" color={Palette.textDim}>
+                  <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
                     Adın
                   </Txt>
                   <TextField
@@ -258,10 +268,11 @@ export default function Onboarding() {
                     onChangeText={(v) => set('firstName', v)}
                     placeholder="Adını yaz"
                     autoCapitalize="words"
+                    tone="onboarding"
                   />
                 </View>
                 <View style={styles.field}>
-                  <Txt variant="smallStrong" color={Palette.textDim}>
+                  <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
                     Soyadın
                   </Txt>
                   <TextField
@@ -269,6 +280,7 @@ export default function Onboarding() {
                     onChangeText={(v) => set('lastName', v)}
                     placeholder="Soyadını yaz"
                     autoCapitalize="words"
+                    tone="onboarding"
                   />
                 </View>
               </View>
@@ -402,12 +414,19 @@ export default function Onboarding() {
         <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
           <View style={styles.footerRow}>
             {index > 0 ? (
-              <GhostButton label="Geri" icon="chevron-back" onPress={back} style={styles.flex} full />
+              <GhostButton
+                label="Geri"
+                icon="chevron-back"
+                color={OnboardingPalette.textDim}
+                onPress={back}
+                style={styles.flex}
+                full
+              />
             ) : null}
             <NeonButton
               label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
               icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
-              color={Accent}
+              color={OnboardingPalette.accent}
               size="lg"
               disabled={!valid || saving}
               onPress={next}
@@ -436,10 +455,10 @@ function SummaryRow({
     <View style={styles.summaryRow}>
       <IconBubble name={icon} color={color} size={44} />
       <View style={styles.flex}>
-        <Txt variant="tiny" color={Palette.textFaint}>
+        <Txt variant="tiny" color={OnboardingPalette.textFaint}>
           {label.toUpperCase()}
         </Txt>
-        <Txt variant="bodyStrong" numberOfLines={2}>
+        <Txt variant="bodyStrong" color={OnboardingPalette.text} numberOfLines={2}>
           {value || '—'}
         </Txt>
       </View>
@@ -451,7 +470,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   root: {
     flex: 1,
-    backgroundColor: Palette.bg,
+    backgroundColor: OnboardingPalette.bg,
   },
   progressWrap: {
     paddingHorizontal: Space.lg,
@@ -476,8 +495,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Space.lg,
     paddingTop: Space.md,
     borderTopWidth: Border.thick,
-    borderTopColor: Palette.border,
-    backgroundColor: Palette.bg,
+    borderTopColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.bg,
   },
   footerRow: {
     flexDirection: 'row',
@@ -493,7 +512,7 @@ const styles = StyleSheet.create({
     padding: Space.md,
     borderRadius: Radius.lg,
     borderWidth: Border.thick,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
   },
 });

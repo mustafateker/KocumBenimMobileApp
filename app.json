@@ -5,14 +5,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
+    "backgroundColor": "#FDE8D0",
+    "primaryColor": "#B94718",
     "scheme": "kocumbenimmobileapp",
     "userInterfaceStyle": "light",
     "android": {
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#BAE6CE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FDE8D0",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.triworkster.kocumbenimmobileapp",
@@ -37,9 +38,10 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F5EFF1",
+          "backgroundColor": "#FDE8D0",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 288
+          "imageWidth": 320,
+          "resizeMode": "contain"
         }
       ],
       "expo-sharing",

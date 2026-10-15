@@ -19,15 +19,25 @@ import { Txt } from './ui';
 export function ScreenBackground({
   tint,
   pattern,
+  backgroundColor,
+  blobColor,
   children,
 }: {
   tint?: string;
   pattern?: boolean;
+  backgroundColor?: string;
+  blobColor?: string;
   children: React.ReactNode;
 }) {
   return (
-    <View style={styles.root}>
-      {pattern ? <PatternBackground color={tint ?? Accent} /> : null}
+    <View style={[styles.root, backgroundColor ? { backgroundColor } : null]}>
+      {pattern ? (
+        <PatternBackground
+          color={tint ?? Accent}
+          backgroundColor={backgroundColor}
+          blobColor={blobColor}
+        />
+      ) : null}
       {children}
     </View>
   );

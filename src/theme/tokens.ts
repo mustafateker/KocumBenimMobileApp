@@ -1,22 +1,22 @@
 /**
  * Kocum Benim — sicak, yumusak egitim tasarim sistemi.
  *
- * Pudra zemin ve acik notr yuzeyler sakinligi; koyu mor metin ve ana
- * aksiyonlar guvenilir hiyerarsiyi; pembe ile kayisi ise yalnizca kontrollu
- * vurgu noktalarini tasir.
+ * Pudra ana zemin ve krem yuzeyler sakinligi; koyu mor metin ve ana
+ * aksiyonlar guvenilir hiyerarsiyi; ikondan gelen bej ile kayisi ise
+ * kontrollu vurgu noktalarini tasir.
  */
 
 export const Palette = {
   /** Ana uygulama zemini. */
   bg: '#F5EFF1',
-  /** Yalnizca dekoratif ve secili alanlarda kullanilan pembe marka tonu. */
-  bgDeep: '#FDCEDF',
+  /** Ikon zemininden turetilen, dekoratif alanlarda kullanilan koyu bej. */
+  bgDeep: '#FFD19A',
   /** Pomodoro/odak ekraninin yuksek kontrastli zemini. */
   focusBg: '#3A3967',
   /** Kart, modal, menu ve alt navigasyonun sakin notr yuzeyi. */
-  surface: '#FFFBFC',
-  /** Secili alanlar ve ikincil bloklar icin dusuk yogunluklu pembe. */
-  surfaceHi: 'rgba(253, 206, 223, 0.36)',
+  surface: '#FFF9F1',
+  /** Secili alanlar ve ikincil bloklar icin dusuk yogunluklu acik bej. */
+  surfaceHi: 'rgba(255, 209, 154, 0.32)',
   border: 'rgba(58, 57, 103, 0.14)',
   borderStrong: '#3A3967',
   overlay: 'rgba(58, 57, 103, 0.52)',
@@ -27,9 +27,9 @@ export const Palette = {
 
   /** Ana aksiyon ve yuksek kontrast. */
   amber: '#3A3967',
-  amberSoft: 'rgba(253, 206, 223, 0.36)',
+  amberSoft: 'rgba(255, 209, 154, 0.32)',
   purple: '#3A3967',
-  purpleSoft: 'rgba(253, 206, 223, 0.36)',
+  purpleSoft: 'rgba(255, 209, 154, 0.32)',
   /** Ikonlar, rozetler ve kucuk enerji vurgulari. */
   gold: '#FBAE75',
   goldSoft: 'rgba(251, 174, 117, 0.20)',
@@ -37,11 +37,11 @@ export const Palette = {
   orangeSoft: 'rgba(251, 174, 117, 0.20)',
   /** Durum renkleri de sinirli marka paletinden turetilir; anlam ikon/metinle desteklenir. */
   pink: '#3A3967',
-  pinkSoft: 'rgba(253, 206, 223, 0.36)',
+  pinkSoft: 'rgba(255, 209, 154, 0.32)',
   blue: '#3A3967',
-  blueSoft: 'rgba(253, 206, 223, 0.36)',
+  blueSoft: 'rgba(255, 209, 154, 0.32)',
   green: '#3A3967',
-  greenSoft: 'rgba(253, 206, 223, 0.36)',
+  greenSoft: 'rgba(255, 209, 154, 0.32)',
 } as const;
 
 /** Uygulamanin birincil vurgu rengi. */
@@ -51,18 +51,39 @@ export const Accent = Palette.amber;
 export const DetailAccent = Palette.orange;
 
 /**
+ * Onboarding ve marka acilisi icin uygulama ikonundan turetilen sicak palet.
+ * Bu alan bilerek ana uygulama temasindan ayridir: uzun sureli calisma
+ * ekranlari sakin kalirken ilk karsilama maskotun turuncu enerjisini tasir.
+ */
+export const OnboardingPalette = {
+  bg: '#FDE8D0',
+  bgDeep: '#FFD19A',
+  surface: '#FFF9F1',
+  track: 'rgba(102, 55, 37, 0.12)',
+  border: 'rgba(102, 55, 37, 0.18)',
+  text: '#4A281D',
+  textDim: 'rgba(74, 40, 29, 0.76)',
+  textFaint: 'rgba(74, 40, 29, 0.58)',
+  accent: '#B94718',
+  accentBright: '#F47732',
+  accentSoft: 'rgba(244, 119, 50, 0.16)',
+  blob: '#FF9D56',
+} as const;
+
+/**
  * Native acilis ekrani ve Android adaptif ikon zemini — app.json'daki
  * expo-splash-screen ve android.adaptiveIcon degerleriyle birebir ayni
  * olmali, yoksa devir teslim aninda renk atlar.
  */
 export const Brand = {
-  bg: Palette.bg,
+  bg: OnboardingPalette.bg,
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */
 const SoftOf: Record<string, string> = {
   [Palette.amber]: Palette.amberSoft,
   [Palette.orange]: Palette.orangeSoft,
+  [OnboardingPalette.accent]: OnboardingPalette.accentSoft,
 };
 
 export function softOf(color: string): string {

@@ -1,14 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect } from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring } from 'react-native-reanimated';
-
-import { Motion } from '@/theme/tokens';
-
-const MASCOT_SOURCE = require('../../assets/images/mascot.png');
-
-/** assets/images/mascot.png dosyasinin en/boy orani. */
-const MASCOT_ASPECT = 700 / 738;
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 export type MascotMood =
   /** Varsayilan durus. */
@@ -20,16 +11,24 @@ export type MascotMood =
   /** Selamlama: canli bir yan durus. */
   | 'wink';
 
+/** Kullanici tarafindan saglanan jest sayfasindan uretilmis seffaf pozlar. */
+const MASCOT_SOURCE: Record<MascotMood, number> = {
+  happy: require('../../assets/images/mascot-happy.png'),
+  cheer: require('../../assets/images/mascot-cheer.png'),
+  think: require('../../assets/images/mascot-think.png'),
+  wink: require('../../assets/images/mascot-wave.png'),
+};
+
 /**
- * Her "mood" icin sabit durus. Gercek yuz ifadesi cizimi yok (tek bir
- * fotoreal maskot gorseli kullaniliyor); farkli mimikler yerine hafif
- * donme/olcek/saydamlikla duygusal ton veriliyor.
+ * Her jest kendi kaynak gorseline sahip; asagidaki degerler pozu sabit tutar.
+ * Maskot kendi icinde olcek animasyonu yapmaz; boylece ekran gecislerinde
+ * buyuyup kuculmez.
  */
-const POSE: Record<MascotMood, { rotate: number; scale: number; opacity: number }> = {
-  happy: { rotate: 0, scale: 1, opacity: 1 },
-  wink: { rotate: -4, scale: 1, opacity: 1 },
-  cheer: { rotate: 3, scale: 1.06, opacity: 1 },
-  think: { rotate: -2, scale: 0.98, opacity: 0.92 },
+const POSE: Record<MascotMood, { rotate: number; opacity: number }> = {
+  happy: { rotate: 0, opacity: 1 },
+  wink: { rotate: -4, opacity: 1 },
+  cheer: { rotate: 3, opacity: 1 },
+  think: { rotate: -2, opacity: 0.92 },
 };
 
 type MascotProps = {
@@ -40,23 +39,18 @@ type MascotProps = {
 
 /** Kocum Benim maskotu — porsuk ogretmen. */
 export function Mascot({ width = 96, mood = 'happy', style }: MascotProps) {
-  const height = width / MASCOT_ASPECT;
-  const pop = useSharedValue(0.85);
+  const height = width;
   const pose = POSE[mood];
 
-  useEffect(() => {
-    pop.value = withDelay(60, withSpring(1, Motion.spring.playful));
-  }, [pop, mood]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: pose.opacity,
-    transform: [{ scale: pop.value * pose.scale }, { rotate: `${pose.rotate}deg` }],
-  }));
-
   return (
-    <Animated.View style={[{ width, height }, style, animatedStyle]}>
-      <Image source={MASCOT_SOURCE} style={styles.image} contentFit="contain" />
-    </Animated.View>
+    <View
+      style={[
+        { width, height, opacity: pose.opacity, transform: [{ rotate: `${pose.rotate}deg` }] },
+        style,
+      ]}
+    >
+      <Image source={MASCOT_SOURCE[mood]} style={styles.image} contentFit="contain" />
+    </View>
   );
 }
 

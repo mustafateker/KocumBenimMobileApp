@@ -1,7 +1,7 @@
 import type { Ionicons } from '@expo/vector-icons';
 
 import type { MascotMood } from '@/components/mascot';
-import { Accent } from '@/theme/tokens';
+import { OnboardingPalette } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -53,7 +53,7 @@ export const STEP_META: Record<
 > = {
   welcome: {
     icon: 'hand-left',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hadi seni tanıyalım! 👋',
     subtitle: 'Bu yolculukta seni daha iyi tanımak istiyoruz.',
     mood: 'wink',
@@ -61,7 +61,7 @@ export const STEP_META: Record<
   },
   name: {
     icon: 'person',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Adın ne?',
     subtitle: 'Sana nasıl hitap etmemizi istersin?',
     mood: 'happy',
@@ -69,77 +69,77 @@ export const STEP_META: Record<
   },
   grade: {
     icon: 'school',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hangi sınıftasın?',
     subtitle: 'Sana uygun bir program oluşturabilmemiz için.',
     mood: 'happy',
   },
   goal: {
     icon: 'trophy',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'En büyük hedefin ne?',
     subtitle: 'Bu hedef, seni motive edecek pusulan olacak.',
     mood: 'cheer',
   },
   career: {
     icon: 'briefcase',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'İlerde hangi mesleği seçmek istiyorsun?',
     subtitle: 'Hayalindeki mesleği seç ya da yazabilirsin.',
     mood: 'think',
   },
   highSchool: {
     icon: 'business',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hangi lisede okumak istiyorsun?',
     subtitle: 'Hedeflediğin lise seni bir adım öne taşır.',
     mood: 'think',
   },
   university: {
     icon: 'library',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hangi üniversitede okumak istiyorsun?',
     subtitle: 'Hayalindeki üniversiteyi seç ya da yaz.',
     mood: 'think',
   },
   department: {
     icon: 'book',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hangi bölümü hedefliyorsun?',
     subtitle: 'İlgilendiğin bölümü seç ya da yazabilirsin.',
     mood: 'think',
   },
   dailyHours: {
     icon: 'time',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Günlük kaç saat çalışabilirsin?',
     subtitle: 'Günlük düzenine gerçekten uyan süreyi seç.',
     mood: 'happy',
   },
   disciplineMeaning: {
     icon: 'shield-checkmark',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Disiplin senin için ne ifade ediyor?',
     subtitle: 'Sana uyan birden fazla seçeneği işaretleyebilirsin.',
     mood: 'think',
   },
   commitmentDuration: {
     icon: 'calendar',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Bu çalışma düzenini ne kadar sürdürebilirsin?',
     subtitle: 'Sürdürülebilir bir hedef, güçlü bir başlangıçtır.',
     mood: 'happy',
   },
   motivation: {
     icon: 'star',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Motivasyon kaynağın nedir?',
     subtitle: 'Seni motive eden şeyleri seçebilirsin.',
     mood: 'cheer',
   },
   summary: {
     icon: 'checkmark-circle',
-    color: Accent,
+    color: OnboardingPalette.accent,
     title: 'Hazırsın!',
     subtitle: 'Hedeflerine ulaşmak için harika bir yolculuğa çıkıyoruz.',
     mood: 'cheer',

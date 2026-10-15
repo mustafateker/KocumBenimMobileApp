@@ -12,6 +12,7 @@
   <androidx.activity/>
   <androidx.ads/>
   <androidx.annotation/>
+  <androidx.annotation.keep/>
   <androidx.appcompat/>
   <androidx.appfunctions/>
   <androidx.appsearch/>

@@ -11,7 +11,20 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
+import {
+  Accent,
+  Border,
+  DetailAccent,
+  Font,
+  OnColor,
+  OnboardingPalette,
+  Palette,
+  Radius,
+  Space,
+  Type,
+  pillRadius,
+  softOf,
+} from '@/theme/tokens';
 
 import { PressScale } from './button';
 
@@ -161,17 +174,21 @@ export function TextField({
   style,
   multiline,
   error,
+  tone = 'default',
   ...rest
-}: TextInputProps & { error?: boolean }) {
+}: TextInputProps & { error?: boolean; tone?: 'default' | 'onboarding' }) {
+  const onboarding = tone === 'onboarding';
+
   return (
     <TextInput
-      placeholderTextColor={Palette.textFaint}
+      placeholderTextColor={onboarding ? OnboardingPalette.textFaint : Palette.textFaint}
       autoCapitalize="none"
       multiline={multiline}
       style={[
         styles.field,
+        onboarding && styles.fieldOnboarding,
         multiline && styles.fieldMultiline,
-        error && styles.fieldError,
+        error && (onboarding ? styles.fieldErrorOnboarding : styles.fieldError),
         style,
       ]}
       {...rest}
@@ -271,8 +288,16 @@ const styles = StyleSheet.create({
     paddingBottom: Space.md,
     textAlignVertical: 'top',
   },
+  fieldOnboarding: {
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
+    color: OnboardingPalette.text,
+  },
   fieldError: {
     borderColor: Palette.pink,
+  },
+  fieldErrorOnboarding: {
+    borderColor: OnboardingPalette.accent,
   },
   flex: { flex: 1 },
   segmented: {

@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml:2:13-83
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml:2:13-83
+	package
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml
+	xmlns:android
+		ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml:2:23-81
+uses-sdk
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml reason: use-sdk injection requested
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml
+	android:targetSdkVersion
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml
+	android:minSdkVersion
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest3461264499809826602.xml
