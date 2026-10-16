@@ -1,5 +1,6 @@
-// expo-notifications eklentisi yalnizca kucuk (tek renkli) ikonu ayarlar. Bildirimin
-// solundaki renkli maskot icin Android manifestine large icon kaydi eklenir.
+// expo-notifications yalnizca Android'in kucuk, tek renkli durum cubugu ikonunu
+// ayarlar. Bildirim kartindaki renkli uygulama ikonu icin manifest'e varsayilan
+// large icon kaydi eklenir.
 const fs = require("fs");
 const path = require("path");
 const { AndroidConfig, withAndroidManifest, withDangerousMod } = require("expo/config-plugins");

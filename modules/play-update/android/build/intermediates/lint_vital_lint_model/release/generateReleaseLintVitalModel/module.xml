@@ -1,6 +1,6 @@
 <lint-module
     format="1"
-    dir="/Users/mustafa/Desktop/code/KocumBenimMobileApp/modules/play-update/android"
+    dir="/Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android"
     name=":play-update"
     type="LIBRARY"
     maven="expo.modules.playupdate:play-update:1.0.0"
