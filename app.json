@@ -19,6 +19,11 @@
       "package": "com.triworkster.kocumbenimmobileapp",
       "permissions": [
         "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
       ]
     },
     "web": {
@@ -50,6 +55,7 @@
         "expo-camera",
         {
           "cameraPermission": "Takıldığın soruyu fotoğraflayabilmen için kameraya erişmemiz gerekiyor.",
+          "microphonePermission": false,
           "recordAudioAndroid": false
         }
       ],
