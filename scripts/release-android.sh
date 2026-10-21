@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Yerel Android release: derle, Play Alpha'ya yükle, git etiketi + GitHub release oluştur.
-# Kullanım: npm run release   (veya TRACK=production npm run release)
+# Yerel Android release: derle, Play Production'a yükle, git etiketi + GitHub release oluştur.
+# Kullanım: npm run release   (farklı bir kanal gerekirse: TRACK=alpha npm run release)
 # Ön koşul: .env.release dosyası (örnek: .env.release.example), fastlane (brew install fastlane), gh, JDK 17
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -15,7 +15,7 @@ command -v gh >/dev/null || { echo "gh kurulu değil: brew install gh"; exit 1; 
 
 [ -z "$(git status --porcelain)" ] || { echo "Çalışma dizini temiz değil, önce commit'leyin"; exit 1; }
 
-TRACK="${TRACK:-alpha}"
+TRACK="${TRACK:-production}"
 PACKAGE="com.triworkster.kocumbenimmobileapp"
 VERSION=$(node -p "require('./app.json').expo.version")
 # Dakika cinsinden zaman: her çalıştırmada artar, EAS'ın son kodu (3) üstünde kalır
@@ -38,5 +38,5 @@ fastlane supply --aab "$AAB" --track "$TRACK" --package_name "$PACKAGE" \
 echo "==> Etiket ve GitHub release"
 git tag "$TAG"
 git push origin "$TAG"
-gh release create "$TAG" --title "$VERSION (build $VERSION_CODE)" --generate-notes --prerelease
+gh release create "$TAG" --title "$VERSION (build $VERSION_CODE)" --generate-notes
 echo "Tamam: $TAG"
