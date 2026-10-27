@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Yerel Android release: derle, Play Production'a yükle, git etiketi + GitHub release oluştur.
-# Kullanım: npm run release   (farklı bir kanal gerekirse: TRACK=alpha npm run release)
+# Yerel Android release: derle, seçilen Play kanalına yükle, git etiketi + GitHub release oluştur.
+# Kullanım: npm run release (production) veya npm run release:open (açık test/beta)
+# Farklı bir kanal gerekirse: TRACK=alpha npm run release
 # Ön koşul: .env.release dosyası (örnek: .env.release.example), fastlane (brew install fastlane), gh, JDK 17
 set -euo pipefail
 cd "$(dirname "$0")/.."
