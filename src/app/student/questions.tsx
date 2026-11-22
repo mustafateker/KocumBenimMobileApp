@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconButton, NeonButton, PressScale } from '@/components/button';
@@ -11,6 +12,7 @@ import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
 import { getQuestions, resolveQuestion } from '@/lib/api';
+import { apiMediaUrl } from '@/lib/api-client';
 import { relativeTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { persistCapturedPhoto } from '@/lib/photo-store';
@@ -192,6 +194,7 @@ function QuestionList() {
   useStudent();
   const insets = useSafeAreaInsets();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { showError } = useErrorDialog();
 
   useFocusEffect(
@@ -218,21 +221,72 @@ function QuestionList() {
   }
 
   return (
-    <ScrollView
-      contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 110 }]}
-      showsVerticalScrollIndicator={false}
-    >
-      {questions.map((q) => (
-        <QuestionCard key={q.id} question={q} onResolved={handleResolved} />
-      ))}
-    </ScrollView>
+    <>
+      <ScrollView
+        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 110 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {questions.map((q) => (
+          <QuestionCard
+            key={q.id}
+            question={q}
+            onResolved={handleResolved}
+            onViewImage={(uri) => setPreviewImage(uri)}
+          />
+        ))}
+      </ScrollView>
+
+      <Modal visible={Boolean(previewImage)} transparent animationType="fade" onRequestClose={() => setPreviewImage(null)}>
+        <Pressable style={styles.fullImageBackdrop} onPress={() => setPreviewImage(null)}>
+          <Pressable style={styles.fullImageClose} onPress={() => setPreviewImage(null)} hitSlop={15}>
+            <Ionicons name="close-circle" size={40} color="#FFFFFF" />
+          </Pressable>
+          {previewImage ? (
+            <Pressable onPress={(e) => e.stopPropagation()} style={styles.fullImageContainer}>
+              <Image
+                source={{ uri: apiMediaUrl(previewImage) }}
+                style={styles.fullImage}
+                contentFit="contain"
+              />
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </Modal>
+    </>
   );
 }
 
-function QuestionCard({ question, onResolved }: { question: Question; onResolved: (q: Question) => void }) {
+function QuestionCard({
+  question,
+  onResolved,
+  onViewImage,
+}: {
+  question: Question;
+  onResolved: (q: Question) => void;
+  onViewImage: (uri: string) => void;
+}) {
   const meta = STATUS_META[question.status];
   const [busy, setBusy] = useState(false);
   const { showError } = useErrorDialog();
+
+  let rawReply = (question.teacherReply || '').trim();
+  let embeddedSolutionImage: string | null = null;
+  if (rawReply.includes('[SOLUTION_IMAGE]:')) {
+    const parts = rawReply.split('[SOLUTION_IMAGE]:');
+    rawReply = parts[0].trim();
+    embeddedSolutionImage = parts[1]?.trim() || null;
+  }
+
+  const solutionImageUri =
+    question.teacherReplyImage ||
+    question.replyImage ||
+    question.solutionImage ||
+    question.solutionImageUrl ||
+    (question as any).teacher_reply_image ||
+    (question as any).reply_image ||
+    (question as any).solution_image ||
+    embeddedSolutionImage ||
+    null;
 
   const markResolved = useCallback(async () => {
     setBusy(true);
@@ -254,16 +308,77 @@ function QuestionCard({ question, onResolved }: { question: Question; onResolved
       </View>
 
       {question.imageUrl ? (
-        <CanvasView imageUri={question.imageUrl} canvas={question.strokes} style={styles.thumb} />
+        <PressScale onPress={() => onViewImage(question.imageUrl)}>
+          <View style={styles.thumbWrapper}>
+            <CanvasView imageUri={question.imageUrl} canvas={question.strokes} style={styles.thumb} />
+            <View style={styles.zoomBadge}>
+              <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
+              <Txt variant="tiny" color="#FFFFFF">
+                Büyüt
+              </Txt>
+            </View>
+          </View>
+        </PressScale>
+      ) : question.status === 'answered' ? (
+        <View style={styles.expiredNotice}>
+          <Ionicons name="time-outline" size={14} color={Palette.textDim} />
+          <Txt variant="tiny" color={Palette.textDim}>
+            Cevaplanan soru görseli 2 günlük süre dolduğu için temizlendi.
+          </Txt>
+        </View>
       ) : null}
 
       {question.note ? <Txt variant="small">{question.note}</Txt> : null}
 
-      {question.teacherReply ? (
+      {rawReply && rawReply !== 'Çözüm görseli eklendi.' ? (
         <View style={styles.reply}>
           <Ionicons name="chatbubble-ellipses" size={15} color={Palette.green} />
           <Txt variant="small" color={Palette.text} style={styles.flex}>
-            {question.teacherReply}
+            {rawReply}
+          </Txt>
+        </View>
+      ) : null}
+
+      {solutionImageUri ? (
+        <View style={styles.solutionContainer}>
+          <PressScale onPress={() => onViewImage(solutionImageUri)}>
+            <View style={styles.viewSolutionButton}>
+              <View style={styles.viewSolutionLeft}>
+                <Ionicons name="sparkles" size={16} color="#FFFFFF" />
+                <Txt variant="smallStrong" color="#FFFFFF">
+                  Çözümü Gör
+                </Txt>
+              </View>
+              <View style={styles.viewSolutionRight}>
+                <Txt variant="tiny" color="rgba(255, 255, 255, 0.9)">
+                  Görseli İncele
+                </Txt>
+                <Ionicons name="chevron-forward" size={16} color="#FFFFFF" />
+              </View>
+            </View>
+          </PressScale>
+
+          <PressScale onPress={() => onViewImage(solutionImageUri)}>
+            <View style={styles.replyImageWrapper}>
+              <Image
+                source={{ uri: apiMediaUrl(solutionImageUri) }}
+                style={styles.replyImage}
+                contentFit="contain"
+              />
+              <View style={styles.zoomBadge}>
+                <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
+                <Txt variant="tiny" color="#FFFFFF">
+                  Büyüt
+                </Txt>
+              </View>
+            </View>
+          </PressScale>
+        </View>
+      ) : rawReply === 'Çözüm görseli eklendi.' ? (
+        <View style={styles.reply}>
+          <Ionicons name="image-outline" size={15} color={Palette.green} />
+          <Txt variant="smallStrong" color={Palette.green}>
+            Çözüm görseli eklendi
           </Txt>
         </View>
       ) : null}
@@ -403,11 +518,110 @@ const styles = StyleSheet.create({
   thumb: {
     height: 180,
   },
+  thumbWrapper: {
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+  },
+  expiredNotice: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+    paddingVertical: Space.xs,
+    paddingHorizontal: Space.sm,
+    borderRadius: Radius.sm,
+    backgroundColor: 'rgba(58, 57, 103, 0.08)',
+  },
   reply: {
     flexDirection: 'row',
     gap: Space.sm,
     padding: Space.md,
     borderRadius: Radius.md,
     backgroundColor: Palette.greenSoft,
+  },
+  solutionContainer: {
+    gap: Space.xs,
+    padding: Space.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.greenSoft,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  viewSolutionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Space.sm + 2,
+    paddingHorizontal: Space.md,
+    borderRadius: Radius.sm,
+    backgroundColor: '#059669',
+  },
+  viewSolutionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  viewSolutionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  replyImageContainer: {
+    gap: Space.xs,
+    padding: Space.sm,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.greenSoft,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  replyImageHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  replyImageWrapper: {
+    height: 180,
+    borderRadius: Radius.sm,
+    overflow: 'hidden',
+    backgroundColor: Palette.surface,
+  },
+  replyImage: {
+    width: '100%',
+    height: '100%',
+  },
+  zoomBadge: {
+    position: 'absolute',
+    bottom: Space.xs,
+    right: Space.xs,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Space.sm,
+    paddingVertical: 3,
+    borderRadius: pillRadius(20),
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+  },
+  fullImageBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.92)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Space.md,
+  },
+  fullImageClose: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 10,
+    padding: Space.xs,
+  },
+  fullImageContainer: {
+    width: '100%',
+    height: '80%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fullImage: {
+    width: '100%',
+    height: '100%',
   },
 });

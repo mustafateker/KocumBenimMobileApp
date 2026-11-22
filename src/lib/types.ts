@@ -24,6 +24,8 @@ export type Student = {
   disciplineMeaning: string[];
   commitmentDuration: string | null;
   motivationSources: string[];
+  /** Her ders için öğrencinin okulda şu an geldiği son konu: { "Matematik": "Kareköklü İfadeler", ... } */
+  curriculumProgress?: Record<string, string>;
   onboardingCompletedAt: string | null;
 
   xp: number;
@@ -48,6 +50,7 @@ export type OnboardingInput = {
   disciplineMeaning: string[];
   commitmentDuration: string;
   motivation: string[];
+  curriculumProgress?: Record<string, string>;
 };
 
 export type TaskCategory = 'question' | 'topic' | 'focus';
@@ -70,7 +73,7 @@ export type Task = {
   correctCount: number;
   wrongCount: number;
   dueDate: string;
-  createdBy: number | null;
+  createdBy: number | string | null;
   completedAt: string | null;
   createdAt: string;
 };
@@ -114,6 +117,10 @@ export type Question = {
   note: string | null;
   status: QuestionStatus;
   teacherReply: string | null;
+  teacherReplyImage?: string | null;
+  replyImage?: string | null;
+  solutionImage?: string | null;
+  solutionImageUrl?: string | null;
   resolvedByStudent: boolean;
   createdAt: string;
   answeredAt: string | null;
@@ -227,3 +234,97 @@ export type Preferences = {
   sound: boolean;
   haptics: boolean;
 };
+
+export type AiDailyRecommendation = {
+  id: string;
+  category: 'topic' | 'duration' | 'routine';
+  badge: string;
+  title: string;
+  description: string;
+  actionType: 'assign_task' | 'start_focus' | 'open_tasks' | 'open_chat';
+  actionLabel: string;
+  subject?: string;
+  topic?: string;
+  recommendedMinutes?: number;
+};
+
+export type AiCoachContext = {
+  student: {
+    id: number;
+    name: string;
+    grade: string;
+    gradeNumber: number;
+    streak: number;
+    xp?: number;
+    targetMinutes: number;
+    baseOnboardingMinutes?: number;
+    recommendedTargetMinutes?: number;
+    adjustmentType?: string;
+    adjustmentReason?: string;
+    goal?: string | null;
+    career?: string | null;
+    targetHighSchool?: string | null;
+    targetUniversity?: string | null;
+    targetDepartment?: string | null;
+  };
+  studyStats: {
+    todayMinutes: number;
+    yesterdayMinutes: number;
+    avgDailyMinutes?: number;
+    yesterdayStudied: boolean;
+    todayStudied: boolean;
+  };
+  todayTasks?: {
+    total: number;
+    done: number;
+    pending: number;
+  };
+  weakTopics: {
+    subject: string;
+    topic: string;
+    correctCount?: number;
+    wrongCount: number;
+    totalSolved?: number;
+    accuracyRate: number;
+    severityLevel?: 'critical' | 'weak' | 'developing' | 'strong' | 'untested';
+    severityLabel?: string;
+    needsTopicStudy?: boolean;
+  }[];
+  questionPerformance?: {
+    subject: string;
+    topic: string;
+    correctCount: number;
+    wrongCount: number;
+    totalSolved: number;
+    accuracyRate: number;
+    isWeak: boolean;
+    severityLevel?: 'critical' | 'weak' | 'developing' | 'strong' | 'untested';
+    severityLabel?: string;
+    needsTopicStudy?: boolean;
+  }[];
+  dailySummary?: string;
+  dailyRecommendations?: AiDailyRecommendation[];
+  greeting: string;
+  suggestedPrompts: {
+    id: string;
+    label: string;
+    prompt: string;
+  }[];
+  geminiConfigured: boolean;
+};
+
+export type AiChatMessage = {
+  id: string;
+  role: 'student' | 'raccoon';
+  text: string;
+  timestamp: string;
+  createdTasks?: Task[];
+  geminiUsed?: boolean;
+};
+
+export type AiChatResponse = {
+  reply: string;
+  createdTasks: Task[];
+  geminiUsed: boolean;
+};
+

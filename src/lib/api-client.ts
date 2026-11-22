@@ -11,7 +11,7 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
 /** API'nin dondurdugu goreli medya yollarini HTTPS API adresine baglar. */
 export function apiMediaUrl(value: string): string {
-  if (!value || /^https?:\/\//i.test(value)) return value;
+  if (!value || /^(https?:|data:|blob:|file:|ph:)/i.test(value)) return value;
   return `${BASE_URL.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
 }
 
