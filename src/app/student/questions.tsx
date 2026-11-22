@@ -194,6 +194,10 @@ function QuestionList() {
   useStudent();
   const insets = useSafeAreaInsets();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [activeSolution, setActiveSolution] = useState<{
+    imageUri?: string | null;
+    replyText?: string | null;
+  } | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const { showError } = useErrorDialog();
 
@@ -232,11 +236,63 @@ function QuestionList() {
             question={q}
             onResolved={handleResolved}
             onViewImage={(uri) => setPreviewImage(uri)}
+            onViewSolution={(data) => setActiveSolution(data)}
           />
         ))}
       </ScrollView>
 
-      <Modal visible={Boolean(previewImage)} transparent animationType="fade" onRequestClose={() => setPreviewImage(null)}>
+      {/* Koçun Çözümü Modalı (Görsel ve varsa açıklama) */}
+      <Modal
+        visible={Boolean(activeSolution)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActiveSolution(null)}
+      >
+        <Pressable style={styles.fullImageBackdrop} onPress={() => setActiveSolution(null)}>
+          <View style={styles.solutionModalHeader}>
+            <View style={styles.solutionModalHeaderTitle}>
+              <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+              <Txt variant="section" color="#FFFFFF">
+                Koçunun Çözümü
+              </Txt>
+            </View>
+            <Pressable
+              style={styles.fullImageClose}
+              onPress={() => setActiveSolution(null)}
+              hitSlop={15}
+            >
+              <Ionicons name="close-circle" size={38} color="#FFFFFF" />
+            </Pressable>
+          </View>
+
+          {activeSolution?.imageUri ? (
+            <Pressable onPress={(e) => e.stopPropagation()} style={styles.fullImageContainer}>
+              <Image
+                source={{ uri: apiMediaUrl(activeSolution.imageUri) }}
+                style={styles.fullImage}
+                contentFit="contain"
+              />
+            </Pressable>
+          ) : null}
+
+          {activeSolution?.replyText ? (
+            <Pressable onPress={(e) => e.stopPropagation()} style={styles.modalReplyBox}>
+              <Ionicons name="chatbubble-ellipses" size={16} color={Palette.green} />
+              <Txt variant="small" color={Palette.text} style={styles.flex}>
+                {activeSolution.replyText}
+              </Txt>
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </Modal>
+
+      {/* Soru Fotoğrafı Önizleme Modalı */}
+      <Modal
+        visible={Boolean(previewImage)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImage(null)}
+      >
         <Pressable style={styles.fullImageBackdrop} onPress={() => setPreviewImage(null)}>
           <Pressable style={styles.fullImageClose} onPress={() => setPreviewImage(null)} hitSlop={15}>
             <Ionicons name="close-circle" size={40} color="#FFFFFF" />
@@ -260,10 +316,12 @@ function QuestionCard({
   question,
   onResolved,
   onViewImage,
+  onViewSolution,
 }: {
   question: Question;
   onResolved: (q: Question) => void;
   onViewImage: (uri: string) => void;
+  onViewSolution: (data: { imageUri?: string | null; replyText?: string | null }) => void;
 }) {
   const meta = STATUS_META[question.status];
   const [busy, setBusy] = useState(false);
@@ -276,6 +334,10 @@ function QuestionCard({
     rawReply = parts[0].trim();
     embeddedSolutionImage = parts[1]?.trim() || null;
   }
+  if (!embeddedSolutionImage && (rawReply.startsWith('data:image/') || rawReply.startsWith('http://') || rawReply.startsWith('https://'))) {
+    embeddedSolutionImage = rawReply;
+    rawReply = '';
+  }
 
   const solutionImageUri =
     question.teacherReplyImage ||
@@ -286,7 +348,22 @@ function QuestionCard({
     (question as any).reply_image ||
     (question as any).solution_image ||
     embeddedSolutionImage ||
-    null;
+    (question.status === 'answered' ? `/questions/${question.id}/reply-image` : null);
+
+  const cleanReplyText =
+    rawReply &&
+    rawReply !== 'Çözüm görseli eklendi.' &&
+    rawReply !== 'Çözüm görseli eklendi' &&
+    rawReply !== 'Çözüldü.'
+      ? rawReply
+      : null;
+
+  const handleOpenSolution = useCallback(() => {
+    onViewSolution({
+      imageUri: solutionImageUri,
+      replyText: cleanReplyText,
+    });
+  }, [onViewSolution, solutionImageUri, cleanReplyText]);
 
   const markResolved = useCallback(async () => {
     setBusy(true);
@@ -330,21 +407,13 @@ function QuestionCard({
 
       {question.note ? <Txt variant="small">{question.note}</Txt> : null}
 
-      {rawReply && rawReply !== 'Çözüm görseli eklendi.' ? (
-        <View style={styles.reply}>
-          <Ionicons name="chatbubble-ellipses" size={15} color={Palette.green} />
-          <Txt variant="small" color={Palette.text} style={styles.flex}>
-            {rawReply}
-          </Txt>
-        </View>
-      ) : null}
-
-      {solutionImageUri ? (
+      {/* Soru Cevaplandıysa Her Zaman Belirgin "Çözümü Gör" Butonu ve Çözüm Bölümü */}
+      {question.status === 'answered' && (
         <View style={styles.solutionContainer}>
-          <PressScale onPress={() => onViewImage(solutionImageUri)}>
+          <PressScale onPress={handleOpenSolution}>
             <View style={styles.viewSolutionButton}>
               <View style={styles.viewSolutionLeft}>
-                <Ionicons name="sparkles" size={16} color="#FFFFFF" />
+                <Ionicons name="sparkles" size={17} color="#FFFFFF" />
                 <Txt variant="smallStrong" color="#FFFFFF">
                   Çözümü Gör
                 </Txt>
@@ -358,30 +427,36 @@ function QuestionCard({
             </View>
           </PressScale>
 
-          <PressScale onPress={() => onViewImage(solutionImageUri)}>
-            <View style={styles.replyImageWrapper}>
-              <Image
-                source={{ uri: apiMediaUrl(solutionImageUri) }}
-                style={styles.replyImage}
-                contentFit="contain"
-              />
-              <View style={styles.zoomBadge}>
-                <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
-                <Txt variant="tiny" color="#FFFFFF">
-                  Büyüt
-                </Txt>
+          {/* Kart içinde doğrudan çözüm görseli önizlemesi */}
+          {solutionImageUri ? (
+            <PressScale onPress={handleOpenSolution}>
+              <View style={styles.replyImageWrapper}>
+                <Image
+                  source={{ uri: apiMediaUrl(solutionImageUri) }}
+                  style={styles.replyImage}
+                  contentFit="contain"
+                />
+                <View style={styles.zoomBadge}>
+                  <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
+                  <Txt variant="tiny" color="#FFFFFF">
+                    Büyüt
+                  </Txt>
+                </View>
               </View>
+            </PressScale>
+          ) : null}
+
+          {/* Koçun yazılı yanıtı varsa kart içinde göster */}
+          {cleanReplyText ? (
+            <View style={styles.reply}>
+              <Ionicons name="chatbubble-ellipses" size={15} color={Palette.green} />
+              <Txt variant="small" color={Palette.text} style={styles.flex}>
+                {cleanReplyText}
+              </Txt>
             </View>
-          </PressScale>
+          ) : null}
         </View>
-      ) : rawReply === 'Çözüm görseli eklendi.' ? (
-        <View style={styles.reply}>
-          <Ionicons name="image-outline" size={15} color={Palette.green} />
-          <Txt variant="smallStrong" color={Palette.green}>
-            Çözüm görseli eklendi
-          </Txt>
-        </View>
-      ) : null}
+      )}
 
       <View style={styles.questionFoot}>
         <Txt variant="tiny" color={Palette.textFaint}>
@@ -613,6 +688,30 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 10,
     padding: Space.xs,
+  },
+  solutionModalHeader: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Space.lg,
+    paddingTop: 50,
+    paddingBottom: Space.md,
+  },
+  solutionModalHeaderTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  modalReplyBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.sm,
+    width: '90%',
+    marginTop: Space.md,
+    padding: Space.md,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surface,
   },
   fullImageContainer: {
     width: '100%',
