@@ -100,6 +100,11 @@ export default function RootLayout() {
                     <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="diagnostics" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="lessons" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="subjects" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen
+                      name="curriculum-onboarding"
+                      options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+                    />
                     <Stack.Screen name="stats" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen
                       name="annotate"

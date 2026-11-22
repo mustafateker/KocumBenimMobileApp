@@ -33,6 +33,8 @@ import {
   StepHeader,
   StepProgress,
 } from '@/features/onboarding/parts';
+import { CurriculumTopicPicker } from '@/features/onboarding/curriculum-picker';
+import { getCurriculumSubjectsForGrade, type CurriculumProgressMap } from '@/lib/maarif-curriculum';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import {
@@ -47,6 +49,7 @@ type FormState = {
   firstName: string;
   lastName: string;
   grade: string;
+  curriculumProgress: CurriculumProgressMap;
   goal: string;
   career: string;
   highSchool: string;
@@ -62,6 +65,7 @@ const EMPTY_FORM: FormState = {
   firstName: '',
   lastName: '',
   grade: '',
+  curriculumProgress: {},
   goal: '',
   career: '',
   highSchool: '',
@@ -140,6 +144,8 @@ export default function Onboarding() {
         return form.firstName.trim().length > 0 && form.lastName.trim().length > 0;
       case 'grade':
         return form.grade !== '';
+      case 'currentTopics':
+        return true;
       case 'goal':
         return form.goal.trim().length > 0;
       case 'career':
@@ -167,6 +173,18 @@ export default function Onboarding() {
     if (saving) return;
     setSaving(true);
     try {
+      const subjects = getCurriculumSubjectsForGrade(form.grade);
+      const finalProgress: CurriculumProgressMap = {};
+      for (const s of subjects) {
+        const chosen = form.curriculumProgress[s.name];
+        const firstTopic = s.units[0]?.topics[0];
+        if (chosen) {
+          finalProgress[s.name] = chosen;
+        } else if (firstTopic) {
+          finalProgress[s.name] = firstTopic;
+        }
+      }
+
       const updated = await completeOnboarding({
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -180,6 +198,7 @@ export default function Onboarding() {
         disciplineMeaning: form.disciplineMeaning,
         commitmentDuration: form.commitmentDuration,
         motivation: form.motivation,
+        curriculumProgress: finalProgress,
       });
       // updated.onboardingCompletedAt burada dolu gelir; ayri bir GET /me
       // atmiyoruz ki o istegin sessizce yutulan bir hatasi (bkz session.tsx
@@ -287,7 +306,29 @@ export default function Onboarding() {
             ) : null}
 
             {step === 'grade' ? (
-              <OptionList options={GRADES} value={form.grade} onSelect={(v) => set('grade', v)} color={meta.color} />
+              <OptionList
+                options={GRADES}
+                value={form.grade}
+                onSelect={(v) => {
+                  const subjects = getCurriculumSubjectsForGrade(v);
+                  const defaults: CurriculumProgressMap = {};
+                  for (const s of subjects) {
+                    const first = s.units[0]?.topics[0];
+                    if (first) defaults[s.name] = first;
+                  }
+                  setForm((f) => ({ ...f, grade: v, curriculumProgress: defaults }));
+                }}
+                color={meta.color}
+              />
+            ) : null}
+
+            {step === 'currentTopics' ? (
+              <CurriculumTopicPicker
+                grade={form.grade || '8. Sınıf'}
+                value={form.curriculumProgress}
+                onChange={(v) => set('curriculumProgress', v)}
+                color={meta.color}
+              />
             ) : null}
 
             {step === 'goal' ? (

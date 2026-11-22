@@ -9,6 +9,7 @@ export type StepKey =
   | 'welcome'
   | 'name'
   | 'grade'
+  | 'currentTopics'
   | 'goal'
   | 'career'
   | 'highSchool'
@@ -25,6 +26,7 @@ export const ALL_STEPS: StepKey[] = [
   'welcome',
   'name',
   'grade',
+  'currentTopics',
   'goal',
   'career',
   'highSchool',
@@ -54,7 +56,7 @@ export const STEP_META: Record<
   welcome: {
     icon: 'hand-left',
     color: OnboardingPalette.accent,
-    title: 'Hadi seni tanıyalım! 👋',
+    title: 'Hadi seni tanıyalım!',
     subtitle: 'Bu yolculukta seni daha iyi tanımak istiyoruz.',
     mood: 'wink',
     hero: true,
@@ -73,6 +75,13 @@ export const STEP_META: Record<
     title: 'Hangi sınıftasın?',
     subtitle: 'Sana uygun bir program oluşturabilmemiz için.',
     mood: 'happy',
+  },
+  currentTopics: {
+    icon: 'book',
+    color: OnboardingPalette.accent,
+    title: 'Şu an okulda hangi konudasın?',
+    subtitle: 'Türkiye Yüzyılı Maarif Modeli derslerinde geldiğin son konuyu seç; işlenmeyen konulardan ödev atamayalım.',
+    mood: 'think',
   },
   goal: {
     icon: 'trophy',

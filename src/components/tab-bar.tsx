@@ -12,6 +12,8 @@ import { Txt } from './ui';
 export type TabMeta = {
   label: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
+  featured?: boolean;
+  customIcon?: (focused: boolean) => React.ReactNode;
 };
 
 /**
@@ -38,11 +40,16 @@ export function TabBar({
   tabs,
 }: TabBarState & { tabs: Record<string, TabMeta> }) {
   const insets = useSafeAreaInsets();
+  const orderedOrder = Object.keys(tabs);
+  const orderedRoutes = [...state.routes].sort(
+    (a, b) => orderedOrder.indexOf(a.name) - orderedOrder.indexOf(b.name)
+  );
+  const activeRouteKey = state.routes[state.index]?.key;
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, Space.md) }]}>
       <View style={styles.bar}>
-        {state.routes.map((route, index) => {
+        {orderedRoutes.map((route) => {
           const meta = tabs[route.name];
           if (!meta) return null;
 
@@ -50,7 +57,7 @@ export function TabBar({
             <TabButton
               key={route.key}
               meta={meta}
-              focused={state.index === index}
+              focused={route.key === activeRouteKey}
               onPress={() => {
                 if (Platform.OS !== 'web') {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -88,19 +95,32 @@ function TabButton({
   }, [focused, lift]);
 
   const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -lift.value * 3 }, { scale: 1 + lift.value * 0.12 }],
+    transform: [
+      { translateY: meta.featured ? -4 - lift.value * 3 : -lift.value * 3 },
+      { scale: 1 + lift.value * 0.12 },
+    ],
   }));
 
   return (
     <Pressable onPress={onPress} style={styles.tab} hitSlop={6}>
-      <Animated.View style={[styles.iconSlot, iconStyle, focused && { backgroundColor: DetailAccent }]}>
-        <Ionicons
-          name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
-          size={21}
-          color={focused ? Accent : Palette.textFaint}
-        />
+      <Animated.View
+        style={[
+          meta.featured ? styles.featuredIconSlot : styles.iconSlot,
+          iconStyle,
+          focused && (meta.featured ? styles.featuredFocusedSlot : { backgroundColor: DetailAccent }),
+        ]}
+      >
+        {meta.customIcon ? (
+          meta.customIcon(focused)
+        ) : (
+          <Ionicons
+            name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
+            size={meta.featured ? 30 : 21}
+            color={focused ? Accent : Palette.textFaint}
+          />
+        )}
       </Animated.View>
-      <Txt variant="tiny" color={focused ? Accent : Palette.textFaint}>
+      <Txt variant={meta.featured ? 'tiny' : 'tiny'} color={focused ? Accent : Palette.textFaint}>
         {meta.label}
       </Txt>
     </Pressable>
@@ -139,5 +159,19 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  featuredIconSlot: {
+    width: 52,
+    height: 44,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thick,
+    borderColor: Palette.border,
+  },
+  featuredFocusedSlot: {
+    backgroundColor: DetailAccent,
+    borderColor: Accent,
   },
 });

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, Pill, Txt } from '@/components/ui';
@@ -24,6 +25,7 @@ const DREAM_ITEMS: { icon: IconName; label: string; pick: (s: Student) => string
 ];
 
 export default function Profile() {
+  const router = useRouter();
   const student = useStudent();
   const { showError } = useErrorDialog();
 
@@ -73,25 +75,50 @@ export default function Profile() {
 
       {/* Istatistik doseme */}
       <View style={styles.section}>
-        <Txt variant="smallStrong" color={Palette.textDim}>
-          Bu Hafta
-        </Txt>
-        <View style={styles.tiles}>
-          <StatTile icon="star" color={DetailAccent} value={String(student.xp)} label="Toplam XP" />
-          <StatTile
-            icon="time"
-            color={DetailAccent}
-            value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
-            label="Odak Süresi"
-          />
-          <StatTile
-            icon="checkmark-done"
-            color={DetailAccent}
-            value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
-            label="Görev"
-          />
+        <View style={styles.sectionHead}>
+          <Txt variant="smallStrong" color={Palette.textDim}>
+            Bu Hafta
+          </Txt>
+          <PressScale onPress={() => router.push('/stats')} scaleTo={0.96}>
+            <Txt variant="tiny" color={DetailAccent}>
+              Tüm Raporlar →
+            </Txt>
+          </PressScale>
         </View>
+        <PressScale onPress={() => router.push('/stats')} scaleTo={0.98}>
+          <View style={styles.tiles}>
+            <StatTile icon="star" color={DetailAccent} value={String(student.xp)} label="Toplam XP" />
+            <StatTile
+              icon="time"
+              color={DetailAccent}
+              value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
+              label="Odak Süresi"
+            />
+            <StatTile
+              icon="checkmark-done"
+              color={DetailAccent}
+              value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
+              label="Görev"
+            />
+          </View>
+        </PressScale>
       </View>
+
+      {/* Raporlar & Istatistikler Karti */}
+      <PressScale onPress={() => router.push('/stats')} scaleTo={0.98}>
+        <Card accent={DetailAccent} style={styles.reportsBanner}>
+          <IconBubble name="stats-chart" color={DetailAccent} size={42} />
+          <View style={styles.flex}>
+            <Txt variant="bodyStrong" color={Palette.text}>
+              Çalışma Raporları & Analizler
+            </Txt>
+            <Txt variant="tiny" color={Palette.textDim}>
+              Haftalık odak, konu analizi ve başarı grafikleri
+            </Txt>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={DetailAccent} />
+        </Card>
+      </PressScale>
 
       {/* En buyuk hedef */}
       {student.goal ? (
@@ -226,6 +253,16 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Space.sm,
+  },
+  sectionHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  reportsBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
   },
   goalHero: {
     gap: Space.md,

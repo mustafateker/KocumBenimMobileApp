@@ -35,7 +35,7 @@ export default function Login() {
     if (submitting) return;
     if (!email.trim() || !password) {
       setHasError(true);
-      showMessage('Eksik bilgi', 'Kullanıcı adı ve parolanı gir.');
+      showMessage('Eksik bilgi', 'E-posta adresini ve parolanı gir.');
       return;
     }
 
@@ -46,8 +46,13 @@ export default function Login() {
       router.replace('/');
     } catch (err) {
       setHasError(true);
-      if (err instanceof ApiError && (err.code === 'INVALID_CREDENTIALS' || err.status === 401)) {
-        showMessage('Giriş yapılamadı', 'Kullanıcı adı veya parola hatalı.');
+      if (err instanceof ApiError && err.code === 'FORBIDDEN_ROLE') {
+        showMessage('Öğrenci Hesabı Gerekli', err.message);
+      } else if (err instanceof ApiError && (err.code === 'INVALID_CREDENTIALS' || err.status === 401)) {
+        showMessage(
+          'Giriş yapılamadı',
+          'E-posta veya parola hatalı. Lütfen kullanıcı adı yerine kayıtlı tam e-posta adresinizi girdiğinizden emin olun.'
+        );
       } else {
         showError(err, { title: 'Giriş yapılamadı', code: 'LOGIN' });
       }
@@ -85,17 +90,18 @@ export default function Login() {
         </View>
 
         <View style={styles.form}>
-          <Field label="Kullanıcı adı veya e-posta">
+          <Field label="E-posta">
             <TextField
               value={email}
               onChangeText={(v) => {
                 setEmail(v);
                 setHasError(false);
               }}
-              placeholder="kullanıcı adın"
+              placeholder="ornek@email.com"
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="username"
+              autoComplete="email"
+              keyboardType="email-address"
               error={hasError}
               tone="onboarding"
             />

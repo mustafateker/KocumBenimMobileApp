@@ -11,7 +11,16 @@ const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
 
 /** API'nin dondurdugu goreli medya yollarini HTTPS API adresine baglar. */
 export function apiMediaUrl(value: string): string {
-  if (!value || /^(https?:|data:|blob:|file:|ph:)/i.test(value)) return value;
+  if (!value) return '';
+  if (/^(data:|blob:|file:|ph:)/i.test(value)) return value;
+  // Dahili MinIO adresi gelirse (localhost:9000 vb.), mobil cihaz dogrudan baglanamaz
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?/i.test(value)) {
+    const questionsMatch = value.match(/\/questions\/(\d+)\/([a-zA-Z0-9_-]+)/);
+    if (questionsMatch) {
+      return `${BASE_URL.replace(/\/$/, '')}/questions/${questionsMatch[1]}/${questionsMatch[2]}`;
+    }
+  }
+  if (/^https?:/i.test(value)) return value;
   return `${BASE_URL.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
 }
 

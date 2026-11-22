@@ -1,8 +1,8 @@
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { IconButton, NeonButton, PressScale } from '@/components/button';
+import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Segmented, Txt } from '@/components/ui';
@@ -12,7 +12,7 @@ import { useErrorDialog } from '@/lib/error-dialog';
 import { useStudent } from '@/lib/session';
 import type { Task } from '@/lib/types';
 import { categoryColor, categoryIcon, categoryLabel, taskGoal, taskGoalLabel, taskTopicLabel } from '@/lib/task-categories';
-import { Border, DetailAccent, Palette, Space } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Palette, Space, pillRadius } from '@/theme/tokens';
 
 type RangeKey = 'daily' | 'weekly' | 'monthly';
 
@@ -59,7 +59,7 @@ export default function Tasks() {
   return (
     <Screen tint={Palette.green}>
       <ScreenHeader
-        title="Görevlerin"
+        title="Ödevlerim"
         subtitle={`${doneCount}/${tasks.length} tamamlandı`}
         left={<MenuButton />}
         right={<NotificationBell />}
@@ -70,8 +70,8 @@ export default function Tasks() {
       {tasks.length === 0 ? (
         <EmptyState
           icon="checkmark-done-outline"
-          title="Bu aralıkta görev yok"
-          subtitle="Yeni görevler atandığında burada göreceksin."
+          title="Bu aralıkta ödev yok"
+          subtitle="Koçum veya öğretmenin yeni ödev atadığında burada göreceksin."
           color={Palette.green}
         />
       ) : (
@@ -102,12 +102,14 @@ function TaskCard({
   onToggle: () => void;
   onCompleted: (task: Task) => void;
 }) {
+  const router = useRouter();
   const { showError } = useErrorDialog();
   const completed = task.completedAt !== null;
   const progress = task.target === 0 ? 0 : task.done / task.target;
   const catColor = categoryColor(task.category);
   const goal = taskGoal(task);
   const topicLabel = taskTopicLabel(task);
+  const isAiTask = String(task.createdBy) === 'ai';
 
   const [completing, setCompleting] = useState(false);
   const [correct, setCorrect] = useState(task.target);
@@ -160,9 +162,18 @@ function TaskCard({
             size={40}
           />
           <View style={styles.flex}>
-            <Txt variant="bodyStrong" numberOfLines={1}>
-              {task.title}
-            </Txt>
+            <View style={styles.titleLine}>
+              <Txt variant="bodyStrong" numberOfLines={1} style={styles.flex}>
+                {task.title}
+              </Txt>
+              {isAiTask ? (
+                <View style={styles.aiBadge}>
+                  <Txt variant="tiny" color={Accent}>
+                    Koçum
+                  </Txt>
+                </View>
+              ) : null}
+            </View>
             {topicLabel ? (
               <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
                 {topicLabel}
@@ -207,7 +218,22 @@ function TaskCard({
             )}
 
             {!completed && !completing && (
-              <NeonButton label="Görevi Tamamla" icon="checkmark" color={Palette.green} onPress={startCompleting} full />
+              <View style={styles.actionButtons}>
+                {goal === 'minutes' ? (
+                  <GhostButton
+                    label={`Pomodoro Sayacını Başlat (${task.durationMinutes || 25} dk)`}
+                    icon="timer-outline"
+                    onPress={() =>
+                      router.push({
+                        pathname: '/focus',
+                        params: { seconds: String((task.durationMinutes || 25) * 60) },
+                      })
+                    }
+                    full
+                  />
+                ) : null}
+                <NeonButton label="Ödevi Tamamla" icon="checkmark" color={Palette.green} onPress={startCompleting} full />
+              </View>
             )}
 
             {!completed && completing && goal === 'questions' && (
@@ -301,6 +327,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
+  },
+  titleLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  aiBadge: {
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    paddingHorizontal: 7,
+    paddingVertical: 1,
+    borderRadius: pillRadius(18),
+  },
+  actionButtons: {
+    gap: Space.xs,
   },
   details: {
     gap: Space.sm,

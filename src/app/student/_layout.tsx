@@ -1,13 +1,25 @@
 import { Redirect, Tabs } from 'expo-router';
 
 import { AppErrorBoundary } from '@/components/app-error-boundary';
+import { PlayReviewPrompt } from '@/components/play-review-prompt';
+import { RaccoonIcon } from '@/components/raccoon-icon';
 import { TabBar, type TabBarState, type TabMeta } from '@/components/tab-bar';
 import { HamburgerMenuProvider } from '@/lib/hamburger-menu-context';
 import { useNotificationRouting } from '@/lib/push-notifications';
 import { useSession } from '@/lib/session';
+import { Accent, Palette } from '@/theme/tokens';
+
 const TABS: Record<string, TabMeta> = {
-  index: { label: 'Ana Sayfa', icon: 'home' },
-  tasks: { label: 'Görevlerim', icon: 'checkmark-done' },
+  index: { label: 'Anasayfa', icon: 'home' },
+  tasks: { label: 'Ödevlerim', icon: 'checkmark-done' },
+  'ai-coach': {
+    label: 'Koçum',
+    icon: 'sparkles',
+    featured: true,
+    customIcon: (focused: boolean) => (
+      <RaccoonIcon size={34} color={focused ? Accent : Palette.textFaint} strokeWidth={focused ? 2.2 : 1.8} />
+    ),
+  },
   questions: { label: 'Sorularım', icon: 'camera' },
   profile: { label: 'Profil', icon: 'person' },
 };
@@ -40,9 +52,11 @@ function StudentTabs() {
       >
         <Tabs.Screen name="index" />
         <Tabs.Screen name="tasks" />
+        <Tabs.Screen name="ai-coach" />
         <Tabs.Screen name="questions" />
         <Tabs.Screen name="profile" />
       </Tabs>
+      <PlayReviewPrompt />
     </HamburgerMenuProvider>
   );
 }

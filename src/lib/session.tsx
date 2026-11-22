@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
+  ApiError,
   clearTokens,
   getRefreshToken,
   hasAccessToken,
@@ -45,6 +46,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         await loadStoredTokens();
         if (!hasAccessToken()) return;
         const me = await getMe();
+        if (me.role !== 'student') {
+          await clearTokens();
+          return;
+        }
         if (!cancelled) setUser(me);
       } catch {
         // Token gecersiz/suresi dolmus ve refresh basarisizsa oturumsuz baslamak dogru davranis.
@@ -67,7 +72,18 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string, remember = true) => {
-    const { user: signedInUser, tokens } = await apiLogin(email.trim(), password, remember);
+    const cleanEmail = email.trim().toLowerCase();
+    const { user: signedInUser, tokens } = await apiLogin(cleanEmail, password, remember);
+
+    if (signedInUser.role !== 'student') {
+      await clearTokens();
+      throw new ApiError(
+        403,
+        'FORBIDDEN_ROLE',
+        'Bu mobil uygulama yalnızca öğrenci hesapları içindir. Koç / Öğretmen hesabınızla web yönetim panelinden giriş yapabilirsiniz.'
+      );
+    }
+
     await persistTokens(tokens, remember);
     setUser(signedInUser);
   }, []);

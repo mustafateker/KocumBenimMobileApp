@@ -3,7 +3,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconButton, NeonButton, PressScale } from '@/components/button';
@@ -325,6 +325,8 @@ function QuestionCard({
 }) {
   const meta = STATUS_META[question.status];
   const [busy, setBusy] = useState(false);
+  const [replyImgLoading, setReplyImgLoading] = useState(true);
+  const [replyImgFailed, setReplyImgFailed] = useState(false);
   const { showError } = useErrorDialog();
 
   let rawReply = (question.teacherReply || '').trim();
@@ -339,7 +341,7 @@ function QuestionCard({
     rawReply = '';
   }
 
-  const solutionImageUri =
+  let rawSolutionUri =
     question.teacherReplyImage ||
     question.replyImage ||
     question.solutionImage ||
@@ -347,7 +349,20 @@ function QuestionCard({
     (question as any).teacher_reply_image ||
     (question as any).reply_image ||
     (question as any).solution_image ||
-    embeddedSolutionImage ||
+    embeddedSolutionImage;
+
+  // MinIO dahili adresi ise (localhost:9000 vb.), istemcinin erisebildigi proxy rotasina bagla
+  if (
+    rawSolutionUri &&
+    /localhost|127\.0\.0\.1|:9000|\/kocum-benim\//i.test(rawSolutionUri)
+  ) {
+    const match = (question.imageUrl || '').match(/token=([^&]+)/);
+    const tokenQuery = match ? `?token=${match[1]}` : '';
+    rawSolutionUri = `/questions/${question.id}/reply-image${tokenQuery}`;
+  }
+
+  const solutionImageUri =
+    rawSolutionUri ||
     (question.status === 'answered' ? `/questions/${question.id}/reply-image` : null);
 
   const cleanReplyText =
@@ -435,7 +450,32 @@ function QuestionCard({
                   source={{ uri: apiMediaUrl(solutionImageUri) }}
                   style={styles.replyImage}
                   contentFit="contain"
+                  onLoadStart={() => {
+                    setReplyImgLoading(true);
+                    setReplyImgFailed(false);
+                  }}
+                  onLoad={() => {
+                    setReplyImgLoading(false);
+                    setReplyImgFailed(false);
+                  }}
+                  onError={() => {
+                    setReplyImgLoading(false);
+                    setReplyImgFailed(true);
+                  }}
                 />
+                {replyImgLoading && !replyImgFailed ? (
+                  <View style={styles.replyImageOverlayCenter}>
+                    <ActivityIndicator size="small" color={Palette.green} />
+                  </View>
+                ) : null}
+                {replyImgFailed ? (
+                  <View style={styles.replyImageOverlayCenter}>
+                    <Ionicons name="alert-circle-outline" size={20} color={Palette.textDim} />
+                    <Txt variant="tiny" color={Palette.textDim}>
+                      Görsel yüklenemedi
+                    </Txt>
+                  </View>
+                ) : null}
                 <View style={styles.zoomBadge}>
                   <Ionicons name="scan-outline" size={13} color="#FFFFFF" />
                   <Txt variant="tiny" color="#FFFFFF">
@@ -657,11 +697,24 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: Radius.sm,
     overflow: 'hidden',
-    backgroundColor: Palette.surface,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   replyImage: {
     width: '100%',
     height: '100%',
+  },
+  replyImageOverlayCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Space.xs,
+    backgroundColor: Palette.surfaceHi,
   },
   zoomBadge: {
     position: 'absolute',

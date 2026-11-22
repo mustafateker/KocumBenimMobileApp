@@ -7,14 +7,16 @@ import { useSharedValue } from 'react-native-reanimated';
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
+import { RaccoonIcon } from '@/components/raccoon-icon';
 import { Screen } from '@/components/screen';
+import { TodayStudyCard } from '@/components/today-study-card';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { getTasks, getUpcomingLessons } from '@/lib/api';
+import { getAiCoachContext, getSummary, getTasks, getUpcomingLessons, requestAiCoachTask } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
-import type { PrivateLesson, Task } from '@/lib/types';
+import type { AiCoachContext, AiDailyRecommendation, PrivateLesson, StudentSummary, Task } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const DURATIONS = [
@@ -34,7 +36,11 @@ export default function Home() {
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [summary, setSummary] = useState<StudentSummary | null>(null);
   const [nextLesson, setNextLesson] = useState<PrivateLesson | null>(null);
+  const [aiContext, setAiContext] = useState<AiCoachContext | null>(null);
+  const [assigningRecId, setAssigningRecId] = useState<string | null>(null);
+  const [assignedRecIds, setAssignedRecIds] = useState<Record<string, boolean>>({});
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(DURATIONS[0].seconds);
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
@@ -45,6 +51,18 @@ export default function Home() {
       setTasks(await getTasks('day'));
     } catch (err) {
       showError(err, { title: 'Görevler yüklenemedi', code: 'HOME_TASKS_LOAD' });
+    }
+    try {
+      const s = await getSummary();
+      setSummary(s);
+    } catch {
+      // sessizce devam
+    }
+    try {
+      const ctx = await getAiCoachContext();
+      setAiContext(ctx);
+    } catch {
+      // cevrimdisi durumda yerel oneriler gosterilir
     }
     try {
       const upcoming = await getUpcomingLessons(1);
@@ -85,11 +103,124 @@ export default function Home() {
   const draftMinutes = Math.floor(draft / 60);
   const draftSeconds = draft % 60;
 
+  // Gunluk istatistik hesaplamalari
+  const todayPomodoroMinutes = summary?.todayMinutes ?? aiContext?.studyStats?.todayMinutes ?? 0;
+  const todayQuestions = tasks.reduce((sum, task) => {
+    if (task.category === 'question') {
+      const count = (task.correctCount || 0) + (task.wrongCount || 0);
+      return sum + (count > 0 ? count : (task.done || 0));
+    }
+    return sum;
+  }, 0);
+  const todayCorrect = tasks.reduce((sum, task) => {
+    if (task.category === 'question') {
+      return sum + (task.correctCount || 0);
+    }
+    return sum;
+  }, 0);
+
+  // Otomatik gunluk AI koç onerileri (sunucudan veya yerel veriden)
+  const targetMinutes = aiContext?.student?.targetMinutes ?? 60;
+  const gradeLabel = aiContext?.student?.grade ?? student.grade ?? '8. Sınıf';
+  const pendingCount = tasks.filter((t) => t.completedAt === null).length;
+
+  const dailyRecommendations: AiDailyRecommendation[] =
+    aiContext?.dailyRecommendations && aiContext.dailyRecommendations.length > 0
+      ? aiContext.dailyRecommendations
+      : [
+          {
+            id: 'local-topic',
+            category: 'topic',
+            badge: `${gradeLabel} Müfredat`,
+            title: aiContext?.weakTopics?.[0]
+              ? `${aiContext.weakTopics[0].subject} · ${aiContext.weakTopics[0].topic}`
+              : `${gradeLabel} Konu ve Soru Çalışması`,
+            description: aiContext?.weakTopics?.[0]
+              ? `Son soru çözümlerinde %${aiContext.weakTopics[0].accuracyRate} başarı (${aiContext.weakTopics[0].wrongCount} yanlış) görülüyor. Bugün konu tekrarı ve 20 soru çözümü önerilir.`
+              : `Sınıf seviyene uygun günlük konu tekrarı ve soru çözümü görevlerini panona ekleyebilirsin.`,
+            actionType: 'assign_task',
+            actionLabel: 'Günlük Ödev Ata',
+            subject: aiContext?.weakTopics?.[0]?.subject,
+            topic: aiContext?.weakTopics?.[0]?.topic,
+          },
+          {
+            id: 'local-duration',
+            category: 'duration',
+            badge: 'Çalışma Süresi',
+            title: `Günlük Hedef: ${targetMinutes} Dakika`,
+            description:
+              todayPomodoroMinutes >= targetMinutes
+                ? `Bugün ${todayPomodoroMinutes} dakika çalışarak günlük odak hedefini tamamladın.`
+                : `Bugün ${todayPomodoroMinutes} dakika odaklandın. Hedefini tamamlamak için ${Math.max(25, targetMinutes - todayPomodoroMinutes)} dakikalık oturum başlatabilirsin.`,
+            actionType: 'start_focus',
+            actionLabel: 'Odaklanmaya Başla',
+            recommendedMinutes: 25,
+          },
+          {
+            id: 'local-routine',
+            category: 'routine',
+            badge: pendingCount > 0 ? 'Seri Takibi' : 'Günlük Plan',
+            title:
+              tasks.length === 0
+                ? 'Bugün İçin Görev Atanmadı'
+                : pendingCount > 0
+                  ? `Bekleyen ${pendingCount} Görevin Var`
+                  : 'Bugünkü Görevler Tamamlandı',
+            description:
+              tasks.length === 0
+                ? `${student.streak} günlük çalışma serini sürdürmek için sınıfına uygun görev oluşturabilirsin.`
+                : pendingCount > 0
+                  ? `${student.streak} günlük serini korumak için bugünkü kalan görevlerini tamamlamalısın.`
+                  : `Bugün atanan tüm görevlerini bitirdin ve çalışma serini korudun.`,
+            actionType: tasks.length === 0 ? 'assign_task' : pendingCount > 0 ? 'open_tasks' : 'open_chat',
+            actionLabel: tasks.length === 0 ? 'Görev Oluştur' : pendingCount > 0 ? 'Görevlere Git' : 'Koçla Değerlendir',
+          },
+        ];
+
+  const handleRecommendationAction = useCallback(
+    async (rec: AiDailyRecommendation) => {
+      if (rec.actionType === 'assign_task') {
+        if (assigningRecId || assignedRecIds[rec.id]) {
+          router.push('/student/tasks');
+          return;
+        }
+        setAssigningRecId(rec.id);
+        try {
+          const created = await requestAiCoachTask(rec.subject, rec.topic);
+          setAssignedRecIds((prev) => ({ ...prev, [rec.id]: true }));
+          if (created && created.length > 0) {
+            setTasks((prev) => [...created, ...prev]);
+          } else {
+            setTasks(await getTasks('day'));
+          }
+        } catch (err) {
+          showError(err, { title: 'Ödev atanamadı', code: 'HOME_AI_TASK_ASSIGN' });
+        } finally {
+          setAssigningRecId(null);
+        }
+        return;
+      }
+
+      if (rec.actionType === 'start_focus') {
+        const mins = rec.recommendedMinutes ?? 25;
+        router.push({ pathname: '/focus', params: { seconds: String(mins * 60) } });
+        return;
+      }
+
+      if (rec.actionType === 'open_tasks') {
+        router.push('/student/tasks');
+        return;
+      }
+
+      router.push('/student/ai-coach');
+    },
+    [assignedRecIds, assigningRecId, router, showError]
+  );
+
   return (
     <Screen>
       {/* Ust bar */}
       <View style={styles.topBar}>
-        {/* Menu sol ustte, bildirim sag ustte — tum ogrenci ekranlarinda ayni yerde. */}
         <MenuButton />
 
         <PressScale onPress={() => router.push('/student/profile')} style={styles.who}>
@@ -108,6 +239,13 @@ export default function Home() {
           <NotificationBell />
         </View>
       </View>
+
+      {/* Gunluk Calisma Ozeti Karti */}
+      <TodayStudyCard
+        pomodoroMinutes={todayPomodoroMinutes}
+        questionsSolved={todayQuestions}
+        correctCount={todayCorrect}
+      />
 
       {/* Odak zamani secici */}
       <PressScale onPress={openPicker} scaleTo={0.98}>
@@ -164,6 +302,122 @@ export default function Home() {
         />
       </View>
 
+      {/* Otomatik Gunluk Koçum Onerileri */}
+      <View style={styles.section}>
+        <View style={styles.sectionHead}>
+          <SectionLabel>Günlük Koçum Önerileri</SectionLabel>
+          <PressScale onPress={() => router.push('/student/ai-coach')}>
+            <Txt variant="tiny" color={Accent}>
+              Koçum ile Konuş →
+            </Txt>
+          </PressScale>
+        </View>
+
+        <Card accent={DetailAccent} style={styles.aiSummaryCard}>
+          <View style={styles.aiSummaryTop}>
+            <RaccoonIcon size={44} />
+            <View style={styles.flex}>
+              <View style={styles.aiTitleRow}>
+                <Txt variant="bodyStrong">Bugünün Koçluk Analizi</Txt>
+                <View style={styles.targetPill}>
+                  <Txt variant="tiny" color={Accent}>
+                    Hedef: {targetMinutes} dk
+                  </Txt>
+                </View>
+              </View>
+              <Txt variant="tiny" color={Palette.textDim}>
+                {aiContext?.dailySummary ??
+                  `${gradeLabel} çalışma verilerine ve soru çözümlerine göre bugünkü kişisel önerilerin:`}
+              </Txt>
+            </View>
+          </View>
+
+          <View style={styles.recList}>
+            {dailyRecommendations.map((rec) => {
+              const isAssigned = Boolean(assignedRecIds[rec.id]);
+              const isBusy = assigningRecId === rec.id;
+              const iconName: React.ComponentProps<typeof Ionicons>['name'] =
+                rec.category === 'topic'
+                  ? 'book-outline'
+                  : rec.category === 'duration'
+                    ? 'timer-outline'
+                    : 'checkmark-circle-outline';
+
+              return (
+                <View key={rec.id} style={styles.recItem}>
+                  <View style={styles.recHeader}>
+                    <View style={styles.recBadgeWrap}>
+                      <Ionicons name={iconName} size={13} color={Accent} />
+                      <Txt variant="tiny" color={Accent}>
+                        {rec.badge}
+                      </Txt>
+                    </View>
+                    <PressScale
+                      onPress={() => handleRecommendationAction(rec)}
+                      disabled={isBusy}
+                      scaleTo={0.96}
+                    >
+                      <View style={[styles.recActionBtn, isAssigned && styles.recActionBtnDone]}>
+                        <Txt variant="tiny" color={isAssigned ? Accent : OnColorText}>
+                          {isBusy ? 'Atanıyor...' : isAssigned ? 'Ödevlerime Git →' : rec.actionLabel}
+                        </Txt>
+                      </View>
+                    </PressScale>
+                  </View>
+
+                  <Txt variant="smallStrong" color={Palette.text}>
+                    {rec.title}
+                  </Txt>
+                  <Txt variant="tiny" color={Palette.textDim}>
+                    {rec.description}
+                  </Txt>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
+      </View>
+
+      {/* Gunluk odevler */}
+      <View style={styles.section}>
+        <View style={styles.sectionHead}>
+          <SectionLabel>Günlük Ödevler</SectionLabel>
+          <PressScale onPress={() => router.push('/student/tasks')}>
+            <Txt variant="tiny" color={Accent}>
+              Tümünü Gör
+            </Txt>
+          </PressScale>
+        </View>
+
+        {tasks.length === 0 ? (
+          <Card>
+            <Txt variant="small" color={Palette.textDim}>
+              Bugün için atanmış ödev yok. Yukarıdaki Koçum önerisinden günlük ödev oluşturabilirsin.
+            </Txt>
+          </Card>
+        ) : (
+          <View style={styles.taskGrid}>
+            {tasks.slice(0, 3).map((task) => (
+              <MiniTaskCard key={task.id} task={task} />
+            ))}
+          </View>
+        )}
+      </View>
+
+      {/* Derslerim ve Maarif Müfredat Konu Takibi */}
+      <PressScale onPress={() => router.push('/subjects')}>
+        <Card accent={Accent} style={styles.quickCard}>
+          <IconBubble name="book" color={DetailAccent} size={48} />
+          <View style={styles.flex}>
+            <Txt variant="bodyStrong">Derslerim ve Konu Takibi</Txt>
+            <Txt variant="tiny" color={Palette.textDim}>
+              {gradeLabel} Maarif müfredatı, okulda geldiğin konular ve soru analizlerin
+            </Txt>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
+        </Card>
+      </PressScale>
+
       {/* Hizli soru sor */}
       <PressScale onPress={() => router.push('/student/questions')}>
         <Card accent={Accent} style={styles.quickCard}>
@@ -171,7 +425,7 @@ export default function Home() {
           <View style={styles.flex}>
             <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
             <Txt variant="tiny" color={Palette.textDim}>
-              Sorunu çek, üstüne çiz, hocana gönder!
+              Sorunu çek, üstüne çiz, hocana gönder
             </Txt>
           </View>
           <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
@@ -193,32 +447,6 @@ export default function Home() {
           </Card>
         </PressScale>
       ) : null}
-
-      {/* Gunluk gorevler */}
-      <View style={styles.section}>
-        <View style={styles.sectionHead}>
-          <SectionLabel>Günlük Görevler</SectionLabel>
-          <PressScale onPress={() => router.push('/student/tasks')}>
-            <Txt variant="tiny" color={Accent}>
-              Tümünü Gör
-            </Txt>
-          </PressScale>
-        </View>
-
-        {tasks.length === 0 ? (
-          <Card>
-            <Txt variant="small" color={Palette.textDim}>
-              Bugün için atanmış görev yok. Kendi temponla çalışabilirsin.
-            </Txt>
-          </Card>
-        ) : (
-          <View style={styles.taskGrid}>
-            {tasks.slice(0, 3).map((task) => (
-              <MiniTaskCard key={task.id} task={task} />
-            ))}
-          </View>
-        )}
-      </View>
 
       {/* Manuel sure secici */}
       <Modal visible={pickerOpen} transparent animationType="fade" onRequestClose={() => setPickerOpen(false)}>
@@ -250,6 +478,8 @@ export default function Home() {
     </Screen>
   );
 }
+
+const OnColorText = Palette.bg;
 
 function Stepper({
   label,
@@ -360,6 +590,79 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  aiSummaryCard: {
+    gap: Space.md,
+  },
+  aiSummaryTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Space.md,
+  },
+  raccoonBubble: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  aiTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Space.xs,
+    marginBottom: 2,
+  },
+  targetPill: {
+    backgroundColor: Palette.surfaceHi,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: pillRadius(20),
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  recList: {
+    gap: Space.sm,
+    borderTopWidth: Border.thin,
+    borderTopColor: Palette.border,
+    paddingTop: Space.sm,
+  },
+  recItem: {
+    backgroundColor: Palette.bg,
+    borderRadius: Radius.md,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    padding: Space.md,
+    gap: 4,
+  },
+  recHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  recBadgeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: Palette.surfaceHi,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: pillRadius(20),
+  },
+  recActionBtn: {
+    backgroundColor: Accent,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: pillRadius(24),
+  },
+  recActionBtnDone: {
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Accent,
   },
   taskGrid: {
     flexDirection: 'row',

@@ -36,6 +36,12 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         subtitle="Menü"
         items={[
           {
+            icon: 'book-outline',
+            label: 'Derslerim',
+            color: Palette.orange,
+            onPress: () => router.push('/subjects'),
+          },
+          {
             icon: 'notifications-outline',
             label: 'Bildirimler',
             color: Palette.purple,
@@ -43,7 +49,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
           },
           {
             icon: 'stats-chart-outline',
-            label: 'İstatistikler',
+            label: 'Raporlar & İstatistikler',
             color: Palette.blue,
             onPress: () => router.push('/stats'),
           },

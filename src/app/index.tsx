@@ -1,4 +1,5 @@
 import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useSession } from '@/lib/session';
@@ -6,7 +7,13 @@ import { Palette } from '@/theme/tokens';
 
 /** Giris kapisi: kayitli oturum varsa rolun ana ekranina, yoksa girise. */
 export default function Index() {
-  const { user, loading } = useSession();
+  const { user, loading, signOut } = useSession();
+
+  useEffect(() => {
+    if (!loading && user && user.role !== 'student') {
+      signOut();
+    }
+  }, [loading, user, signOut]);
 
   if (loading) {
     return (
@@ -16,15 +23,10 @@ export default function Index() {
     );
   }
 
-  if (!user) return <Redirect href="/login" />;
+  if (!user || user.role !== 'student') return <Redirect href="/login" />;
 
-  if (user.role === 'student') {
-    if (!user.onboardingCompletedAt) return <Redirect href="/onboarding" />;
-    return <Redirect href="/student" />;
-  }
-
-  // Ogretmen/veli girisi su an bu mobil uygulamada yok (ayri web panel planlaniyor).
-  return <Redirect href="/login" />;
+  if (!user.onboardingCompletedAt) return <Redirect href="/onboarding" />;
+  return <Redirect href="/student" />;
 }
 
 const styles = StyleSheet.create({
