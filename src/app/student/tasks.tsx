@@ -2,7 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
+import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, ProgressBar, Segmented, Txt } from '@/components/ui';
@@ -110,6 +110,7 @@ function TaskCard({
   const goal = taskGoal(task);
   const topicLabel = taskTopicLabel(task);
   const isAiTask = String(task.createdBy) === 'ai';
+  const isFocusTask = task.category === 'focus' || goal === 'minutes';
 
   const [completing, setCompleting] = useState(false);
   const [correct, setCorrect] = useState(task.target);
@@ -117,10 +118,11 @@ function TaskCard({
   const [busy, setBusy] = useState(false);
 
   const startCompleting = useCallback(() => {
+    if (isFocusTask) return;
     setCorrect(task.target);
     setWrong(0);
     setCompleting(true);
-  }, [task.target]);
+  }, [task.target, isFocusTask]);
 
   // Dogru + yanlis hedefi asamaz: biri artinca gerekirse digeri azalir, kalan sorular bos sayilir.
   const changeCorrect = useCallback(
@@ -139,6 +141,7 @@ function TaskCard({
   );
 
   const submit = useCallback(async () => {
+    if (isFocusTask) return;
     setBusy(true);
     try {
       // Dogru/yanlis yalnizca soru hedefli gorevlerde sorulur; konu ve odak gorevlerinde 0 gider.
@@ -150,7 +153,7 @@ function TaskCard({
     } finally {
       setBusy(false);
     }
-  }, [task.id, goal, correct, wrong, onCompleted, showError]);
+  }, [task.id, goal, isFocusTask, correct, wrong, onCompleted, showError]);
 
   return (
     <PressScale onPress={onToggle} scaleTo={0.99}>
@@ -219,20 +222,30 @@ function TaskCard({
 
             {!completed && !completing && (
               <View style={styles.actionButtons}>
-                {goal === 'minutes' ? (
-                  <GhostButton
-                    label={`Pomodoro Sayacını Başlat (${task.durationMinutes || 25} dk)`}
-                    icon="timer-outline"
-                    onPress={() =>
-                      router.push({
-                        pathname: '/focus',
-                        params: { seconds: String((task.durationMinutes || 25) * 60) },
-                      })
-                    }
-                    full
-                  />
-                ) : null}
-                <NeonButton label="Ödevi Tamamla" icon="checkmark" color={Palette.green} onPress={startCompleting} full />
+                {isFocusTask ? (
+                  <View style={styles.focusTaskWrap}>
+                    <NeonButton
+                      label={`Pomodoro'yu Başlat (${task.durationMinutes || 25} dk)`}
+                      icon="timer-outline"
+                      color={Palette.orange}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/focus',
+                          params: {
+                            seconds: String((task.durationMinutes || 25) * 60),
+                            taskId: String(task.id),
+                          },
+                        })
+                      }
+                      full
+                    />
+                    <Txt variant="tiny" color={Palette.textDim} center>
+                      Bu görev Pomodoro odaklanma seansı bittiğinde otomatik olarak tamamlanır.
+                    </Txt>
+                  </View>
+                ) : (
+                  <NeonButton label="Ödevi Tamamla" icon="checkmark" color={Palette.green} onPress={startCompleting} full />
+                )}
               </View>
             )}
 
@@ -252,12 +265,10 @@ function TaskCard({
               </View>
             )}
 
-            {!completed && completing && goal !== 'questions' && (
+            {!completed && completing && goal !== 'questions' && !isFocusTask && (
               <View style={styles.completeForm}>
                 <Txt variant="small" color={Palette.textDim}>
-                  {goal === 'minutes'
-                    ? `${task.durationMinutes} dakikalık çalışmanı tamamladın mı?`
-                    : 'Bu konuyu çalışmayı tamamladın mı?'}
+                  Bu konuyu çalışmayı tamamladın mı?
                 </Txt>
                 <NeonButton label={busy ? 'Kaydediliyor…' : 'Evet, Bitir'} color={Palette.green} disabled={busy} onPress={submit} full />
               </View>
@@ -342,6 +353,9 @@ const styles = StyleSheet.create({
     borderRadius: pillRadius(18),
   },
   actionButtons: {
+    gap: Space.xs,
+  },
+  focusTaskWrap: {
     gap: Space.xs,
   },
   details: {

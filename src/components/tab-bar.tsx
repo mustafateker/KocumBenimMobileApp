@@ -47,7 +47,7 @@ export function TabBar({
   const activeRouteKey = state.routes[state.index]?.key;
 
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 8 : 6, 6) }]}>
+    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 16 : 4, 4) }]}>
       <View style={styles.bar}>
         {orderedRoutes.map((route) => {
           const meta = tabs[route.name];
@@ -115,7 +115,7 @@ function TabButton({
         ) : (
           <Ionicons
             name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
-            size={meta.featured ? 30 : 21}
+            size={meta.featured ? 28 : 20}
             color={focused ? Accent : Palette.textFaint}
           />
         )}
@@ -137,33 +137,33 @@ const styles = StyleSheet.create({
     borderTopWidth: Border.thin,
     borderTopColor: Palette.border,
     paddingHorizontal: Space.md,
-    paddingTop: 4,
+    paddingTop: 2,
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Palette.surface,
-    paddingVertical: 2,
+    paddingVertical: 1,
     paddingHorizontal: Space.xs,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 2,
+    gap: 1,
     paddingVertical: 1,
   },
   iconSlot: {
-    width: 38,
-    height: 28,
+    width: 36,
+    height: 25,
     borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   featuredIconSlot: {
-    width: 38,
-    height: 38,
-    borderRadius: 14,
+    width: 34,
+    height: 34,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.surfaceHi,

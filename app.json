@@ -18,7 +18,9 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.triworkster.kocumbenimmobileapp",
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
       ],
       "blockedPermissions": [
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -96,7 +98,18 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Takıldığın soru ve ödevlerin fotoğrafını çekip koçuna gönderebilmen için kameraya erişim izni gereklidir.",
         "NSPhotoLibraryUsageDescription": "Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.",
-        "NSPhotoLibraryAddUsageDescription": "Çözülen soruları ve çalışma notlarını cihazına kaydedebilmen için fotoğraf arşivine kayıt izni gereklidir."
+        "NSPhotoLibraryAddUsageDescription": "Çözülen soruları ve çalışma notlarını cihazına kaydedebilmen için fotoğraf arşivine kayıt izni gereklidir.",
+        "UIApplicationSceneManifest": {
+          "UIApplicationSupportsMultipleScenes": false,
+          "UISceneConfigurations": {
+            "UIWindowSceneSessionRoleApplication": [
+              {
+                "UISceneConfigurationName": "Default Configuration",
+                "UISceneDelegateClassName": "$(PRODUCT_MODULE_NAME).SceneDelegate"
+              }
+            ]
+          }
+        }
       }
     },
     "extra": {

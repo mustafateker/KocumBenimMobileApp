@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { Accent, Border, DetailAccent, Font, Motion, OnColor, Palette, Space } from '@/theme/tokens';
@@ -21,6 +21,7 @@ type PressScaleProps = {
   /** Basildiginda kucuLme orani */
   scaleTo?: number;
   hapticStyle?: Haptics.ImpactFeedbackStyle;
+  hitSlop?: PressableProps['hitSlop'];
 };
 
 /** Basinca yayli kuculen dokunma alani. Kart, sekme gibi buton-disi ogelerin temeli. */
@@ -31,6 +32,7 @@ export function PressScale({
   children,
   scaleTo = 0.96,
   hapticStyle,
+  hitSlop,
 }: PressScaleProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -38,6 +40,7 @@ export function PressScale({
   return (
     <AnimatedPressable
       disabled={disabled}
+      hitSlop={hitSlop}
       onPressIn={() => {
         // Reanimated paylasilan degerleri mutasyon icin tasarlandi; React
         // Compiler'in degismezlik kurali bu kullanimi tanimiyor.
@@ -152,6 +155,7 @@ export function IconButton({
   size = 40,
   disabled,
   style,
+  hitSlop = { top: 14, bottom: 14, left: 14, right: 14 },
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   onPress?: () => void;
@@ -159,9 +163,10 @@ export function IconButton({
   size?: number;
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  hitSlop?: PressableProps['hitSlop'];
 }) {
   return (
-    <PressScale onPress={onPress} disabled={disabled} scaleTo={0.88} style={style}>
+    <PressScale onPress={onPress} disabled={disabled} scaleTo={0.88} style={style} hitSlop={hitSlop}>
       <View
         style={[
           styles.iconButton,

@@ -13,12 +13,12 @@ import {
 } from '@/lib/maarif-curriculum';
 import {
   Border,
+  DetailAccent,
   OnboardingPalette,
   Palette,
   Radius,
   Space,
   pillRadius,
-  softOf,
 } from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -86,23 +86,23 @@ export function SingleSubjectTopicPicker({
       {/* Seçili Dersin Özet Başlık Kartı */}
       <View style={styles.subjectHeroCard}>
         <View style={styles.subjectHeroTop}>
-          <IconBubble name={getSubjectIcon(subject.name)} color={Palette.green} size={48} />
+          <IconBubble name={getSubjectIcon(subject.name)} color={DetailAccent} size={48} />
           <View style={styles.flex}>
             {typeof stepIndex === 'number' && typeof totalSteps === 'number' ? (
-              <Txt variant="tiny" color={OnboardingPalette.accent}>
+              <Txt variant="tiny" color={DetailAccent}>
                 {`DERS ${stepIndex + 1} / ${totalSteps}`}
               </Txt>
             ) : null}
-            <Txt variant="section" color={OnboardingPalette.text}>
+            <Txt variant="section" color={Palette.text}>
               {subject.name}
             </Txt>
-            <Txt variant="tiny" color={OnboardingPalette.textDim}>
+            <Txt variant="tiny" color={Palette.textDim}>
               {`${state.completedCount} / ${state.totalCount} Konu Tamamlandı (%${state.progressPercent})`}
             </Txt>
           </View>
-          <View style={styles.greenCountBadge}>
-            <Ionicons name="checkmark-circle" size={15} color="#FFFFFF" />
-            <Txt variant="tiny" color="#FFFFFF">
+          <View style={styles.topicCountBadge}>
+            <Ionicons name="checkmark-circle" size={14} color={Palette.green} />
+            <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '600' }}>
               {`${state.completedCount} Tamam`}
             </Txt>
           </View>
@@ -110,15 +110,18 @@ export function SingleSubjectTopicPicker({
 
         <ProgressBar
           progress={state.totalCount > 0 ? state.completedCount / state.totalCount : 0}
-          color={Palette.green}
-          height={8}
+          color={DetailAccent}
+          height={7}
+          track={Palette.surfaceHi}
         />
 
         <View style={styles.currentSelectionBox}>
-          <Ionicons name="flag" size={16} color={Palette.green} />
-          <Txt variant="small" color={OnboardingPalette.text} style={styles.flex} numberOfLines={2}>
+          <View style={styles.flagIconBox}>
+            <Ionicons name="flag" size={14} color={DetailAccent} />
+          </View>
+          <Txt variant="small" color={Palette.text} style={styles.flex} numberOfLines={2}>
             {`Okulda Geldiğim Konu: `}
-            <Txt variant="smallStrong" color={Palette.green}>
+            <Txt variant="smallStrong" color={DetailAccent}>
               {state.currentTopic}
             </Txt>
           </Txt>
@@ -176,17 +179,23 @@ export function SingleSubjectTopicPicker({
                           isCurrent && styles.topicItemCurrent,
                         ]}
                       >
-                        {/* Sol Yeşil Tik veya Sıra Numarası */}
+                        {/* Sol İkon: Okulda Gelinen Konu İçin Bayrak/Turuncu, Tamamlananlar İçin Yeşil Tik, Diğerleri İçin Sıra Numarası */}
                         <View
                           style={[
                             styles.checkCircle,
-                            isCompleted ? styles.checkCircleGreen : styles.checkCircleEmpty,
+                            isCurrent
+                              ? styles.checkCircleCurrent
+                              : isCompleted
+                                ? styles.checkCircleGreen
+                                : styles.checkCircleEmpty,
                           ]}
                         >
-                          {isCompleted ? (
-                            <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                          {isCurrent ? (
+                            <Ionicons name="flag" size={15} color="#FFFFFF" />
+                          ) : isCompleted ? (
+                            <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                           ) : (
-                            <Txt variant="tiny" color={OnboardingPalette.textDim}>
+                            <Txt variant="tiny" color={Palette.textDim}>
                               {topicOrderIdx + 1}
                             </Txt>
                           )}
@@ -195,15 +204,15 @@ export function SingleSubjectTopicPicker({
                         {/* Konu Adı ve Durum Etiketi */}
                         <View style={styles.flex}>
                           <Txt
-                            variant={isCompleted ? 'bodyStrong' : 'body'}
-                            color={isCompleted ? OnboardingPalette.text : OnboardingPalette.textDim}
+                            variant={isCompleted || isCurrent ? 'bodyStrong' : 'body'}
+                            color={isCompleted || isCurrent ? Palette.text : Palette.textDim}
                           >
                             {topic}
                           </Txt>
                           <View style={styles.statusRow}>
                             {isCurrent ? (
                               <View style={styles.currentBadge}>
-                                <Txt variant="tiny" color="#FFFFFF">
+                                <Txt variant="tiny" color="#FFFFFF" style={{ fontWeight: '600' }}>
                                   Okulda Geldiğim Son Konu
                                 </Txt>
                               </View>
@@ -212,17 +221,29 @@ export function SingleSubjectTopicPicker({
                                 Tamamlandı · İşlendi
                               </Txt>
                             ) : (
-                              <Txt variant="tiny" color={OnboardingPalette.textFaint}>
-                                Henüz İşlenmedi (Seçmek için dokun)
+                              <Txt variant="tiny" color={Palette.textFaint}>
+                                Dokunarak seç
                               </Txt>
                             )}
                           </View>
                         </View>
 
                         <Ionicons
-                          name={isCompleted ? 'checkmark-circle' : 'ellipse-outline'}
-                          size={24}
-                          color={isCompleted ? Palette.green : OnboardingPalette.textFaint}
+                          name={
+                            isCurrent
+                              ? 'checkmark-circle'
+                              : isCompleted
+                                ? 'checkmark-circle'
+                                : 'ellipse-outline'
+                          }
+                          size={22}
+                          color={
+                            isCurrent
+                              ? DetailAccent
+                              : isCompleted
+                                ? Palette.green
+                                : Palette.border
+                          }
                         />
                       </View>
                     </PressScale>
@@ -358,12 +379,12 @@ const styles = StyleSheet.create({
     backgroundColor: OnboardingPalette.surface,
   },
   subjectStepPillActive: {
-    borderColor: OnboardingPalette.accent,
-    backgroundColor: OnboardingPalette.accent,
+    borderColor: DetailAccent,
+    backgroundColor: DetailAccent,
   },
   subjectStepPillDone: {
-    borderColor: Palette.green,
-    backgroundColor: softOf(Palette.green),
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    backgroundColor: '#FFFFFF',
   },
   subjectNavRow: {
     flexDirection: 'row',
@@ -374,43 +395,68 @@ const styles = StyleSheet.create({
     gap: Space.md,
   },
   subjectHeroCard: {
-    padding: Space.md,
-    borderRadius: Radius.lg,
-    borderWidth: Border.thick,
-    borderColor: Palette.green,
-    backgroundColor: OnboardingPalette.surface,
-    gap: Space.sm,
+    padding: Space.lg,
+    borderRadius: Radius.xl,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+    backgroundColor: '#FFFFFF',
+    gap: Space.md,
+    shadowColor: '#2D2B52',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 2,
   },
   subjectHeroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
   },
-  greenCountBadge: {
+  topicCountBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: pillRadius(26),
-    backgroundColor: Palette.green,
+    backgroundColor: 'rgba(251, 174, 117, 0.14)',
+    borderWidth: Border.thin,
+    borderColor: 'rgba(251, 174, 117, 0.3)',
   },
   currentSelectionBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
     paddingHorizontal: Space.md,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: Radius.md,
-    backgroundColor: softOf(Palette.green),
+    backgroundColor: 'rgba(251, 174, 117, 0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 174, 117, 0.24)',
+  },
+  flagIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Space.xs,
+    gap: Space.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.lg,
+    paddingHorizontal: Space.md,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    height: 48,
   },
   searchField: {
     flex: 1,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
   emptySearch: {
     paddingVertical: Space.xl,
@@ -423,43 +469,53 @@ const styles = StyleSheet.create({
   },
   unitTitle: {
     letterSpacing: 0.8,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   unitTopics: {
-    gap: Space.xs,
+    gap: Space.sm,
   },
   topicItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
     paddingHorizontal: Space.md,
-    paddingVertical: 12,
-    borderRadius: Radius.md,
-    borderWidth: Border.thick,
-    borderColor: OnboardingPalette.border,
-    backgroundColor: OnboardingPalette.surface,
+    paddingVertical: 13,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    backgroundColor: '#FFFFFF',
   },
   topicItemCompleted: {
-    borderColor: Palette.green,
-    backgroundColor: softOf(Palette.green),
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    backgroundColor: '#FFFFFF',
   },
   topicItemCurrent: {
-    borderColor: Palette.green,
-    borderWidth: 2,
-    backgroundColor: softOf(Palette.green),
+    borderColor: DetailAccent,
+    borderWidth: 1.5,
+    backgroundColor: '#FFFDF9',
+    shadowColor: '#2D2B52',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   checkCircle: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  checkCircleCurrent: {
+    backgroundColor: DetailAccent,
   },
   checkCircleGreen: {
     backgroundColor: Palette.green,
   },
   checkCircleEmpty: {
-    backgroundColor: OnboardingPalette.track,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   statusRow: {
     flexDirection: 'row',
@@ -468,8 +524,8 @@ const styles = StyleSheet.create({
   },
   currentBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: pillRadius(18),
-    backgroundColor: Palette.green,
+    backgroundColor: DetailAccent,
   },
 });

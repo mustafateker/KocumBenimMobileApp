@@ -140,8 +140,20 @@ export async function getCompletedTasks(limit = 30) {
   return [...completedStored.filter((t) => !remoteIds.has(t.id)), ...remote].slice(0, limit);
 }
 
-export function logFocusSession(input: { plannedSec: number; actualSec: number; startedAt: string }) {
-  return api.post<{ minutes: number; xp: number; streak: number }>('/focus-sessions', input);
+export { completeStoredAiTask } from './ai-coach-engine';
+
+export function logFocusSession(input: {
+  plannedSec: number;
+  actualSec: number;
+  startedAt: string;
+  taskId?: number;
+}) {
+  return api.post<{
+    minutes: number;
+    xp: number;
+    streak: number;
+    completedTaskId?: number | null;
+  }>('/focus-sessions', input);
 }
 
 export type TaskRange = 'day' | 'week' | 'month';

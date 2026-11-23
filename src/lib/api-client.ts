@@ -33,6 +33,10 @@ let accessToken: string | null = null;
 let refreshToken: string | null = null;
 let refreshPromise: Promise<boolean> | null = null;
 
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
 /** Uygulama acilisinda kayitli oturumu bellege yukler. */
 export async function loadStoredTokens(): Promise<{ accessToken: string | null; refreshToken: string | null }> {
   const [a, r] = await AsyncStorage.multiGet([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);

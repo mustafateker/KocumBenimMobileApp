@@ -67,9 +67,16 @@ service-account*.json
 # local scratch directory
 /example/
 
-# generated native folders
-/ios
-/android
+# Native build artifacts
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/
+android/.gradle/
+android/app/build/
+android/build/
+android/.cxx/
 
 # Store build artifacts
 /builds/

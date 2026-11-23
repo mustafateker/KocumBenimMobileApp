@@ -1071,15 +1071,36 @@ KESİN SINIRLAR VE KURALLAR:
       lines.push(`\n${weakTopics[0].topic} konusundan çok yanlışın çıktığı için önce 20 dakikalık konu çalışması yapıp ardından 20 soru çözmeni tavsiye ederim.`);
       return { reply: limitResponseLength(lines.join('\n')), createdTasks: [], geminiUsed: false };
     }
+    const doneSubjects: string[] = [];
     const sample = gradeSubjects
       .slice(0, 3)
       .map((s) => {
         const st = deriveSubjectCurriculumState(grade, s.name, curriculumProgress[s.name]);
+        const isCompletedToday = todayTasks.some(
+          (t) =>
+            t.subject === s.name &&
+            t.completedAt !== null &&
+            foldTurkish(t.topic ?? '').includes(foldTurkish(st.currentTopic))
+        );
+        if (isCompletedToday) {
+          doneSubjects.push(`${s.name} (${st.currentTopic})`);
+          const nextTopic = st.uncoveredTopics[0];
+          if (nextTopic) {
+            return `- ${s.name} (Sıradaki Konu): ${nextTopic}`;
+          }
+          return `- ${s.name}: ${st.currentTopic} (Bugünkü ödevin tamamlandı)`;
+        }
         return `- ${s.name}: ${st.currentTopic}`;
       })
       .join('\n');
+
+    const doneNote =
+      doneSubjects.length > 0
+        ? `Bugün ${doneSubjects.join(', ')} çalışmanı başarıyla tamamladın! Şimdi sıradaki ders ve konulara odaklanabilirsin:\n\n`
+        : `${grade}. sınıf Türkiye Yüzyılı Maarif Modeli müfredatında okulda geldiğin güncel konularına göre bugün şunlara çalışabilirsin:\n\n`;
+
     return {
-      reply: `${displayName}, şu ana kadar çözdüğün sorularda kritik düzeyde zayıf bir konun görünmüyor. ${grade}. sınıf Türkiye Yüzyılı Maarif Modeli müfredatında okulda geldiğin güncel konularına göre bugün şunlara çalışabilirsin:\n\n${sample}`,
+      reply: `${displayName}, şu ana kadar çözdüğün sorularda kritik düzeyde zayıf bir konun görünmüyor. ${doneNote}${sample}`,
       createdTasks: [],
       geminiUsed: false,
     };

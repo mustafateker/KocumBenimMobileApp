@@ -26,11 +26,11 @@ import {
 import { useSession, useStudent } from '@/lib/session';
 import {
   Border,
+  DetailAccent,
   OnboardingPalette,
   Palette,
   Space,
   pillRadius,
-  softOf,
 } from '@/theme/tokens';
 
 /**
@@ -129,7 +129,7 @@ export default function CurriculumOnboardingScreen() {
         <StepProgress
           index={safeIndex}
           total={subjects.length}
-          color={Palette.green}
+          color={DetailAccent}
           icon={currentSubject ? getSubjectIcon(currentSubject.name) : 'book'}
           cheer={currentSubject ? `${currentSubject.name} (${safeIndex + 1}/${subjects.length})` : grade}
         />
@@ -166,7 +166,7 @@ export default function CurriculumOnboardingScreen() {
                   />
                   <Txt
                     variant="tiny"
-                    color={active ? '#FFFFFF' : completed ? Palette.green : OnboardingPalette.textDim}
+                    color={active ? '#FFFFFF' : completed ? Palette.text : OnboardingPalette.textDim}
                   >
                     {subj.name}
                   </Txt>
@@ -188,9 +188,9 @@ export default function CurriculumOnboardingScreen() {
         {currentSubject ? (
           <>
             <StepHeader
-              color={Palette.green}
+              color={DetailAccent}
               title={`${currentSubject.name} dersinde hangi konudasın?`}
-              subtitle="Okulda en son işlediğiniz konuya dokun. Seçtiğin konuya kadar olan tüm konular yeşil tikle tamamlanmış sayılır."
+              subtitle="Okulda en son işlediğiniz konuya dokun. Seçtiğin konuya kadar olan tüm konular tamamlanmış sayılır."
               mood="happy"
             />
 
@@ -228,7 +228,7 @@ export default function CurriculumOnboardingScreen() {
                     : `Sonraki: ${subjects[safeIndex + 1]?.name ?? 'İleri'}`
               }
               icon={isLastStep ? 'checkmark-circle' : 'arrow-forward'}
-              color={Palette.green}
+              color={DetailAccent}
               size="lg"
               disabled={saving}
               onPress={handleNext}
@@ -269,21 +269,21 @@ const styles = StyleSheet.create({
   subjectPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    paddingHorizontal: 11,
-    paddingVertical: 6,
-    borderRadius: pillRadius(30),
-    borderWidth: Border.thick,
-    borderColor: OnboardingPalette.border,
-    backgroundColor: OnboardingPalette.surface,
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: pillRadius(32),
+    borderWidth: 1,
+    borderColor: 'rgba(58, 57, 103, 0.12)',
+    backgroundColor: '#FFFFFF',
   },
   subjectPillActive: {
-    borderColor: Palette.green,
-    backgroundColor: Palette.green,
+    borderColor: DetailAccent,
+    backgroundColor: DetailAccent,
   },
   subjectPillCompleted: {
-    borderColor: Palette.green,
-    backgroundColor: softOf(Palette.green),
+    borderColor: 'rgba(16, 185, 129, 0.35)',
+    backgroundColor: '#FFFFFF',
   },
   content: {
     paddingHorizontal: Space.lg,

@@ -30,6 +30,7 @@ import { useStudent } from '@/lib/session';
 import {
   Accent,
   Border,
+  DetailAccent,
   Palette,
   Radius,
   Space,
@@ -293,7 +294,7 @@ export default function SubjectsScreen() {
   }, [activeSummary, searchQuery, filterMode, isTopicCompleted, topicIndexMap, topicStatsMap]);
 
   return (
-    <Screen tint={Palette.green}>
+    <Screen tint={Accent}>
       <ScreenHeader
         title="Derslerim"
         subtitle={`${gradeLabel} · Türkiye Yüzyılı Maarif Modeli`}
@@ -336,8 +337,9 @@ export default function SubjectsScreen() {
 
         <ProgressBar
           progress={totalTopicsAll > 0 ? totalCompletedAll / totalTopicsAll : 0}
-          color={Palette.green}
+          color={DetailAccent}
           height={8}
+          track={Palette.surfaceHi}
         />
 
         <NeonButton
@@ -374,10 +376,10 @@ export default function SubjectsScreen() {
                 <View
                   style={[
                     styles.subjectCountChip,
-                    { backgroundColor: active ? 'rgba(255,255,255,0.22)' : softOf(Palette.green) },
+                    { backgroundColor: active ? 'rgba(255,255,255,0.22)' : 'rgba(251, 174, 117, 0.16)' },
                   ]}
                 >
-                  <Txt variant="tiny" color={active ? '#FFFFFF' : Palette.green}>
+                  <Txt variant="tiny" color={active ? '#FFFFFF' : DetailAccent}>
                     {`${item.completedTotal}/${item.state.totalCount}`}
                   </Txt>
                 </View>
@@ -434,14 +436,14 @@ export default function SubjectsScreen() {
                       style={[
                         styles.filterChip,
                         isSelected && {
-                          borderColor: Palette.green,
-                          backgroundColor: softOf(Palette.green),
+                          borderColor: DetailAccent,
+                          backgroundColor: 'rgba(251, 174, 117, 0.16)',
                         },
                       ]}
                     >
                       <Txt
                         variant="tiny"
-                        color={isSelected ? Palette.green : Palette.textDim}
+                        color={isSelected ? DetailAccent : Palette.textDim}
                       >
                         {f.label}
                       </Txt>
@@ -752,8 +754,8 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.surface,
   },
   subjectTabActive: {
-    borderColor: Palette.green,
-    backgroundColor: Palette.green,
+    borderColor: DetailAccent,
+    backgroundColor: DetailAccent,
   },
   subjectCountChip: {
     paddingHorizontal: 8,
@@ -769,9 +771,9 @@ const styles = StyleSheet.create({
     gap: Space.md,
     padding: Space.md,
     borderRadius: Radius.lg,
-    borderWidth: Border.thick,
-    borderColor: Palette.green,
-    backgroundColor: softOf(Palette.green),
+    borderWidth: 1,
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+    backgroundColor: '#FFFFFF',
   },
   filterBar: {
     gap: Space.xs,
@@ -812,8 +814,8 @@ const styles = StyleSheet.create({
     gap: Space.sm,
   },
   topicCardCompletedGreen: {
-    borderColor: Palette.green,
-    backgroundColor: softOf(Palette.green),
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+    backgroundColor: Palette.surface,
   },
   topicCardWeakBorder: {
     borderColor: Palette.pink,

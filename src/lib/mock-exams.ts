@@ -498,30 +498,43 @@ JSON ŞEMASI:
   "strategyTip": "Gerçek sınav taktiği (turlama, süre kontrolü)"
 }`;
 
-      const res = await expoFetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 380,
-              responseMimeType: 'application/json',
-            },
-          }),
-        }
-      );
+      const candidateModels = [
+        'gemini-3.5-flash-lite',
+        'gemini-flash-lite-latest',
+        'gemini-3.1-flash-lite',
+        'gemini-3.8-flash',
+      ];
 
-      if (res.ok) {
-        const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const parsed = JSON.parse(text);
-          if (parsed.summary && parsed.shortcutTopics) {
-            return parsed;
+      for (const model of candidateModels) {
+        try {
+          const res = await expoFetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.2,
+                  maxOutputTokens: 380,
+                  responseMimeType: 'application/json',
+                },
+              }),
+            }
+          );
+
+          if (res.ok) {
+            const data = await res.json();
+            const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const parsed = JSON.parse(text);
+              if (parsed.summary && parsed.shortcutTopics) {
+                return parsed;
+              }
+            }
           }
+        } catch {
+          // Sıradaki modeli dene
         }
       }
     } catch {

@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
@@ -11,7 +12,12 @@ import { Card, Pill, ProgressBar } from '@/components/ui';
 import { getSummary } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
-import { getLevelInfo } from '@/lib/gamification';
+import {
+  getLevelInfo,
+  LEVEL_CHARACTERS,
+  LEVEL_DEFINITIONS,
+  Rules,
+} from '@/lib/gamification';
 import { getExamTrack } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import type { Student, StudentSummary } from '@/lib/types';
@@ -66,19 +72,13 @@ const DREAM_ITEMS: DreamMeta[] = [
   },
 ];
 
-function getInitials(name?: string): string {
-  if (!name) return 'Ö';
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 export default function Profile() {
   const router = useRouter();
   const student = useStudent();
   const { showError } = useErrorDialog();
 
   const [summary, setSummary] = useState<StudentSummary | null>(null);
+  const [journeyOpen, setJourneyOpen] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -112,7 +112,9 @@ export default function Profile() {
   const xp = student.xp || 0;
   const levelInfo = useMemo(() => getLevelInfo(xp), [xp]);
 
-  const initials = getInitials(student.name);
+  const gamificationState = student.gamification;
+  const decayWarning = gamificationState?.decayWarning;
+  const isShieldActive = gamificationState?.decayStatus === 'shield_active' || (gamificationState?.shieldDaysLeft ?? 0) > 0;
 
   return (
     <Screen tint={Accent}>
@@ -126,17 +128,24 @@ export default function Profile() {
       {/* Hero Karakter & İlerleme Kartı */}
       <Card style={styles.heroCard}>
         <View style={styles.heroTopRow}>
-          {/* Avatar (Squircle kavisli, sıcak parıltılı ve harfli) */}
-          <View style={styles.avatarWrap}>
-            <View style={styles.avatarSquircle}>
-              <Typography.Title color={DetailAccent} style={styles.initialsText}>
-                {initials}
-              </Typography.Title>
+          {/* Avatar: Seviye Karakteri Görseli */}
+          <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.93}>
+            <View style={styles.avatarWrap}>
+              <View style={styles.avatarSquircle}>
+                <Image
+                  source={levelInfo.character}
+                  style={styles.characterAvatarImage}
+                  contentFit="contain"
+                  priority="high"
+                />
+              </View>
+              <View style={styles.avatarBadge}>
+                <Typography.Tiny color={OnColor} weight="bold" style={styles.levelBadgeText}>
+                  {levelInfo.level}
+                </Typography.Tiny>
+              </View>
             </View>
-            <View style={styles.avatarBadge}>
-              <Ionicons name="sparkles" size={10} color={OnColor} />
-            </View>
-          </View>
+          </PressScale>
 
           {/* İsim & Rozetler */}
           <View style={styles.heroInfoCol}>
@@ -144,41 +153,81 @@ export default function Profile() {
               {student.nickname ?? student.name}
             </Typography.Title>
 
+            {/* Karakter Ünvanı */}
+            <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.96}>
+              <View style={styles.characterTitleChip}>
+                <Ionicons name="sparkles" size={13} color={DetailAccent} />
+                <Typography.SmallStrong color={DetailAccent}>
+                  {levelInfo.title}
+                </Typography.SmallStrong>
+                <Ionicons name="chevron-forward" size={12} color={DetailAccent} />
+              </View>
+            </PressScale>
+
             <View style={styles.heroPillsRow}>
               {student.grade ? (
                 <Pill label={student.grade} color={Accent} icon="school-outline" />
               ) : null}
 
-              <View style={styles.streakBadge}>
-                <Ionicons name="flame" size={14} color={DetailAccent} />
-                <Typography.SmallStrong color={DetailAccent}>
-                  {student.streak} Günlük Seri
-                </Typography.SmallStrong>
-              </View>
+              {student.streak > 0 ? (
+                <View style={styles.streakBadge}>
+                  <Ionicons name="flame" size={14} color={DetailAccent} />
+                  <Typography.SmallStrong color={DetailAccent}>
+                    {student.streak} Günlük Seri
+                  </Typography.SmallStrong>
+                </View>
+              ) : null}
+
+              {levelInfo.stars > 0 ? (
+                <View style={styles.starBadge}>
+                  <Ionicons name="star" size={12} color={Palette.gold} />
+                  <Typography.Tiny color={Palette.gold} weight="bold">
+                    {levelInfo.stars} Yıldız
+                  </Typography.Tiny>
+                </View>
+              ) : null}
             </View>
           </View>
         </View>
 
-        {/* Seviye & XP İlerleme Çubuğu */}
-        <View style={styles.levelProgressBox}>
-          <View style={styles.levelLabelsRow}>
-            <View style={styles.levelTitleWrap}>
-              <Ionicons name="trophy-outline" size={14} color={Palette.textDim} />
-              <Typography.SmallStrong color={Palette.text}>
-                Seviye {levelInfo.level} · {levelInfo.title}
-              </Typography.SmallStrong>
-            </View>
-            <Typography.Tiny color={Palette.textDim}>
-              {levelInfo.currentLevelXp} / 500 XP (Sonraki Seviye)
+        {/* Zirve Savunması & Erime / Kalkan Bildirimi */}
+        {decayWarning ? (
+          <View style={[styles.defenseBanner, isShieldActive ? styles.shieldBanner : styles.decayAlertBanner]}>
+            <Ionicons
+              name={isShieldActive ? 'shield-checkmark' : 'shield-outline'}
+              size={16}
+              color={isShieldActive ? Palette.green : Palette.gold}
+            />
+            <Typography.Tiny color={Palette.text} style={styles.defenseBannerText}>
+              {decayWarning}
             </Typography.Tiny>
           </View>
-          <ProgressBar
-            progress={levelInfo.progressPercent}
-            height={7}
-            color={DetailAccent}
-            track={Palette.surfaceHi}
-          />
-        </View>
+        ) : null}
+
+        {/* Seviye & XP İlerleme Çubuğu */}
+        <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.98}>
+          <View style={styles.levelProgressBox}>
+            <View style={styles.levelLabelsRow}>
+              <View style={styles.levelTitleWrap}>
+                <Ionicons name="trophy-outline" size={14} color={DetailAccent} />
+                <Typography.SmallStrong color={Palette.text} numberOfLines={1}>
+                  Seviye {levelInfo.level} · {levelInfo.title}
+                </Typography.SmallStrong>
+              </View>
+              <Typography.Tiny color={Palette.textDim} numberOfLines={1}>
+                {levelInfo.isMaxLevel && levelInfo.stars >= 3
+                  ? 'Efsane Zirve'
+                  : `${levelInfo.currentLevelXp}/${levelInfo.nextLevelXp - levelInfo.floorXp} XP`}
+              </Typography.Tiny>
+            </View>
+            <ProgressBar
+              progress={levelInfo.progressPercent}
+              height={7}
+              color={DetailAccent}
+              track={Palette.surfaceHi}
+            />
+          </View>
+        </PressScale>
       </Card>
 
       {/* Bento Grid: Haftalık Performans */}
@@ -394,6 +443,151 @@ export default function Profile() {
           </View>
         </PressScale>
       </Card>
+
+      {/* Seviye Yolculuğu ve Karakterler Modalı */}
+      <Modal
+        visible={journeyOpen}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setJourneyOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setJourneyOpen(false)} />
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <View style={styles.modalTitleBlock}>
+                <Typography.Title color={Palette.text}>
+                  Seviye Yolculuğu
+                </Typography.Title>
+                <Typography.Tiny color={Palette.textDim}>
+                  Sınav hazırlık maratonunda her basamak yeni bir unvan kazandırır
+                </Typography.Tiny>
+              </View>
+              <PressScale onPress={() => setJourneyOpen(false)} scaleTo={0.9}>
+                <View style={styles.modalCloseBtn}>
+                  <Ionicons name="close" size={20} color={Palette.text} />
+                </View>
+              </PressScale>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={styles.journeyList}
+              showsVerticalScrollIndicator={false}
+            >
+              {LEVEL_DEFINITIONS.map((def) => {
+                const isCurrent = def.level === levelInfo.level;
+                const isUnlocked = xp >= def.cumulativeXp;
+                const charImg = LEVEL_CHARACTERS[def.level] || LEVEL_CHARACTERS[1];
+
+                return (
+                  <View
+                    key={def.level}
+                    style={[
+                      styles.journeyItemCard,
+                      isCurrent && styles.journeyItemActive,
+                      !isUnlocked && styles.journeyItemLocked,
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.journeyThumbWrap,
+                        isCurrent && styles.journeyThumbWrapActive,
+                      ]}
+                    >
+                      <Image
+                        source={charImg}
+                        style={[
+                          styles.journeyThumbImg,
+                          !isUnlocked && styles.journeyThumbImgLocked,
+                        ]}
+                        contentFit="contain"
+                      />
+                    </View>
+
+                    <View style={styles.journeyInfoWrap}>
+                      <View style={styles.journeyTitleRow}>
+                        <Typography.BodyStrong
+                          color={isCurrent ? DetailAccent : Palette.text}
+                        >
+                          Seviye {def.level} · {def.title}
+                        </Typography.BodyStrong>
+                        {isCurrent ? (
+                          <View style={styles.currentBadge}>
+                            <Typography.Tiny color={OnColor} weight="bold">
+                              Aktif
+                            </Typography.Tiny>
+                          </View>
+                        ) : isUnlocked ? (
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={Palette.green}
+                          />
+                        ) : (
+                          <Ionicons
+                            name="lock-closed"
+                            size={14}
+                            color={Palette.textDim}
+                          />
+                        )}
+                      </View>
+                      <Typography.Tiny color={Palette.textDim}>
+                        {def.stage}
+                      </Typography.Tiny>
+                      <Typography.Tiny
+                        color={isUnlocked ? DetailAccent : Palette.textDim}
+                        weight="bold"
+                      >
+                        {def.cumulativeXp === 0
+                          ? 'Başlangıç'
+                          : `${def.cumulativeXp.toLocaleString('tr-TR')} XP`}
+                      </Typography.Tiny>
+                    </View>
+                  </View>
+                );
+              })}
+
+              {/* Kurallar Özeti Kartı */}
+              <View style={styles.rulesCard}>
+                <Typography.SmallStrong color={Palette.text}>
+                  XP Kazanım & Savunma Kuralları
+                </Typography.SmallStrong>
+                <View style={styles.ruleItem}>
+                  <Ionicons name="time" size={14} color={DetailAccent} />
+                  <Typography.Tiny color={Palette.textDim} style={styles.ruleText}>
+                    Odaklanma: 25 dk Pomodoro = {Rules.xpPerPomodoro} XP (Maks: {Rules.maxDailyPomodoroXp} XP/gün)
+                  </Typography.Tiny>
+                </View>
+                <View style={styles.ruleItem}>
+                  <Ionicons name="checkbox" size={14} color={Palette.green} />
+                  <Typography.Tiny color={Palette.textDim} style={styles.ruleText}>
+                    Görev ve Soru: Günlük hedef = {Rules.xpPerQuestionTarget} XP, Hata analizi = {Rules.xpPerErrorAnalysis} XP
+                  </Typography.Tiny>
+                </View>
+                <View style={styles.ruleItem}>
+                  <Ionicons name="flame" size={14} color={DetailAccent} />
+                  <Typography.Tiny color={Palette.textDim} style={styles.ruleText}>
+                    Giriş & Streak: Günlük check-in = {Rules.xpDailyCheckin} XP (7 gün+ %10, 30 gün+ %20 bonus)
+                  </Typography.Tiny>
+                </View>
+                <View style={styles.ruleItem}>
+                  <Ionicons name="trophy" size={14} color={Palette.gold} />
+                  <Typography.Tiny color={Palette.textDim} style={styles.ruleText}>
+                    Haftalık Deneme: {Rules.xpBonusTrialExam} XP, 7 Gün Seri Bonusu: {Rules.xpBonusStreak7} XP
+                  </Typography.Tiny>
+                </View>
+                <View style={styles.ruleItem}>
+                  <Ionicons name="shield-checkmark" size={14} color={Palette.blue} />
+                  <Typography.Tiny color={Palette.textDim} style={styles.ruleText}>
+                    Günlük Tavan: Maksimum {Rules.dailyHardCap} XP/gün. Seviye 10 Şampiyonluk Kalkanı ve erime koruması devrededir.
+                  </Typography.Tiny>
+                </View>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -415,24 +609,27 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   avatarSquircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 22,
+    width: 76,
+    height: 76,
+    borderRadius: 24,
     backgroundColor: 'rgba(251, 174, 117, 0.16)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(251, 174, 117, 0.35)',
+    overflow: 'hidden',
   },
-  initialsText: {
-    letterSpacing: 0.5,
+  characterAvatarImage: {
+    width: 70,
+    height: 70,
   },
   avatarBadge: {
     position: 'absolute',
     bottom: -2,
     right: -2,
-    width: 22,
+    minWidth: 22,
     height: 22,
+    paddingHorizontal: 4,
     borderRadius: 11,
     backgroundColor: DetailAccent,
     alignItems: 'center',
@@ -440,9 +637,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Palette.surface,
   },
+  levelBadgeText: {
+    fontSize: 11,
+    lineHeight: 12,
+  },
   heroInfoCol: {
     flex: 1,
     gap: 6,
+  },
+  characterTitleChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingHorizontal: Space.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(251, 174, 117, 0.16)',
+    borderWidth: Border.thin,
+    borderColor: 'rgba(251, 174, 117, 0.32)',
   },
   heroPillsRow: {
     flexDirection: 'row',
@@ -461,6 +674,38 @@ const styles = StyleSheet.create({
     borderWidth: Border.thin,
     borderColor: 'rgba(251, 174, 117, 0.28)',
   },
+  starBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Space.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: Palette.goldSoft,
+    borderWidth: Border.thin,
+    borderColor: Palette.gold,
+  },
+  defenseBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+    paddingVertical: Space.xs,
+    paddingHorizontal: Space.sm,
+    borderRadius: Radius.md,
+    borderWidth: Border.thin,
+  },
+  shieldBanner: {
+    backgroundColor: Palette.greenSoft,
+    borderColor: Palette.green,
+  },
+  decayAlertBanner: {
+    backgroundColor: Palette.goldSoft,
+    borderColor: Palette.gold,
+  },
+  defenseBannerText: {
+    flex: 1,
+    lineHeight: 16,
+  },
   levelProgressBox: {
     paddingTop: Space.xs,
     gap: 6,
@@ -471,11 +716,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Space.sm,
   },
   levelTitleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
+    flexShrink: 1,
   },
 
   // Bento İstatistik Kartları
@@ -654,5 +901,127 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Palette.border,
     marginHorizontal: Space.sm,
+  },
+
+  // Seviye Yolculuğu Modal Stilleri
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: Palette.surface,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    maxHeight: '85%',
+    paddingBottom: Space.xl,
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Palette.border,
+    alignSelf: 'center',
+    marginTop: Space.sm,
+    marginBottom: Space.xs,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Space.lg,
+    paddingVertical: Space.sm,
+    borderBottomWidth: Border.thin,
+    borderBottomColor: Palette.border,
+  },
+  modalTitleBlock: {
+    flex: 1,
+    gap: 2,
+  },
+  modalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Palette.surfaceHi,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: Space.sm,
+  },
+  journeyList: {
+    padding: Space.lg,
+    gap: Space.sm,
+  },
+  journeyItemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    gap: Space.md,
+  },
+  journeyItemActive: {
+    backgroundColor: '#FFF8F1',
+    borderColor: DetailAccent,
+    borderWidth: 1.5,
+  },
+  journeyItemLocked: {
+    opacity: 0.55,
+  },
+  journeyThumbWrap: {
+    width: 54,
+    height: 54,
+    borderRadius: 20,
+    backgroundColor: Palette.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  journeyThumbWrapActive: {
+    borderColor: DetailAccent,
+    backgroundColor: 'rgba(251, 174, 117, 0.2)',
+  },
+  journeyThumbImg: {
+    width: 48,
+    height: 48,
+  },
+  journeyThumbImgLocked: {
+    tintColor: 'gray',
+  },
+  journeyInfoWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  journeyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  currentBadge: {
+    backgroundColor: DetailAccent,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: Radius.pill,
+  },
+  rulesCard: {
+    marginTop: Space.md,
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+    gap: Space.xs,
+  },
+  ruleItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Space.xs,
+    marginTop: 2,
+  },
+  ruleText: {
+    flex: 1,
+    lineHeight: 16,
   },
 });

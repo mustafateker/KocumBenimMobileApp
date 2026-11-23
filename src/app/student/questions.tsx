@@ -393,8 +393,8 @@ function QuestionCard({
     });
   }, [question.id]);
 
-  const handleFetchHint = useCallback(async () => {
-    if (aiHint) {
+  const handleFetchHint = useCallback(async (forceRefresh = false) => {
+    if (aiHint && !forceRefresh) {
       setHintVisible((v) => !v);
       return;
     }
@@ -402,8 +402,10 @@ function QuestionCard({
     try {
       const hint = await generateQuestionHint({
         questionId: question.id,
+        imageUrl: question.imageUrl,
         note: question.note ?? undefined,
         subject: question.subject ?? 'Matematik',
+        forceRefresh,
       });
       setAiHint(hint);
       setHintVisible(true);
@@ -412,7 +414,7 @@ function QuestionCard({
     } finally {
       setHintLoading(false);
     }
-  }, [aiHint, question.id, question.note, question.subject]);
+  }, [aiHint, question.id, question.imageUrl, question.note, question.subject]);
 
   let rawReply = (question.teacherReply || '').trim();
   let embeddedSolutionImage: string | null = null;
@@ -536,19 +538,63 @@ function QuestionCard({
           </View>
         </PressScale>
 
-        {hintVisible && aiHint ? (
-          <View style={styles.aiHintBox}>
-            <View style={styles.aiHintHead}>
-              <View style={styles.aiHintDot} />
-              <Txt variant="tiny" color={DetailAccent} style={styles.aiHintTitle}>
-                {"KOÇUM'UN İPUCU"}
+        {hintVisible && aiHint ? (() => {
+          const isLimitReached =
+            aiHint.includes('duraklatıldı') ||
+            aiHint.includes('kota') ||
+            aiHint.includes('hakkın');
+          const isInvalidQuestion =
+            !isLimitReached &&
+            (aiHint.includes('tespit edilemedi') ||
+              aiHint.includes('okunabilir bir soru') ||
+              aiHint.includes('net bir fotoğraf'));
+
+          const boxStyle = isLimitReached
+            ? styles.aiHintBoxInfo
+            : isInvalidQuestion
+              ? styles.aiHintBoxWarning
+              : styles.aiHintBox;
+
+          const titleColor = isLimitReached
+            ? Palette.blue
+            : isInvalidQuestion
+              ? Palette.gold
+              : DetailAccent;
+
+          const titleText = isLimitReached
+            ? 'SERVİS DURUMU'
+            : isInvalidQuestion
+              ? 'SORU TESPİT EDİLEMEDİ'
+              : "KOÇUM'UN İPUCU";
+
+          return (
+            <View style={[styles.aiHintBox, boxStyle]}>
+              <View style={styles.aiHintHead}>
+                {isLimitReached ? (
+                  <Ionicons name="time-outline" size={14} color={Palette.blue} />
+                ) : isInvalidQuestion ? (
+                  <Ionicons name="alert-circle" size={14} color={Palette.gold} />
+                ) : (
+                  <View style={styles.aiHintDot} />
+                )}
+                <Txt variant="tiny" color={titleColor} style={styles.aiHintTitle}>
+                  {titleText}
+                </Txt>
+                {isInvalidQuestion ? (
+                  <PressScale onPress={() => handleFetchHint(true)} style={styles.aiHintRetryBtn}>
+                    <Ionicons name="refresh" size={12} color={Palette.textDim} />
+                    <Txt variant="tiny" color={Palette.textDim}>
+                      Yeniden Dene
+                    </Txt>
+                  </PressScale>
+                ) : null}
+              </View>
+              <Txt variant="small" color={Palette.text} style={styles.aiHintText}>
+                {aiHint}
               </Txt>
             </View>
-            <Txt variant="small" color={Palette.text} style={styles.aiHintText}>
-              {aiHint}
-            </Txt>
-          </View>
-        ) : null}
+          );
+        })() : null}
       </View>
 
       {/* Soru Cevaplandıysa Her Zaman Belirgin "Çözümü Gör" Butonu ve Çözüm Bölümü */}
@@ -954,6 +1000,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(251, 174, 117, 0.35)',
     gap: 4,
+  },
+  aiHintBoxWarning: {
+    backgroundColor: '#FFFBEB',
+    borderColor: 'rgba(245, 158, 11, 0.35)',
+  },
+  aiHintBoxInfo: {
+    backgroundColor: '#F0F9FF',
+    borderColor: 'rgba(59, 130, 246, 0.35)',
+  },
+  aiHintRetryBtn: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Space.xs,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   aiHintHead: {
     flexDirection: 'row',

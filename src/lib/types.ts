@@ -32,6 +32,26 @@ export type Student = {
   streak: number;
   lastActiveDate: string | null;
 
+  level?: number;
+  levelTitle?: string;
+  levelCharacter?: string;
+  gamification?: {
+    highestLevelReached?: number;
+    decayStatus?: string;
+    decayWarning?: string | null;
+    shieldDaysLeft?: number;
+    championShieldUntil?: string | null;
+    dailyXp?: {
+      date: string;
+      total: number;
+      pomodoro: number;
+      tasks: number;
+      questions: number;
+      checkin: number;
+      bonus: number;
+    };
+  };
+
   createdAt: string;
   updatedAt: string;
 };

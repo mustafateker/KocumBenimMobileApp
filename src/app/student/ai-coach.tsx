@@ -114,7 +114,7 @@ export default function AiCoachScreen() {
       if (!trimmed || sending) return;
 
       if (Platform.OS !== 'web') {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
       }
 
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -427,9 +427,10 @@ function ChatMessageItem({
               })}
 
               <PressScale onPress={onGoToTasks} scaleTo={0.97} style={styles.goToTasksBtn}>
-                <Txt variant="tiny" color={Accent} weight="semibold">
-                  Ödevlerim Ekranında Aç →
+                <Txt variant="tiny" color={Accent}>
+                  Ödevlerim Ekranında Aç
                 </Txt>
+                <Ionicons name="arrow-forward" size={12} color={Accent} />
               </PressScale>
             </View>
           ) : null}
@@ -575,7 +576,10 @@ const styles = StyleSheet.create({
   },
   goToTasksBtn: {
     alignSelf: 'flex-end',
-    marginTop: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
   },
   typingContainer: {
     flexDirection: 'row',

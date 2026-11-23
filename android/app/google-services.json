@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "437940693097",
+    "project_id": "kocum-benim-6c5b0",
+    "storage_bucket": "kocum-benim-6c5b0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:437940693097:android:d942d06332f214b6519af8",
+        "android_client_info": {
+          "package_name": "com.triworkster.kocumbenimmobileapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCrHB8O14qKuSK1wWHNP0Jmi8ILO8p1JAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

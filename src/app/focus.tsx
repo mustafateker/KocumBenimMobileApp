@@ -12,7 +12,7 @@ import { AppDialog } from '@/components/app-dialog';
 import { PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
 import { Txt } from '@/components/ui';
-import { logFocusSession } from '@/lib/api';
+import { completeStoredAiTask, logFocusSession } from '@/lib/api';
 import { ApiError } from '@/lib/api-client';
 import { clockFormat } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
@@ -34,10 +34,10 @@ export default function Focus() {
   const { refresh } = useSession();
   const { showError } = useErrorDialog();
 
-  const { seconds } = useLocalSearchParams<{ seconds?: string }>();
+  const { seconds, taskId } = useLocalSearchParams<{ seconds?: string; taskId?: string }>();
   const plannedSec = Math.max(60, Number(seconds) || 25 * 60);
 
-  const [result, setResult] = useState<{ minutes: number; xp: number } | null>(null);
+  const [result, setResult] = useState<{ minutes: number; xp: number; completedTaskId?: number | null } | null>(null);
   const [discarded, setDiscarded] = useState(false);
   const [endDialogOpen, setEndDialogOpen] = useState(false);
   const startedRef = useRef(false);
@@ -47,7 +47,14 @@ export default function Focus() {
   const handleComplete = useCallback(
     async (info: { plannedSec: number; actualSec: number; startedAt: string }) => {
       try {
-        const reward = await logFocusSession(info);
+        const parsedTaskId = taskId ? Number(taskId) : undefined;
+        const reward = await logFocusSession({
+          ...info,
+          taskId: parsedTaskId,
+        });
+        if (parsedTaskId) {
+          await completeStoredAiTask(parsedTaskId, 0, 0).catch(() => {});
+        }
         setResult(reward);
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
@@ -62,7 +69,7 @@ export default function Focus() {
         setDiscarded(true);
       }
     },
-    [refresh, showError]
+    [taskId, refresh, showError]
   );
 
   const timer = useFocusTimer({ onComplete: handleComplete });
@@ -85,7 +92,15 @@ export default function Focus() {
   const confirmEnd = useCallback(() => setEndDialogOpen(true), []);
 
   if (result) {
-    return <SuccessScreen minutes={result.minutes} xp={result.xp} onDone={() => router.back()} />;
+    const taskCompleted = Boolean(result.completedTaskId || taskId);
+    return (
+      <SuccessScreen
+        minutes={result.minutes}
+        xp={result.xp}
+        taskCompleted={taskCompleted}
+        onDone={() => router.back()}
+      />
+    );
   }
 
   if (discarded) {
@@ -240,7 +255,17 @@ function SmartBreakCoach() {
   );
 }
 
-function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; onDone: () => void }) {
+function SuccessScreen({
+  minutes,
+  xp,
+  taskCompleted,
+  onDone,
+}: {
+  minutes: number;
+  xp: number;
+  taskCompleted?: boolean;
+  onDone: () => void;
+}) {
   return (
     <View style={[styles.root, styles.resultRoot]}>
       <StatusBar hidden />
@@ -261,6 +286,15 @@ function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; o
             +{xp} XP
           </Txt>
         </View>
+
+        {taskCompleted ? (
+          <View style={styles.completedTaskBadge}>
+            <Ionicons name="checkmark-done-circle" size={18} color={Palette.green} />
+            <Txt variant="smallStrong" color={Palette.green}>
+              Pomodoro görevin otomatik tamamlandı!
+            </Txt>
+          </View>
+        ) : null}
 
         <SmartBreakCoach />
 
@@ -403,6 +437,17 @@ const styles = StyleSheet.create({
     backgroundColor: softOf(Accent),
     borderWidth: Border.thin,
     borderColor: Palette.border,
+  },
+  completedTaskBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.xs,
+    borderRadius: pillRadius(24),
+    backgroundColor: softOf(Palette.green),
+    borderWidth: Border.thin,
+    borderColor: Palette.green,
   },
   solidButton: {
     alignSelf: 'stretch',

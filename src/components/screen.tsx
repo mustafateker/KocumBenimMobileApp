@@ -70,7 +70,7 @@ export function Screen({
         bottomOffset={Space.xl}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + Space.md, paddingBottom: insets.bottom + 96 },
+          { paddingTop: insets.top + Space.md, paddingBottom: insets.bottom + 84 },
           contentContainerStyle,
         ]}
         {...rest}
@@ -99,7 +99,13 @@ export function ScreenHeader({
   return (
     <View style={styles.header}>
       <View style={[styles.headerSide, styles.headerSideLeft]}>
-        {onBack ? <IconButton icon="chevron-back" onPress={onBack} /> : left}
+        {onBack ? (
+          <IconButton
+            icon="chevron-back"
+            onPress={onBack}
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+          />
+        ) : left}
       </View>
       <View style={styles.headerText}>
         <Txt variant="title" center>
@@ -138,6 +144,7 @@ const styles = StyleSheet.create({
     width: 40,
     minHeight: 40,
     justifyContent: 'center',
+    zIndex: 10,
   },
   headerSideLeft: {
     alignItems: 'flex-start',
