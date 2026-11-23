@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import {
   Calendar,
   Sparkles,
   Timer,
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
-import { useShowExamCountdown } from '@/lib/countdown-settings';
+import { getShowExamCountdown, useShowExamCountdown } from '@/lib/countdown-settings';
 import { getExamCountdown, type ExamCountdownInfo } from '@/lib/mock-exams';
 import {
   Accent,
@@ -39,7 +39,18 @@ type SideExamCountdownProps = {
 export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { enabled, loading } = useShowExamCountdown();
+  const { enabled, loading, setEnabled } = useShowExamCountdown();
+
+  // Ekran odağa geldiğinde veya ayarlardan dönüldüğünde anında senkronize et
+  useFocusEffect(
+    useCallback(() => {
+      getShowExamCountdown().then((val) => {
+        if (val !== enabled) {
+          setEnabled(val);
+        }
+      });
+    }, [enabled, setEnabled])
+  );
 
   const [prevGrade, setPrevGrade] = useState(grade);
   const [countdown, setCountdown] = useState<ExamCountdownInfo>(() =>
@@ -80,6 +91,11 @@ export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
   const handleGoToExams = () => {
     setModalVisible(false);
     router.push('/mock-exams');
+  };
+
+  const handleDisableCountdown = async () => {
+    setModalVisible(false);
+    await setEnabled(false);
   };
 
   return (
@@ -225,6 +241,15 @@ export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
             <Txt variant="tiny" color={Palette.textFaint} center style={styles.hintText}>
               Bu sayacı Ayarlar → Uygulama bölümünden dilediğinde kapatabilirsin.
             </Txt>
+
+            <PressScale onPress={handleDisableCountdown} scaleTo={0.96}>
+              <View style={styles.disableBtnRow}>
+                <Ionicons name="eye-off-outline" size={14} color={Palette.textDim} />
+                <Txt variant="tiny" color={Palette.textDim} style={styles.disableBtnText}>
+                  Bu Sayacı Ana Ekrandan Kaldır
+                </Txt>
+              </View>
+            </PressScale>
           </View>
         </View>
       </Modal>
@@ -368,5 +393,16 @@ const styles = StyleSheet.create({
   },
   hintText: {
     marginTop: 2,
+  },
+  disableBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: Space.xs,
+    marginTop: Space.xs,
+  },
+  disableBtnText: {
+    textDecorationLine: 'underline',
   },
 });
