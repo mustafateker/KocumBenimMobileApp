@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { localTodayStr } from './ai-coach-engine';
+import { parseGradeNumber } from './maarif-curriculum';
 import type { Student } from './types';
 
 export { localTodayStr };
@@ -16,12 +17,23 @@ export type ExamSubjectScore = {
   net: number;
 };
 
-export type MockExamType = 'lgs' | 'tyt' | 'ayt' | 'branch' | 'general';
+export type MockExamType = 'lgs' | 'tyt' | 'ayt' | 'yks' | 'branch' | 'general';
+export type YksField = 'sayisal' | 'esitagirlik' | 'sozel' | 'dil';
+
+export type SessionBreakdown = {
+  sozelNet?: number;
+  sayisalNet?: number;
+  tytNet?: number;
+  aytNet?: number;
+  ydtNet?: number;
+};
 
 export type MockExam = {
   id: string;
   title: string;
   examType: MockExamType;
+  yksField?: YksField;
+  sessionBreakdown?: SessionBreakdown;
   date: string;
   subjects: ExamSubjectScore[];
   totalCorrect: number;
@@ -41,63 +53,277 @@ export type AiExamAnalysis = {
   strategyTip: string;
 };
 
-/** LGS Ders Sabitleri (90 Soru, 3 Yanlış 1 Doğruyu Götürür) */
-export const LGS_DEFAULT_SUBJECTS = [
-  { subject: 'Türkçe', totalQuestions: 20 },
-  { subject: 'Matematik', totalQuestions: 20 },
-  { subject: 'Fen Bilimleri', totalQuestions: 20 },
-  { subject: 'T.C. İnkılap Tarihi', totalQuestions: 10 },
-  { subject: 'Din Kültürü', totalQuestions: 10 },
-  { subject: 'Yabancı Dil (İngilizce)', totalQuestions: 10 },
+export type ExamTrack = 'lgs' | 'yks';
+
+/** Öğrencinin sınıfına göre LGS mi YKS mi takip ettiğini belirler */
+export function getExamTrack(gradeRaw?: string | number | null): ExamTrack {
+  const g = parseGradeNumber(gradeRaw);
+  return g <= 8 ? 'lgs' : 'yks';
+}
+
+export type ExamCountdownInfo = {
+  examTrack: ExamTrack;
+  title: string;
+  examName: string;
+  targetYear: number;
+  examDateStr: string;
+  targetDate: Date;
+  days: number;
+  hours: number;
+  minutes: number;
+  subInfo: string;
+  penaltyRule: string;
+  sessionRule: string;
+};
+
+/**
+ * LGS ve YKS için güncel kalan süre ve oturum kurallarını hesaplar.
+ * LGS: Haziran ayının ilk Pazarı (09:30)
+ * YKS: Haziran ayının üçüncü Cumartesi/Pazarı (10:15)
+ */
+export function getExamCountdown(gradeRaw?: string | number | null): ExamCountdownInfo {
+  const track = getExamTrack(gradeRaw);
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  if (track === 'lgs') {
+    // LGS: Haziran ilk Pazar
+    let targetYear = currentYear;
+    let targetDate = getLgsDate(targetYear);
+    if (now.getTime() > targetDate.getTime()) {
+      targetYear += 1;
+      targetDate = getLgsDate(targetYear);
+    }
+
+    const diffMs = Math.max(0, targetDate.getTime() - now.getTime());
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const days = Math.floor(totalMinutes / (60 * 24));
+    const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+    const minutes = totalMinutes % 60;
+
+    return {
+      examTrack: 'lgs',
+      title: `LGS ${targetYear}'ye Kalan Süre`,
+      examName: 'LGS',
+      targetYear,
+      examDateStr: `${targetDate.getDate()} Haziran ${targetYear}`,
+      targetDate,
+      days,
+      hours,
+      minutes,
+      subInfo: 'Sözel: 50 S / 75 dk · Sayısal: 40 S / 80 dk (Toplam 90 Soru)',
+      penaltyRule: '3 Yanlış 1 Doğruyu Götürür (Net = D - Y/3)',
+      sessionRule: '2 Oturum Arası 45 dk Mola',
+    };
+  }
+
+  // YKS: Haziran 3. Cumartesi
+  let targetYear = currentYear;
+  let targetDate = getYksDate(targetYear);
+  if (now.getTime() > targetDate.getTime()) {
+    targetYear += 1;
+    targetDate = getYksDate(targetYear);
+  }
+
+  const diffMs = Math.max(0, targetDate.getTime() - now.getTime());
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const minutes = totalMinutes % 60;
+
+  return {
+    examTrack: 'yks',
+    title: `YKS ${targetYear}'ye Kalan Süre`,
+    examName: 'YKS',
+    targetYear,
+    examDateStr: `${targetDate.getDate()}-${targetDate.getDate() + 1} Haziran ${targetYear}`,
+    targetDate,
+    days,
+    hours,
+    minutes,
+    subInfo: 'TYT: 120 S / 165 dk · AYT: 80 S / 180 dk',
+    penaltyRule: '4 Yanlış 1 Doğruyu Götürür (Net = D - Y/4)',
+    sessionRule: 'Cumartesi TYT, Pazar AYT/YDT',
+  };
+}
+
+function getLgsDate(year: number): Date {
+  // Haziran ayının 1'inden sonraki ilk Pazar
+  const d = new Date(year, 5, 1, 9, 30, 0); // 1 Haziran
+  const dayOfWeek = d.getDay(); // 0 is Sunday
+  const daysToAdd = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+  d.setDate(d.getDate() + daysToAdd);
+  return d;
+}
+
+function getYksDate(year: number): Date {
+  // Haziran ayının 3. Cumartesisi (TYT)
+  const d = new Date(year, 5, 1, 10, 15, 0);
+  let countSaturdays = 0;
+  for (let day = 1; day <= 30; day++) {
+    d.setDate(day);
+    if (d.getDay() === 6) {
+      countSaturdays += 1;
+      if (countSaturdays === 3) break;
+    }
+  }
+  return d;
+}
+
+// -----------------------------------------------------------------------------
+// LGS DERS VE OTURUM SABİTLERİ (90 Soru, 3Y = 1D)
+// -----------------------------------------------------------------------------
+
+export const LGS_SOZEL_SUBJECTS = [
+  { subject: 'Türkçe', totalQuestions: 20, session: 'sozel' as const, coefficient: 4.35 },
+  { subject: 'T.C. İnkılap Tarihi', totalQuestions: 10, session: 'sozel' as const, coefficient: 1.45 },
+  { subject: 'Din Kültürü', totalQuestions: 10, session: 'sozel' as const, coefficient: 1.45 },
+  { subject: 'İngilizce', totalQuestions: 10, session: 'sozel' as const, coefficient: 1.45 },
 ];
 
-/** TYT Ders Sabitleri (120 Soru, 4 Yanlış 1 Doğruyu Götürür) */
-export const TYT_DEFAULT_SUBJECTS = [
-  { subject: 'Türkçe', totalQuestions: 40 },
-  { subject: 'Temel Matematik', totalQuestions: 40 },
-  { subject: 'Fen Bilimleri', totalQuestions: 20 },
-  { subject: 'Sosyal Bilimler', totalQuestions: 20 },
+export const LGS_SAYISAL_SUBJECTS = [
+  { subject: 'Matematik', totalQuestions: 20, session: 'sayisal' as const, coefficient: 4.35 },
+  { subject: 'Fen Bilimleri', totalQuestions: 20, session: 'sayisal' as const, coefficient: 4.35 },
 ];
+
+export const LGS_DEFAULT_SUBJECTS = [...LGS_SOZEL_SUBJECTS, ...LGS_SAYISAL_SUBJECTS];
+
+// -----------------------------------------------------------------------------
+// YKS DERS VE OTURUM SABİTLERİ (4Y = 1D)
+// -----------------------------------------------------------------------------
+
+/** TYT Oturumu (120 Soru / 165 dk) */
+export const TYT_DEFAULT_SUBJECTS = [
+  { subject: 'Türkçe', totalQuestions: 40, session: 'tyt' as const },
+  { subject: 'Temel Matematik', totalQuestions: 40, session: 'tyt' as const },
+  { subject: 'Fen Bilimleri', totalQuestions: 20, session: 'tyt' as const },
+  { subject: 'Sosyal Bilimler', totalQuestions: 20, session: 'tyt' as const },
+];
+
+/** AYT Sayısal (80 Soru / 180 dk) */
+export const AYT_SAYISAL_SUBJECTS = [
+  { subject: 'AYT Matematik', totalQuestions: 40, session: 'ayt' as const },
+  { subject: 'AYT Fen Bilimleri', totalQuestions: 40, session: 'ayt' as const }, // Fizik 14, Kimya 13, Biyoloji 13
+];
+
+/** AYT Eşit Ağırlık (80 Soru / 180 dk) */
+export const AYT_ESITAGIRLIK_SUBJECTS = [
+  { subject: 'AYT Matematik', totalQuestions: 40, session: 'ayt' as const },
+  { subject: 'Edebiyat - Sosyal-1', totalQuestions: 40, session: 'ayt' as const }, // Edebiyat 24, Tarih-1 10, Coğrafya-1 6
+];
+
+/** AYT Sözel (80 Soru / 180 dk) */
+export const AYT_SOZEL_SUBJECTS = [
+  { subject: 'Edebiyat - Sosyal-1', totalQuestions: 40, session: 'ayt' as const },
+  { subject: 'Sosyal Bilimler-2', totalQuestions: 40, session: 'ayt' as const }, // Tarih-2 11, Coğrafya-2 11, Felsefe 12, Din 6
+];
+
+/** YDT Yabancı Dil (80 Soru / 120 dk) */
+export const AYT_DIL_SUBJECTS = [
+  { subject: 'Yabancı Dil (YDT)', totalQuestions: 80, session: 'ydt' as const },
+];
+
+export function getAytSubjectsForField(field: YksField) {
+  switch (field) {
+    case 'sayisal':
+      return AYT_SAYISAL_SUBJECTS;
+    case 'esitagirlik':
+      return AYT_ESITAGIRLIK_SUBJECTS;
+    case 'sozel':
+      return AYT_SOZEL_SUBJECTS;
+    case 'dil':
+      return AYT_DIL_SUBJECTS;
+    default:
+      return AYT_SAYISAL_SUBJECTS;
+  }
+}
 
 /** Genel / Ara Sınıf Deneme Sabitleri */
 export const GENERAL_DEFAULT_SUBJECTS = [
-  { subject: 'Türkçe', totalQuestions: 20 },
-  { subject: 'Matematik', totalQuestions: 20 },
-  { subject: 'Fen Bilimleri', totalQuestions: 20 },
-  { subject: 'Sosyal Bilgiler', totalQuestions: 15 },
+  { subject: 'Türkçe', totalQuestions: 20, session: 'genel' as const },
+  { subject: 'Matematik', totalQuestions: 20, session: 'genel' as const },
+  { subject: 'Fen Bilimleri', totalQuestions: 20, session: 'genel' as const },
+  { subject: 'Sosyal Bilgiler', totalQuestions: 15, session: 'genel' as const },
 ];
 
-export function calculateNet(correct: number, wrong: number, examType: MockExamType): number {
+// -----------------------------------------------------------------------------
+// NET VE PUAN HESAPLAMA MOTORLARI
+// -----------------------------------------------------------------------------
+
+/**
+ * Net Hesaplama:
+ * LGS'de 3 Yanlış 1 Doğruyu Götürür: Net = D - Y/3
+ * YKS/TYT/AYT'de 4 Yanlış 1 Doğruyu Götürür: Net = D - Y/4
+ */
+export function calculateNet(
+  correct: number,
+  wrong: number,
+  examType: MockExamType | ExamTrack
+): number {
   const penalty = examType === 'lgs' ? 3 : 4;
   const rawNet = correct - wrong / penalty;
   return Math.max(0, Math.round(rawNet * 100) / 100);
 }
 
-/** LGS Puan Tahmini (Standart formül yaklaşık katsayıları) */
+/**
+ * LGS Puan Tahmini (100 - 500 Puan)
+ * Formül: 100 Taban + (Ders Katsayısı * Net) * Normalize Çarpanı
+ * Tam net (90 net) = 500.00 Puan
+ */
 export function estimateLgsScore(subjects: ExamSubjectScore[]): number {
-  let score = 100; // Taban puan
+  let weightedNetSum = 0;
   for (const s of subjects) {
-    if (s.subject === 'Türkçe' || s.subject === 'Matematik' || s.subject === 'Fen Bilimleri') {
-      score += s.net * 4.35;
-    } else {
-      score += s.net * 1.45;
-    }
+    const isMajor = s.subject === 'Türkçe' || s.subject === 'Matematik' || s.subject === 'Fen Bilimleri';
+    const coef = isMajor ? 4.35 : 1.45;
+    weightedNetSum += s.net * coef;
   }
-  return Math.min(500, Math.round(score * 100) / 100);
+  // Max weightedNetSum = 3 * 20 * 4.35 + 3 * 10 * 1.45 = 261 + 43.5 = 304.5
+  // (weightedNetSum / 304.5) * 400 + 100 = 500.00
+  const normalized = 100 + (weightedNetSum / 304.5) * 400;
+  return Math.min(500, Math.max(100, Math.round(normalized * 100) / 100));
 }
 
-/** TYT Puan Tahmini (Yaklaşık katsayılar) */
+/**
+ * TYT Puan Tahmini (100 - 500 Puan)
+ * 120 Soru, 4 Yanlış 1 Doğru.
+ * Tam net (120 net) = 500.00 Puan.
+ */
 export function estimateTytScore(subjects: ExamSubjectScore[]): number {
-  let score = 100;
+  let weightedSum = 0;
   for (const s of subjects) {
     if (s.subject === 'Türkçe' || s.subject === 'Temel Matematik') {
-      score += s.net * 3.3;
+      weightedSum += s.net * 3.3; // 40 * 3.3 = 132 x 2 = 264
     } else {
-      score += s.net * 3.4;
+      weightedSum += s.net * 3.4; // 20 * 3.4 = 68 x 2 = 136
     }
   }
-  return Math.min(500, Math.round(score * 100) / 100);
+  // Max weightedSum = 264 + 136 = 400. 100 + 400 = 500.
+  const score = 100 + weightedSum;
+  return Math.min(500, Math.max(100, Math.round(score * 100) / 100));
 }
+
+/**
+ * AYT Puan Tahmini (100 - 500 Puan)
+ * 80 Soru, 4 Yanlış 1 Doğru.
+ * 80 net = 500.00 Puan.
+ */
+export function estimateAytScore(subjects: ExamSubjectScore[]): number {
+  const totalAytNet = subjects.reduce((sum, s) => sum + s.net, 0);
+  const score = 100 + (totalAytNet / 80) * 400;
+  return Math.min(500, Math.max(100, Math.round(score * 100) / 100));
+}
+
+/**
+ * Birleşik YKS Puanı: TYT %40 + AYT %60
+ */
+export function estimateYksCompositeScore(tytScore: number, aytScore: number): number {
+  const composite = tytScore * 0.4 + aytScore * 0.6;
+  return Math.min(500, Math.max(100, Math.round(composite * 100) / 100));
+}
+
+// -----------------------------------------------------------------------------
+// VERİ DEPOLAMA (ASYNC STORAGE)
+// -----------------------------------------------------------------------------
 
 export async function loadMockExams(): Promise<MockExam[]> {
   try {
@@ -132,30 +358,38 @@ export async function deleteMockExam(id: string): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
 }
 
-/**
- * Öğrencinin geçmiş denemelerine ve hedef okuluna göre AI Net & Hedef Analizi üretir.
- */
+// -----------------------------------------------------------------------------
+// AI NET TAHMİNİ & HEDEF EĞRİSİ ANALİZİ
+// -----------------------------------------------------------------------------
+
 export async function generateAiExamAnalysis(
   exams: MockExam[],
   student: Student
 ): Promise<AiExamAnalysis> {
-  const grade = student.grade ?? '8. Sınıf';
+  const track = getExamTrack(student.grade);
+  const isLgs = track === 'lgs';
+  const grade = student.grade ?? (isLgs ? '8. Sınıf' : '12. Sınıf');
   const targetName =
-    student.targetHighSchool ||
-    student.targetUniversity ||
-    student.targetDepartment ||
+    (isLgs ? student.targetHighSchool : student.targetUniversity || student.targetDepartment) ||
     student.goal ||
-    'Hedef Derece';
+    (isLgs ? 'Hedef Fen Lisesi' : 'Hedef Üniversite');
 
   if (exams.length === 0) {
     return {
-      summary: `${student.name.split(' ')[0]}, henüz kaydedilmiş bir deneme sınavın bulunmuyor. Girdiğin ilk denemeyi eklediğinde net tahminin ve hedef eğrin burada hesaplanacak.`,
+      summary: `${student.name.split(' ')[0]}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. Girdiğin ilk denemeyi eklediğinde net tahminin ve hedef eğrin burada hesaplanacak.`,
       targetProbability: 'Henüz Veri Yok',
-      shortcutTopics: [
-        { subject: 'Matematik', topic: 'Temel İşlemler & Yeni Nesil', potentialGain: '+3 Net' },
-        { subject: 'Türkçe', topic: 'Paragrafta Anlam', potentialGain: '+4 Net' },
-      ],
-      strategyTip: 'İlk denemeni çözerken süre tutmayı ve boş bıraktığın soruları işaretlemeyi unutma.',
+      shortcutTopics: isLgs
+        ? [
+            { subject: 'Matematik', topic: 'Kareköklü İfadeler & Çarpanlar', potentialGain: '+3 Net' },
+            { subject: 'Türkçe', topic: 'Paragrafta Anlam & Söz Sanatları', potentialGain: '+3 Net' },
+          ]
+        : [
+            { subject: 'Temel Matematik', topic: 'Problemler & Fonksiyonlar', potentialGain: '+4 Net' },
+            { subject: 'Türkçe', topic: 'Paragraf Taktikleri & Dil Bilgisi', potentialGain: '+3 Net' },
+          ],
+      strategyTip: isLgs
+        ? 'LGS sözelde 75 dakikada 50 soruyu çözerken paragraflarda ilk okuyuşta ana fikri yakalamaya odaklan.'
+        : 'TYT 165 dakikalık sürede turlama tekniği kullanarak takıldığın sorulara en fazla 1.5 dakika ayır.',
     };
   }
 
@@ -174,7 +408,7 @@ export async function generateAiExamAnalysis(
     }
   }
 
-  let lowestSubj = 'Matematik';
+  let lowestSubj = isLgs ? 'Matematik' : 'Temel Matematik';
   let lowestAvg = 999;
   for (const [subj, data] of Object.entries(subjectTotals)) {
     const avg = data.totalNet / data.count;
@@ -184,21 +418,22 @@ export async function generateAiExamAnalysis(
     }
   }
 
-  // Gemini API ile kişiselleştirilmiş tahmin dene
   const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
   if (geminiKey) {
     try {
-      const prompt = `ÖĞRENCİ BİLGİSİ:
+      const prompt = `ÖĞRENCİ SINAV TAKİP BİLGİSİ:
+- Sınav Sistemi: ${isLgs ? 'LGS (Liselere Geçiş Sistemi, 8. Sınıf)' : 'YKS (Yükseköğretim Kurumları Sınavı, TYT/AYT)'}
+- Yanlış Kuralı: ${isLgs ? '3 Yanlış 1 Doğruyu Götürür' : '4 Yanlış 1 Doğruyu Götürür'}
 - İsim: ${student.name}
 - Sınıf: ${grade}
 - Hedef: ${targetName}
 - Kayıtlı Deneme Sayısı: ${totalExams}
-- Son Deneme Neti: ${latest.totalNet} Net (Puan: ${latest.estimatedScore ?? '-'})
+- Son Deneme Neti: ${latest.totalNet} Net (Tahmini Puan: ${latest.estimatedScore ?? '-'})
 - Ortalama Net: ${avgNet} Net (En Yüksek: ${maxNet} Net)
 - En Zorlandığı / En Düşük Netli Ders: ${lowestSubj} (${Math.round(lowestAvg * 10) / 10} ortalama net)
 
 GÖREV:
-Yukarıdaki öğrenci için Türkçe Yüzyılı Maarif Modeli ve sınav hazırlığı (LGS/YKS) standartlarına göre JSON formatında kısa bir net analizi ve kestirme konu tavsiyesi üret.
+Yukarıdaki öğrenci için Türkiye'deki ${isLgs ? 'MEB LGS' : 'ÖSYM YKS (TYT/AYT)'} sınav formatı standartlarına göre JSON formatında net analizi ve kestirme konu tavsiyesi üret.
 Hiçbir emoji kullanma. Samimi, gerçekçi ve motive edici ol.
 
 JSON ŞEMASI:
@@ -239,30 +474,44 @@ JSON ŞEMASI:
         }
       }
     } catch {
-      // API çağrısı başarısız olursa yerel sezgisel hesaplamaya geç
+      // API çağrısı başarısız olursa sezgisel hesaplamaya devam
     }
   }
 
   // Heuristic Fallback
-  const diff = latest.totalNet - avgNet;
-  const trendText = diff >= 0 ? `+${Math.round(diff * 10) / 10} net yükseliş` : `${Math.round(diff * 10) / 10} net dalgalanma`;
-  const estimatedProb = Math.min(95, Math.max(50, Math.round((latest.totalNet / (grade.includes('8') ? 90 : 120)) * 100) + 15));
+  const maxPossibleNet = isLgs ? 90 : 120;
+  const estimatedProb = Math.min(96, Math.max(45, Math.round((latest.totalNet / maxPossibleNet) * 100) + 12));
 
   return {
-    summary: `${student.name.split(' ')[0]}, son denemende ${latest.totalNet} nete ulaştın (${trendText}). ${targetName} hedefine ulaşmak için özellikle ${lowestSubj} netlerini yukarı çekmen kritik öneme sahip.`,
+    summary: `${student.name.split(' ')[0]}, son denemende ${latest.totalNet} net yaptın. ${targetName} hedefine ulaşmak için özellikle ${lowestSubj} netlerini yukarı çekmen kritik öneme sahip.`,
     targetProbability: `%${estimatedProb} (İstikrarlı İlerleme)`,
-    shortcutTopics: [
-      {
-        subject: lowestSubj,
-        topic: grade.includes('8') ? 'Kareköklü İfadeler & Veri Analizi' : 'Fonksiyonlar & Problemler',
-        potentialGain: '+3 Net',
-      },
-      {
-        subject: lowestSubj === 'Fen Bilimleri' ? 'Matematik' : 'Fen Bilimleri',
-        topic: grade.includes('8') ? 'Mevsimler ve İklim' : 'Maddenin Halleri',
-        potentialGain: '+2 Net',
-      },
-    ],
-    strategyTip: 'Denemede takıldığın sorulara 2 dakikadan fazla harcamayıp turlama tekniğiyle ikinci tura bırakmalısın.',
+    shortcutTopics: isLgs
+      ? [
+          {
+            subject: lowestSubj,
+            topic: 'Kareköklü İfadeler & Veri Analizi',
+            potentialGain: '+3 Net',
+          },
+          {
+            subject: lowestSubj === 'Fen Bilimleri' ? 'Matematik' : 'Fen Bilimleri',
+            topic: 'Mevsimler ve İklim',
+            potentialGain: '+2 Net',
+          },
+        ]
+      : [
+          {
+            subject: lowestSubj,
+            topic: 'Problemler & Fonksiyonlar',
+            potentialGain: '+4 Net',
+          },
+          {
+            subject: lowestSubj === 'Fen Bilimleri' ? 'Temel Matematik' : 'Sosyal Bilimler',
+            topic: 'Maddenin Halleri & Karışımlar',
+            potentialGain: '+2 Net',
+          },
+        ],
+    strategyTip: isLgs
+      ? 'Sözel oturumda 75 dakikayı iyi yönetip sayısal oturumundaki 80 dakikada zorlandığın soruları ikinci tura bırakmalısın.'
+      : 'TYT 165 dakika boyunca turlama taktiğiyle önce garanti soruları çözüp AYT için konuyu derinlemesine pekiştir.',
   };
 }
