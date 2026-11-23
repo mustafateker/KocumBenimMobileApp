@@ -21,15 +21,15 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 [bundle exec] fastlane ios get_profile
 ```
 
-Download or repair App Store Provisioning Profile
+App Store Provisioning Profilini indirir veya yeniler
 
-### ios testflight
+### ios upload_testflight
 
 ```sh
-[bundle exec] fastlane ios testflight
+[bundle exec] fastlane ios upload_testflight
 ```
 
-Upload IPA to TestFlight
+Native IPA'yı App Store Connect TestFlight kanalına yükler
 
 ----
 

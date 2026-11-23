@@ -69,6 +69,8 @@ service-account*.json
 /example/
 
 # Native build artifacts
+build/
+/build/
 ios/Pods/
 ios/build/
 ios/*.xcworkspace/xcuserdata/
@@ -78,11 +80,16 @@ android/.gradle/
 android/app/build/
 android/build/
 android/.cxx/
+modules/**/build/
 
 # Store build artifacts
 /builds/
 *.aab
 *.apk
+*.ipa
+*.xcarchive
+*.dSYM/
+fastlane/report.xml
 
 designes/
 # Local release secrets
