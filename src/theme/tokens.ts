@@ -232,9 +232,20 @@ export const Font = {
   black: 'PlusJakartaSans_800ExtraBold',
 } as const;
 
+export type FontWeight = 'regular' | 'medium' | 'semibold' | 'bold' | 'black';
+
+export const FontWeightMap: Record<FontWeight, string> = {
+  regular: Font.regular,
+  medium: Font.medium,
+  semibold: Font.semibold,
+  bold: Font.bold,
+  black: Font.black,
+};
+
 /** Nefes alan, okunakli ve genisletilmis ritim (Turkce karakter dostu). */
 export const Type = {
   hero: { fontFamily: Font.bold, fontSize: 32, lineHeight: 42, letterSpacing: -0.6 },
+  display: { fontFamily: Font.bold, fontSize: 32, lineHeight: 42, letterSpacing: -0.6 },
   title: { fontFamily: Font.bold, fontSize: 24, lineHeight: 32, letterSpacing: -0.4 },
   section: { fontFamily: Font.semibold, fontSize: 18, lineHeight: 26, letterSpacing: -0.2 },
   body: { fontFamily: Font.regular, fontSize: 15, lineHeight: 24, letterSpacing: 0 },
@@ -242,8 +253,11 @@ export const Type = {
   small: { fontFamily: Font.medium, fontSize: 13, lineHeight: 20, letterSpacing: 0.15 },
   smallStrong: { fontFamily: Font.semibold, fontSize: 13, lineHeight: 20, letterSpacing: 0.15 },
   tiny: { fontFamily: Font.semibold, fontSize: 11, lineHeight: 16, letterSpacing: 0.3 },
+  caption: { fontFamily: Font.semibold, fontSize: 11, lineHeight: 16, letterSpacing: 0.3 },
   /** Zamanlayici rakamlari */
   timer: { fontFamily: Font.bold, fontSize: 48, lineHeight: 56, letterSpacing: -1.0 },
+  /** Istatistik sayilari ve bento metrikleri */
+  stat: { fontFamily: Font.bold, fontSize: 24, lineHeight: 30, letterSpacing: -0.4 },
 } as const;
 
 /** Renkli zemin uzerine yazilan metin (butonlar, rozetler). */

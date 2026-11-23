@@ -1,29 +1,76 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, IconBubble, Pill, Txt } from '@/components/ui';
+import { Typography } from '@/components/typography';
+import { Card, Pill, ProgressBar } from '@/components/ui';
 import { getSummary } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { getExamTrack } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import type { Student, StudentSummary } from '@/lib/types';
-import { Accent, Border, DetailAccent, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
+import {
+  Accent,
+  Border,
+  DetailAccent,
+  OnColor,
+  Palette,
+  Radius,
+  Space,
+} from '@/theme/tokens';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
-/** Hayal bolumundeki kutular — ikonlar onboarding adimlariyla ayni. */
-const DREAM_ITEMS: { icon: IconName; label: string; pick: (s: Student) => string | null }[] = [
-  { icon: 'briefcase', label: 'Mesleğim', pick: (s) => s.career },
-  { icon: 'business', label: 'Gideceğim Lise', pick: (s) => s.targetHighSchool },
-  { icon: 'library', label: 'Gideceğim Üniversite', pick: (s) => s.targetUniversity },
-  { icon: 'book', label: 'Okuyacağım Bölüm', pick: (s) => s.targetDepartment },
+type DreamMeta = {
+  icon: IconName;
+  label: string;
+  pick: (s: Student) => string | null | undefined;
+  accentColor: string;
+  softColor: string;
+};
+
+const DREAM_ITEMS: DreamMeta[] = [
+  {
+    icon: 'briefcase',
+    label: 'Hedef Mesleğim',
+    pick: (s) => s.career,
+    accentColor: Palette.blue,
+    softColor: Palette.blueSoft,
+  },
+  {
+    icon: 'business',
+    label: 'Hedef Lisem',
+    pick: (s) => s.targetHighSchool,
+    accentColor: DetailAccent,
+    softColor: Palette.goldSoft,
+  },
+  {
+    icon: 'school',
+    label: 'Hedef Üniversitem',
+    pick: (s) => s.targetUniversity,
+    accentColor: Accent,
+    softColor: Palette.surfaceHi,
+  },
+  {
+    icon: 'book',
+    label: 'Hedef Bölümüm',
+    pick: (s) => s.targetDepartment,
+    accentColor: Palette.green,
+    softColor: Palette.greenSoft,
+  },
 ];
+
+function getInitials(name?: string): string {
+  if (!name) return 'Ö';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default function Profile() {
   const router = useRouter();
@@ -41,271 +88,573 @@ export default function Profile() {
   );
 
   const isLgs = getExamTrack(student.grade) === 'lgs';
-  const dreams = DREAM_ITEMS.filter((item) => {
-    // Ortaokul (LGS) için lise ve meslek; lise (YKS) için üniversite ve bölüm hedefleri gösterilir
-    if (isLgs && (item.label === 'Gideceğim Üniversite' || item.label === 'Okuyacağım Bölüm')) {
-      return false;
-    }
-    if (!isLgs && item.label === 'Gideceğim Lise') {
-      return false;
-    }
-    return true;
-  })
-    .map((item) => ({ ...item, value: item.pick(student) }))
-    .filter((item) => item.value);
+
+  // Kademeye göre hedefler: Ortaokul için Lise ve Meslek, Lise için Üniversite, Bölüm ve Meslek
+  const dreams = useMemo(() => {
+    return DREAM_ITEMS.filter((item) => {
+      if (isLgs && (item.label === 'Hedef Üniversitem' || item.label === 'Hedef Bölümüm')) {
+        return false;
+      }
+      if (!isLgs && item.label === 'Hedef Lisem') {
+        return false;
+      }
+      return true;
+    })
+      .map((item) => ({ ...item, value: item.pick(student) }))
+      .filter((item) => item.value && item.value.trim().length > 0);
+  }, [isLgs, student]);
+
   const discipline = student.disciplineMeaning ?? [];
   const motivation = student.motivationSources ?? [];
+
+  // Seviye ve XP Hesaplaması (Her 500 XP bir seviye)
+  const xp = student.xp || 0;
+  const level = Math.floor(xp / 500) + 1;
+  const levelXpFloor = (level - 1) * 500;
+  const xpInCurrentLevel = xp - levelXpFloor;
+  const xpProgress = Math.min(1, Math.max(0.08, xpInCurrentLevel / 500));
+
+  const initials = getInitials(student.name);
 
   return (
     <Screen tint={Accent}>
       <ScreenHeader
-        title="Profil"
-        subtitle="Karakterin ve hedeflerin."
+        title="Profilim"
+        subtitle="Öğrenci kimliğin, hedeflerin ve başarın"
         left={<MenuButton />}
         right={<NotificationBell />}
       />
 
-      {/* Karakter karti */}
-      <Card accent={Accent} style={styles.hero}>
-        <View style={[styles.avatar, glow(Accent, 0.3)]}>
-          <Ionicons name="person" size={44} color={Accent} />
+      {/* Hero Karakter & İlerleme Kartı */}
+      <Card style={styles.heroCard}>
+        <View style={styles.heroTopRow}>
+          {/* Avatar (Squircle kavisli, sıcak parıltılı ve harfli) */}
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatarSquircle}>
+              <Typography.Title color={DetailAccent} style={styles.initialsText}>
+                {initials}
+              </Typography.Title>
+            </View>
+            <View style={styles.avatarBadge}>
+              <Ionicons name="sparkles" size={10} color={OnColor} />
+            </View>
+          </View>
+
+          {/* İsim & Rozetler */}
+          <View style={styles.heroInfoCol}>
+            <Typography.Title color={Palette.text} numberOfLines={1}>
+              {student.nickname ?? student.name}
+            </Typography.Title>
+
+            <View style={styles.heroPillsRow}>
+              {student.grade ? (
+                <Pill label={student.grade} color={Accent} icon="school-outline" />
+              ) : null}
+
+              <View style={styles.streakBadge}>
+                <Ionicons name="flame" size={14} color={DetailAccent} />
+                <Typography.SmallStrong color={DetailAccent}>
+                  {student.streak} Günlük Seri
+                </Typography.SmallStrong>
+              </View>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.heroInfo}>
-          <Txt variant="title" color={Palette.text} numberOfLines={2}>
-            {student.nickname ?? student.name}
-          </Txt>
-          {student.grade ? <Pill label={student.grade} color={Accent} icon="school" /> : null}
-
-          <View style={styles.streakPill}>
-            <Ionicons name="flame" size={16} color={Palette.text} />
-            <Txt variant="smallStrong" color={Palette.text}>
-              {student.streak} günlük seri
-            </Txt>
+        {/* Seviye & XP İlerleme Çubuğu */}
+        <View style={styles.levelProgressBox}>
+          <View style={styles.levelLabelsRow}>
+            <View style={styles.levelTitleWrap}>
+              <Ionicons name="trophy-outline" size={14} color={Palette.textDim} />
+              <Typography.SmallStrong color={Palette.text}>
+                Seviye {level} Öğrenci
+              </Typography.SmallStrong>
+            </View>
+            <Typography.Tiny color={Palette.textDim}>
+              {xpInCurrentLevel} / 500 XP (Sonraki Seviye)
+            </Typography.Tiny>
           </View>
+          <ProgressBar
+            progress={xpProgress}
+            height={7}
+            color={DetailAccent}
+            track={Palette.surfaceHi}
+          />
         </View>
       </Card>
 
-      {/* Istatistik doseme */}
+      {/* Bento Grid: Haftalık Performans */}
       <View style={styles.section}>
-        <View style={styles.sectionHead}>
-          <Txt variant="smallStrong" color={Palette.textDim}>
-            Bu Hafta
-          </Txt>
+        <View style={styles.sectionHeaderRow}>
+          <Typography.Section color={Palette.text}>
+            Haftalık Performans
+          </Typography.Section>
           <PressScale onPress={() => router.push('/stats')} scaleTo={0.96}>
-            <Txt variant="tiny" color={DetailAccent}>
-              Tüm Raporlar →
-            </Txt>
+            <View style={styles.sectionAction}>
+              <Typography.SmallStrong color={DetailAccent}>
+                Tüm Raporlar
+              </Typography.SmallStrong>
+              <Ionicons name="chevron-forward" size={14} color={DetailAccent} />
+            </View>
           </PressScale>
         </View>
-        <PressScale onPress={() => router.push('/stats')} scaleTo={0.98}>
-          <View style={styles.tiles}>
-            <StatTile icon="star" color={DetailAccent} value={String(student.xp)} label="Toplam XP" />
-            <StatTile
-              icon="time"
-              color={DetailAccent}
-              value={humanDuration((summary?.weekMinutes ?? 0) * 60)}
-              label="Odak Süresi"
-            />
-            <StatTile
-              icon="checkmark-done"
-              color={DetailAccent}
-              value={`${summary?.tasksDone ?? 0}/${summary?.tasksTotal ?? 0}`}
-              label="Görev"
-            />
+
+        <PressScale onPress={() => router.push('/stats')} scaleTo={0.99}>
+          <View style={styles.bentoGrid}>
+            {/* Bento Kutu 1: Toplam XP */}
+            <Card style={styles.bentoCard}>
+              <View style={[styles.bentoIconBubble, { backgroundColor: Palette.goldSoft }]}>
+                <Ionicons name="sparkles" size={18} color={DetailAccent} />
+              </View>
+              <Typography.Section color={Palette.text} style={styles.bentoValue}>
+                {xp}
+              </Typography.Section>
+              <Typography.Tiny color={Palette.textDim}>
+                Toplam XP
+              </Typography.Tiny>
+            </Card>
+
+            {/* Bento Kutu 2: Odak Süresi */}
+            <Card style={styles.bentoCard}>
+              <View style={[styles.bentoIconBubble, { backgroundColor: Palette.blueSoft }]}>
+                <Ionicons name="time-outline" size={18} color={Palette.blue} />
+              </View>
+              <Typography.Section color={Palette.text} style={styles.bentoValue} numberOfLines={1}>
+                {humanDuration((summary?.weekMinutes ?? 0) * 60)}
+              </Typography.Section>
+              <Typography.Tiny color={Palette.textDim}>
+                Odak Süresi
+              </Typography.Tiny>
+            </Card>
+
+            {/* Bento Kutu 3: Tamamlanan Görev */}
+            <Card style={styles.bentoCard}>
+              <View style={[styles.bentoIconBubble, { backgroundColor: Palette.greenSoft }]}>
+                <Ionicons name="checkmark-done" size={18} color={Palette.green} />
+              </View>
+              <Typography.Section color={Palette.text} style={styles.bentoValue}>
+                {summary?.tasksDone ?? 0}/{summary?.tasksTotal ?? 0}
+              </Typography.Section>
+              <Typography.Tiny color={Palette.textDim}>
+                Görev Başarısı
+              </Typography.Tiny>
+            </Card>
           </View>
         </PressScale>
       </View>
 
-      {/* Raporlar & Istatistikler Karti */}
+      {/* Raporlar & Analizler Geçiş Kartı */}
       <PressScale onPress={() => router.push('/stats')} scaleTo={0.98}>
-        <Card accent={DetailAccent} style={styles.reportsBanner}>
-          <IconBubble name="stats-chart" color={DetailAccent} size={42} />
-          <View style={styles.flex}>
-            <Txt variant="bodyStrong" color={Palette.text}>
-              Çalışma Raporları & Analizler
-            </Txt>
-            <Txt variant="tiny" color={Palette.textDim}>
-              Haftalık odak, konu analizi ve başarı grafikleri
-            </Txt>
+        <Card style={styles.reportsBanner}>
+          <View style={styles.reportsIconBox}>
+            <Ionicons name="stats-chart" size={20} color={DetailAccent} />
           </View>
-          <Ionicons name="chevron-forward" size={18} color={DetailAccent} />
+          <View style={styles.reportsInfo}>
+            <Typography.BodyStrong color={Palette.text}>
+              Çalışma Raporları & Analizler
+            </Typography.BodyStrong>
+            <Typography.Tiny color={Palette.textDim}>
+              Konu eksikleri, haftalık odak ve net başarı grafikleri
+            </Typography.Tiny>
+          </View>
+          <View style={styles.reportsArrowCircle}>
+            <Ionicons name="chevron-forward" size={16} color={DetailAccent} />
+          </View>
         </Card>
       </PressScale>
 
-      {/* En buyuk hedef */}
+      {/* En Büyük Hedefim Kartı */}
       {student.goal ? (
-        <Card accent={Accent} style={styles.goalHero}>
-          <View style={styles.goalHeroHead}>
-            <IconBubble name="trophy" color={Accent} size={36} />
-            <Txt variant="tiny" color={Accent} style={styles.goalHeroLabel}>
+        <Card style={styles.goalCard}>
+          <View style={styles.goalHeaderRow}>
+            <View style={styles.goalIconBox}>
+              <Ionicons name="compass" size={16} color={DetailAccent} />
+            </View>
+            <Typography.Caption color={DetailAccent} weight="bold" style={styles.goalEyebrow}>
               EN BÜYÜK HEDEFİM
-            </Txt>
+            </Typography.Caption>
           </View>
-          <Txt variant="title" color={Palette.text}>
+          <Typography.Section color={Palette.text} style={styles.goalText}>
             {student.goal}
-          </Txt>
+          </Typography.Section>
         </Card>
       ) : null}
 
-      {/* Hayallerim */}
+      {/* Hayallerim (2x2 Bento Düzeni) */}
       {dreams.length > 0 ? (
         <View style={styles.section}>
-          <Txt variant="smallStrong" color={Palette.textDim}>
-            Hayallerim
-          </Txt>
-          <View style={styles.dreamGrid}>
+          <Typography.Section color={Palette.text}>
+            Gelecek Hayallerim
+          </Typography.Section>
+
+          <View style={styles.dreamsGrid}>
             {dreams.map((item) => (
-              <View key={item.label} style={styles.dreamTile}>
-                <IconBubble name={item.icon} color={Accent} size={36} />
-                <Txt variant="tiny" color={Palette.textDim}>
-                  {item.label}
-                </Txt>
-                <Txt variant="bodyStrong" color={Palette.text}>
-                  {item.value}
-                </Txt>
-              </View>
+              <Card key={item.label} style={styles.dreamCard}>
+                <View style={[styles.dreamIconBox, { backgroundColor: item.softColor }]}>
+                  <Ionicons name={item.icon} size={18} color={item.accentColor} />
+                </View>
+                <View style={styles.dreamContent}>
+                  <Typography.Tiny color={Palette.textDim} numberOfLines={1}>
+                    {item.label}
+                  </Typography.Tiny>
+                  <Typography.BodyStrong color={Palette.text} numberOfLines={2}>
+                    {item.value}
+                  </Typography.BodyStrong>
+                </View>
+              </Card>
             ))}
           </View>
         </View>
       ) : null}
 
-      {/* Disiplin ve motivasyon */}
-      {discipline.length > 0 ? <ChipSection title="Disiplin benim için" icon="shield-checkmark" values={discipline} /> : null}
-      {motivation.length > 0 ? <ChipSection title="Beni motive edenler" icon="star" values={motivation} /> : null}
+      {/* Disiplin ve Motivasyon Pusulam */}
+      {discipline.length > 0 || motivation.length > 0 ? (
+        <View style={styles.section}>
+          <Typography.Section color={Palette.text}>
+            Çalışma Pusulam
+          </Typography.Section>
+
+          <Card style={styles.compassCard}>
+            {discipline.length > 0 ? (
+              <View style={styles.compassBlock}>
+                <View style={styles.compassSubhead}>
+                  <Ionicons name="shield-checkmark-outline" size={15} color={Accent} />
+                  <Typography.SmallStrong color={Palette.text}>
+                    Disiplin Benim İçin
+                  </Typography.SmallStrong>
+                </View>
+                <View style={styles.pillsWrap}>
+                  {discipline.map((item) => (
+                    <Pill key={item} label={item} color={Accent} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+
+            {discipline.length > 0 && motivation.length > 0 ? (
+              <View style={styles.compassDivider} />
+            ) : null}
+
+            {motivation.length > 0 ? (
+              <View style={styles.compassBlock}>
+                <View style={styles.compassSubhead}>
+                  <Ionicons name="star-outline" size={15} color={DetailAccent} />
+                  <Typography.SmallStrong color={Palette.text}>
+                    Beni Motive Edenler
+                  </Typography.SmallStrong>
+                </View>
+                <View style={styles.pillsWrap}>
+                  {motivation.map((item) => (
+                    <Pill key={item} label={item} color={DetailAccent} />
+                  ))}
+                </View>
+              </View>
+            ) : null}
+          </Card>
+        </View>
+      ) : null}
+
+      {/* Hızlı Menü & Ayarlar */}
+      <Card style={styles.shortcutsCard}>
+        <PressScale onPress={() => router.push('/settings')} scaleTo={0.98}>
+          <View style={styles.shortcutRow}>
+            <View style={styles.shortcutLeft}>
+              <View style={[styles.shortcutIconBox, { backgroundColor: Palette.surfaceHi }]}>
+                <Ionicons name="settings-outline" size={18} color={Palette.text} />
+              </View>
+              <View>
+                <Typography.BodyStrong color={Palette.text}>
+                  Hesap & Tercihler
+                </Typography.BodyStrong>
+                <Typography.Tiny color={Palette.textDim}>
+                  Bildirimler, parola ve sınav sayacı ayarları
+                </Typography.Tiny>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Palette.textDim} />
+          </View>
+        </PressScale>
+
+        <View style={styles.shortcutDivider} />
+
+        <PressScale onPress={() => router.push('/help')} scaleTo={0.98}>
+          <View style={styles.shortcutRow}>
+            <View style={styles.shortcutLeft}>
+              <View style={[styles.shortcutIconBox, { backgroundColor: Palette.surfaceHi }]}>
+                <Ionicons name="help-circle-outline" size={18} color={Palette.text} />
+              </View>
+              <View>
+                <Typography.BodyStrong color={Palette.text}>
+                  Yardım & Destek
+                </Typography.BodyStrong>
+                <Typography.Tiny color={Palette.textDim}>
+                  Sık sorulan sorular ve kullanım rehberi
+                </Typography.Tiny>
+              </View>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={Palette.textDim} />
+          </View>
+        </PressScale>
+      </Card>
     </Screen>
   );
 }
 
-function ChipSection({ title, icon, values }: { title: string; icon: IconName; values: string[] }) {
-  return (
-    <View style={styles.section}>
-      <Txt variant="smallStrong" color={Palette.textDim}>
-        {title}
-      </Txt>
-      <View style={styles.chips}>
-        {values.map((value) => (
-          <Pill key={value} label={value} color={Accent} icon={icon} />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function StatTile({
-  icon,
-  color,
-  value,
-  label,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-  value: string;
-  label: string;
-}) {
-  return (
-    <View style={styles.tile}>
-      <IconBubble name={icon} color={color} size={36} />
-      <Txt variant="section" color={Palette.text}>
-        {value}
-      </Txt>
-      <Txt variant="tiny" color={Palette.textDim}>
-        {label}
-      </Txt>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  hero: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.lg,
-  },
-  avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: softOf(Accent),
-    borderWidth: Border.thin,
-    borderColor: Accent,
-  },
-  heroInfo: {
-    flex: 1,
-    alignItems: 'flex-start',
-    gap: Space.sm,
-  },
-  streakPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Space.md,
-    height: 34,
-    borderRadius: pillRadius(34),
-    borderWidth: Border.thick,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surfaceHi,
-  },
-  tiles: {
-    flexDirection: 'row',
+  // Hero Karakter Kartı
+  heroCard: {
+    padding: Space.lg,
+    borderRadius: Radius.xl,
     gap: Space.md,
-  },
-  tile: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: Space.lg,
-    paddingHorizontal: Space.xs,
-    borderRadius: Radius.lg,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
     backgroundColor: Palette.surface,
   },
-  section: {
-    gap: Space.sm,
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
   },
-  sectionHead: {
+  avatarWrap: {
+    position: 'relative',
+  },
+  avatarSquircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    backgroundColor: 'rgba(251, 174, 117, 0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+  },
+  initialsText: {
+    letterSpacing: 0.5,
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: DetailAccent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Palette.surface,
+  },
+  heroInfoCol: {
+    flex: 1,
+    gap: 6,
+  },
+  heroPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: Space.xs,
+  },
+  streakBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: Space.sm,
+    paddingVertical: 4,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(251, 174, 117, 0.14)',
+    borderWidth: Border.thin,
+    borderColor: 'rgba(251, 174, 117, 0.28)',
+  },
+  levelProgressBox: {
+    paddingTop: Space.xs,
+    gap: 6,
+    borderTopWidth: Border.thin,
+    borderTopColor: Palette.border,
+  },
+  levelLabelsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  levelTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+
+  // Bento İstatistik Kartları
+  section: {
+    gap: Space.sm,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  bentoGrid: {
+    flexDirection: 'row',
+    gap: Space.sm,
+  },
+  bentoCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: Space.md,
+    paddingHorizontal: Space.xs,
+    borderRadius: Radius.lg,
+    gap: 4,
+  },
+  bentoIconBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  bentoValue: {
+    textAlign: 'center',
+  },
+
+  // Raporlar Banner
   reportsBanner: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: Space.md,
+    borderRadius: Radius.lg,
     gap: Space.md,
   },
-  goalHero: {
-    gap: Space.md,
-  },
-  goalHeroHead: {
-    flexDirection: 'row',
+  reportsIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Palette.goldSoft,
     alignItems: 'center',
-    gap: Space.sm,
+    justifyContent: 'center',
   },
-  goalHeroLabel: {
-    letterSpacing: 1,
+  reportsInfo: {
+    flex: 1,
+    gap: 2,
   },
-  dreamGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.md,
+  reportsArrowCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Palette.surfaceHi,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  dreamTile: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    gap: 4,
+
+  // En Büyük Hedef Kartı
+  goalCard: {
     padding: Space.lg,
     borderRadius: Radius.lg,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    backgroundColor: Palette.surface,
+    gap: Space.sm,
+    backgroundColor: '#FFFDF9',
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+    borderWidth: 1.2,
   },
-  chips: {
+  goalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  goalIconBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Palette.goldSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  goalEyebrow: {
+    letterSpacing: 1.1,
+  },
+  goalText: {
+    lineHeight: 24,
+  },
+
+  // Hayallerim Bento Izgarası
+  dreamsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Space.sm,
+  },
+  dreamCard: {
+    flexBasis: '48%',
+    flexGrow: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    gap: Space.sm,
+  },
+  dreamIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dreamContent: {
+    flex: 1,
+    gap: 2,
+  },
+
+  // Çalışma Pusulam Kartı
+  compassCard: {
+    padding: Space.lg,
+    borderRadius: Radius.lg,
+    gap: Space.md,
+  },
+  compassBlock: {
+    gap: Space.sm,
+  },
+  compassSubhead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  compassDivider: {
+    height: 1,
+    backgroundColor: Palette.border,
+  },
+  pillsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Space.xs,
+  },
+
+  // Hızlı Menü & Ayarlar
+  shortcutsCard: {
+    padding: Space.sm,
+    borderRadius: Radius.lg,
+  },
+  shortcutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Space.sm,
+    paddingHorizontal: Space.sm,
+  },
+  shortcutLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    flex: 1,
+  },
+  shortcutIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shortcutDivider: {
+    height: 1,
+    backgroundColor: Palette.border,
+    marginHorizontal: Space.sm,
   },
 });

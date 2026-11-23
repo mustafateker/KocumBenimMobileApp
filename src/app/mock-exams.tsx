@@ -512,28 +512,28 @@ export default function MockExamsScreen() {
                           {exam.sessionBreakdown.sozelNet !== undefined ? (
                             <View style={styles.sessionPill}>
                               <Txt variant="tiny" color={Palette.textDim}>
-                                Sözel: <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '700' }}>{exam.sessionBreakdown.sozelNet} Net</Txt>
+                                Sözel: <Txt variant="tiny" color={Palette.text} weight="bold">{exam.sessionBreakdown.sozelNet} Net</Txt>
                               </Txt>
                             </View>
                           ) : null}
                           {exam.sessionBreakdown.sayisalNet !== undefined ? (
                             <View style={styles.sessionPill}>
                               <Txt variant="tiny" color={Palette.textDim}>
-                                Sayısal: <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '700' }}>{exam.sessionBreakdown.sayisalNet} Net</Txt>
+                                Sayısal: <Txt variant="tiny" color={Palette.text} weight="bold">{exam.sessionBreakdown.sayisalNet} Net</Txt>
                               </Txt>
                             </View>
                           ) : null}
                           {exam.sessionBreakdown.tytNet !== undefined ? (
                             <View style={styles.sessionPill}>
                               <Txt variant="tiny" color={Palette.textDim}>
-                                TYT: <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '700' }}>{exam.sessionBreakdown.tytNet} Net</Txt>
+                                TYT: <Txt variant="tiny" color={Palette.text} weight="bold">{exam.sessionBreakdown.tytNet} Net</Txt>
                               </Txt>
                             </View>
                           ) : null}
                           {exam.sessionBreakdown.aytNet !== undefined ? (
                             <View style={styles.sessionPill}>
                               <Txt variant="tiny" color={Palette.textDim}>
-                                AYT: <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '700' }}>{exam.sessionBreakdown.aytNet} Net</Txt>
+                                AYT: <Txt variant="tiny" color={Palette.text} weight="bold">{exam.sessionBreakdown.aytNet} Net</Txt>
                               </Txt>
                             </View>
                           ) : null}
@@ -551,7 +551,7 @@ export default function MockExamsScreen() {
                         </Txt>
                       </View>
                       {exam.estimatedScore ? (
-                        <Txt variant="tiny" color={Palette.green} style={{ fontWeight: '700' }}>
+                        <Txt variant="tiny" color={Palette.green} weight="bold">
                           {exam.estimatedScore} Puan
                         </Txt>
                       ) : null}

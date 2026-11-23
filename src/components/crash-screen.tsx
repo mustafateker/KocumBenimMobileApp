@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { OnColor, Palette, Radius, Space } from '@/theme/tokens';
@@ -23,7 +24,9 @@ export function CrashScreen({
   return (
     <View style={styles.root}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.emoji}>😵‍💫</Text>
+        <View style={styles.iconBox}>
+          <Ionicons name="alert-circle-outline" size={52} color={Palette.pink} />
+        </View>
         <Text style={styles.title}>Bir şeyler ters gitti</Text>
         <Text style={styles.subtitle}>
           Uygulama beklenmedik bir hatayla karşılaştı. Aşağıdaki kodu destekle paylaşırsan sorunu
@@ -68,9 +71,9 @@ const styles = StyleSheet.create({
     gap: Space.md,
     padding: Space.xl,
   },
-  emoji: {
-    fontSize: 48,
-    textAlign: 'center',
+  iconBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 24,

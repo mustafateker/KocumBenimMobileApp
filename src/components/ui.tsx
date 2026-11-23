@@ -1,12 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import {
   StyleSheet,
-  Text,
   TextInput,
   View,
   type StyleProp,
   type TextInputProps,
-  type TextProps,
   type ViewProps,
   type ViewStyle,
 } from 'react-native';
@@ -22,29 +20,26 @@ import {
   Palette,
   Radius,
   Space,
-  Type,
   pillRadius,
   softOf,
 } from '@/theme/tokens';
 
 import { PressScale } from './button';
+import {
+  Typography,
+  Txt,
+  type TypographyColor,
+  type TypographyProps,
+  type TypographyVariant,
+} from './typography';
 
-type TxtVariant = keyof typeof Type;
-
-export function Txt({
-  variant = 'body',
-  color = Palette.text,
-  center,
-  style,
-  ...rest
-}: TextProps & { variant?: TxtVariant; color?: string; center?: boolean }) {
-  return (
-    <Text
-      style={[Type[variant], { color }, center && styles.center, style]}
-      {...rest}
-    />
-  );
-}
+export {
+  Typography,
+  Txt,
+  type TypographyColor,
+  type TypographyProps,
+  type TypographyVariant,
+};
 
 export function Card({
   style,

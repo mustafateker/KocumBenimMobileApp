@@ -427,7 +427,7 @@ function ChatMessageItem({
               })}
 
               <PressScale onPress={onGoToTasks} scaleTo={0.97} style={styles.goToTasksBtn}>
-                <Txt variant="tiny" color={Accent} style={{ fontFamily: Font.semibold }}>
+                <Txt variant="tiny" color={Accent} weight="semibold">
                   Ödevlerim Ekranında Aç →
                 </Txt>
               </PressScale>

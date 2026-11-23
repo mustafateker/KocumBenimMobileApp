@@ -213,7 +213,7 @@ export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
             <View style={styles.targetCard}>
               <View style={styles.targetHeader}>
                 <Sparkles size={12} color={Palette.orange} />
-                <Txt variant="tiny" color={Palette.orange} style={{ fontWeight: '700' }}>
+                <Txt variant="tiny" color={Palette.orange} weight="bold">
                   HEDEF OKUL / BÖLÜM
                 </Txt>
               </View>

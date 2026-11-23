@@ -268,7 +268,7 @@ export default function Stats() {
                       </Txt>
                       <View style={styles.mockExamsAiBadge}>
                         <Sparkles size={11} color={DetailAccent} />
-                        <Txt variant="tiny" color={DetailAccent} style={{ fontWeight: '700' }}>
+                        <Txt variant="tiny" color={DetailAccent} weight="bold">
                           AI
                         </Txt>
                       </View>
