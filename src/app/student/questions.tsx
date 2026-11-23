@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,6 +11,7 @@ import { CanvasView } from '@/components/canvas-view';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
+import { generateQuestionHint, getCachedQuestionHint } from '@/lib/ai-question-hint';
 import { getQuestions, resolveQuestion } from '@/lib/api';
 import { apiMediaUrl } from '@/lib/api-client';
 import { relativeTime } from '@/lib/date';
@@ -18,7 +19,7 @@ import { useErrorDialog } from '@/lib/error-dialog';
 import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
-import { Accent, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   pending: { label: 'Hocada bekliyor', color: Palette.gold, icon: 'hourglass' },
@@ -327,7 +328,40 @@ function QuestionCard({
   const [busy, setBusy] = useState(false);
   const [replyImgLoading, setReplyImgLoading] = useState(true);
   const [replyImgFailed, setReplyImgFailed] = useState(false);
+  const [aiHint, setAiHint] = useState<string | null>(null);
+  const [hintLoading, setHintLoading] = useState(false);
+  const [hintVisible, setHintVisible] = useState(false);
   const { showError } = useErrorDialog();
+
+  useEffect(() => {
+    getCachedQuestionHint(question.id).then((cached) => {
+      if (cached) {
+        setAiHint(cached);
+        setHintVisible(true);
+      }
+    });
+  }, [question.id]);
+
+  const handleFetchHint = useCallback(async () => {
+    if (aiHint) {
+      setHintVisible((v) => !v);
+      return;
+    }
+    setHintLoading(true);
+    try {
+      const hint = await generateQuestionHint({
+        questionId: question.id,
+        note: question.note ?? undefined,
+        subject: question.subject ?? 'Matematik',
+      });
+      setAiHint(hint);
+      setHintVisible(true);
+    } catch {
+      // sessizce devam
+    } finally {
+      setHintLoading(false);
+    }
+  }, [aiHint, question.id, question.note, question.subject]);
 
   let rawReply = (question.teacherReply || '').trim();
   let embeddedSolutionImage: string | null = null;
@@ -421,6 +455,47 @@ function QuestionCard({
       ) : null}
 
       {question.note ? <Txt variant="small">{question.note}</Txt> : null}
+
+      {/* Koçum'dan İpucu Al (Adım Adım Yol Gösterici) */}
+      <View style={styles.aiHintContainer}>
+        <PressScale onPress={handleFetchHint} scaleTo={0.97}>
+          <View style={[styles.aiHintButton, aiHint && styles.aiHintButtonActive]}>
+            <View style={styles.aiHintBtnLeft}>
+              <Ionicons name="sparkles" size={15} color={DetailAccent} />
+              <Txt variant="smallStrong" color={Palette.text}>
+                {hintLoading
+                  ? "Koçum İpucu Hazırlıyor..."
+                  : aiHint
+                    ? (hintVisible ? "İpucunu Gizle" : "Koçum'un İpucunu Gör")
+                    : "Koçum'dan İpucu Al"}
+              </Txt>
+            </View>
+            {hintLoading ? (
+              <ActivityIndicator size="small" color={DetailAccent} />
+            ) : (
+              <Ionicons
+                name={hintVisible ? "chevron-up" : "chevron-down"}
+                size={14}
+                color={Palette.textDim}
+              />
+            )}
+          </View>
+        </PressScale>
+
+        {hintVisible && aiHint ? (
+          <View style={styles.aiHintBox}>
+            <View style={styles.aiHintHead}>
+              <View style={styles.aiHintDot} />
+              <Txt variant="tiny" color={DetailAccent} style={styles.aiHintTitle}>
+                {"KOÇUM'UN İPUCU"}
+              </Txt>
+            </View>
+            <Txt variant="small" color={Palette.text} style={styles.aiHintText}>
+              {aiHint}
+            </Txt>
+          </View>
+        ) : null}
+      </View>
 
       {/* Soru Cevaplandıysa Her Zaman Belirgin "Çözümü Gör" Butonu ve Çözüm Bölümü */}
       {question.status === 'answered' && (
@@ -775,5 +850,53 @@ const styles = StyleSheet.create({
   fullImage: {
     width: '100%',
     height: '100%',
+  },
+  aiHintContainer: {
+    gap: Space.xs,
+  },
+  aiHintButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Space.sm,
+    paddingHorizontal: Space.md,
+    borderRadius: Radius.md,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  aiHintButtonActive: {
+    borderColor: 'rgba(251, 174, 117, 0.4)',
+  },
+  aiHintBtnLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  aiHintBox: {
+    padding: Space.md,
+    borderRadius: Radius.md,
+    backgroundColor: '#FFFDF9',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+    gap: 4,
+  },
+  aiHintHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  aiHintDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: DetailAccent,
+  },
+  aiHintTitle: {
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  aiHintText: {
+    lineHeight: 20,
   },
 });

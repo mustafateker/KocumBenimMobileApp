@@ -6,6 +6,7 @@ import {
   Calendar,
   CheckCircle2,
   CheckSquare,
+  ChevronRight,
   Clock,
   Compass,
   Flame,
@@ -230,6 +231,34 @@ export default function Stats() {
               </Txt>
             </View>
           </Card>
+
+          {/* Deneme Sınavları & Net Analizi Tanıtım Kartı */}
+          <PressScale onPress={() => router.push('/mock-exams')} scaleTo={0.98}>
+            <Card style={styles.mockExamsPromoCard}>
+              <View style={styles.mockExamsPromoLeft}>
+                <View style={styles.mockExamsIconBox}>
+                  <Award size={20} color={DetailAccent} strokeWidth={2.4} />
+                </View>
+                <View style={styles.flex}>
+                  <View style={styles.mockExamsTitleRow}>
+                    <Txt variant="smallStrong" color={Palette.text}>
+                      Deneme Sınavları & Net Analizi
+                    </Txt>
+                    <View style={styles.mockExamsAiBadge}>
+                      <Sparkles size={11} color={DetailAccent} />
+                      <Txt variant="tiny" color={DetailAccent} style={{ fontWeight: '700' }}>
+                        AI
+                      </Txt>
+                    </View>
+                  </View>
+                  <Txt variant="tiny" color={Palette.textDim}>
+                    Netlerini kaydet, hedef eğrini ve kestirme konularını incele
+                  </Txt>
+                </View>
+              </View>
+              <ChevronRight size={18} color={Palette.textDim} strokeWidth={2.2} />
+            </Card>
+          </PressScale>
 
           {/* 6'lı Temel Performans Matrisi */}
           <View style={styles.metricGrid}>
@@ -711,6 +740,44 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontStyle: 'italic',
+  },
+  mockExamsPromoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Space.md,
+    paddingHorizontal: Space.md,
+    backgroundColor: '#FFFDF9',
+    borderColor: 'rgba(251, 174, 117, 0.4)',
+    borderWidth: 1.5,
+  },
+  mockExamsPromoLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    flex: 1,
+  },
+  mockExamsIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Palette.surfaceHi,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mockExamsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  mockExamsAiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: Radius.pill,
+    backgroundColor: 'rgba(251, 174, 117, 0.2)',
   },
 
   // Metrik Kartları

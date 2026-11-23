@@ -5,7 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 import { AppDialog } from '@/components/app-dialog';
@@ -18,7 +18,7 @@ import { clockFormat } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import { useFocusTimer } from '@/lib/use-focus-timer';
-import { Accent, Border, OnColor, Palette, Space, Type, pillRadius, softOf } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
 /**
  * Tam ekran odak modu. Calisma ve mola ayni koyu mor zemini korur; durum
@@ -123,11 +123,9 @@ export default function Focus() {
         {paused ? (
           <View style={styles.pausedNotice}>
             <Txt variant="bodyStrong" color={Palette.bg} center>
-              Odak süreniz duraklatıldı ☕
+              Odak süreniz duraklatıldı
             </Txt>
-            <Txt variant="small" color={Palette.bg} center>
-              Çayınızı alıp gelebilirsiniz, sizi bekliyoruz.
-            </Txt>
+            <SmartBreakCoach />
           </View>
         ) : (
           <Txt variant="small" color={Palette.bg} center>
@@ -188,6 +186,60 @@ function PulseGlow({ color }: { color: string }) {
   return <Animated.View pointerEvents="none" style={[styles.pulseGlow, { backgroundColor: color }, animatedStyle]} />;
 }
 
+const BREAK_TIPS = [
+  {
+    title: '20-20-20 Göz Egzersizi',
+    desc: '20 saniye boyunca ekrandan uzaklaş, en az 6 metre (20 feet) uzaktaki bir noktaya bak. Göz kasların gevşesin.',
+    icon: 'eye-outline' as const,
+  },
+  {
+    title: '4-4-4 Derin Nefes',
+    desc: '4 saniye nefes al, 4 saniye tut, 4 saniyede yavaşça ver. Zihnini sıradaki odak oturumuna hazırla.',
+    icon: 'leaf-outline' as const,
+  },
+  {
+    title: 'Hafif Esneme & Su',
+    desc: 'Oturduğun yerden kalk, omuzlarını geriye doğru çevir ve bir bardak taze su iç.',
+    icon: 'water-outline' as const,
+  },
+];
+
+function SmartBreakCoach() {
+  const [tipIdx, setTipIdx] = useState(0);
+  const cur = BREAK_TIPS[tipIdx];
+
+  return (
+    <View style={styles.breakCoachWrap}>
+      <View style={styles.breakCoachHeader}>
+        <Ionicons name="sparkles" size={13} color={DetailAccent} />
+        <Txt variant="tiny" color={DetailAccent} style={styles.breakCoachTitle}>
+          {"KOÇUM'UN AKILLI MOLA REHBERİ"}
+        </Txt>
+      </View>
+      <View style={styles.breakCoachCard}>
+        <View style={styles.breakCoachIconBox}>
+          <Ionicons name={cur.icon} size={18} color={DetailAccent} />
+        </View>
+        <View style={styles.breakCoachTextWrap}>
+          <Txt variant="smallStrong" color={Palette.text}>
+            {cur.title}
+          </Txt>
+          <Txt variant="tiny" color={Palette.textDim}>
+            {cur.desc}
+          </Txt>
+        </View>
+      </View>
+      <View style={styles.breakDotsRow}>
+        {BREAK_TIPS.map((_, i) => (
+          <Pressable key={i} onPress={() => setTipIdx(i)} hitSlop={6}>
+            <View style={[styles.breakDot, i === tipIdx && styles.breakDotActive]} />
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; onDone: () => void }) {
   return (
     <View style={[styles.root, styles.resultRoot]}>
@@ -210,7 +262,9 @@ function SuccessScreen({ minutes, xp, onDone }: { minutes: number; xp: number; o
           </Txt>
         </View>
 
-        <SolidButton label="Devam Et" color={Accent} onPress={onDone} />
+        <SmartBreakCoach />
+
+        <SolidButton label="Devam Et" color={Accent} onPress={onDone} style={{ marginTop: Space.sm }} />
       </View>
     </View>
   );
@@ -362,5 +416,59 @@ const styles = StyleSheet.create({
   },
   gapTop: {
     marginTop: Space.md,
+  },
+  breakCoachWrap: {
+    width: '100%',
+    maxWidth: 320,
+    marginTop: Space.sm,
+    gap: 6,
+  },
+  breakCoachHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    justifyContent: 'center',
+  },
+  breakCoachTitle: {
+    fontWeight: '700',
+    letterSpacing: 0.6,
+  },
+  breakCoachCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    backgroundColor: Palette.surface,
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  breakCoachIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.surfaceHi,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  breakCoachTextWrap: {
+    flex: 1,
+    gap: 2,
+  },
+  breakDotsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 6,
+    paddingTop: 2,
+  },
+  breakDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  breakDotActive: {
+    backgroundColor: DetailAccent,
+    width: 14,
   },
 });

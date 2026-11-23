@@ -98,6 +98,7 @@ export default function RootLayout() {
                     <Stack.Screen name="student" />
                     <Stack.Screen name="settings" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="help" options={{ animation: 'slide_from_right' }} />
+                    <Stack.Screen name="mock-exams" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="diagnostics" options={{ animation: 'slide_from_right' }} />
                     <Stack.Screen name="lessons" options={{ animation: 'slide_from_right' }} />

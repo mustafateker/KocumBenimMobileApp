@@ -34,6 +34,12 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         onPress: () => router.push('/subjects'),
       },
       {
+        icon: 'ribbon-outline',
+        label: 'Deneme Sınavlarım',
+        selected: pathname?.startsWith('/mock-exams'),
+        onPress: () => router.push('/mock-exams'),
+      },
+      {
         icon: 'notifications-outline',
         label: 'Bildirimler',
         selected: pathname?.startsWith('/notifications'),
