@@ -5,7 +5,7 @@ import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
-import { ExamCountdownCard } from '@/components/exam-countdown-card';
+import { SideExamCountdown } from '@/components/side-exam-countdown';
 import { FocusRing } from '@/components/focus-ring';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { RaccoonIcon } from '@/components/raccoon-icon';
@@ -220,6 +220,12 @@ export default function Home() {
 
   return (
     <Screen>
+      {/* Ekran Yaninda Sabit LGS / YKS Geri Sayim Rozeti ve Detay Popup'i */}
+      <SideExamCountdown
+        grade={student.grade}
+        target={student.targetHighSchool || student.targetUniversity || student.targetDepartment || student.goal}
+      />
+
       {/* Ust bar */}
       <View style={styles.topBar}>
         <MenuButton />
@@ -246,13 +252,6 @@ export default function Home() {
         pomodoroMinutes={todayPomodoroMinutes}
         questionsSolved={todayQuestions}
         correctCount={todayCorrect}
-      />
-
-      {/* LGS / YKS Sinav Geri Sayim ve Hedef Karti */}
-      <ExamCountdownCard
-        grade={student.grade}
-        target={student.targetHighSchool || student.targetUniversity || student.targetDepartment || student.goal}
-        onPress={() => router.push('/mock-exams')}
       />
 
       {/* Odak zamani secici */}

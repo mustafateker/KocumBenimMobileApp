@@ -9,7 +9,9 @@ import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, IconBubble, SectionLabel, TextField, Txt } from '@/components/ui';
 import { changePassword, deleteAccount, getPreferences, patchMe, patchPreferences } from '@/lib/api';
 import { ApiError } from '@/lib/api-client';
+import { useShowExamCountdown } from '@/lib/countdown-settings';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { getExamTrack } from '@/lib/mock-exams';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
 import { EMAIL_RE } from '@/lib/validation';
@@ -28,6 +30,9 @@ export default function Settings() {
   const router = useRouter();
   const { signOut, setUser } = useSession();
   const { showMessage, showError } = useErrorDialog();
+
+  const isLgs = getExamTrack(student.grade) === 'lgs';
+  const { enabled: examCountdownEnabled, setEnabled: setExamCountdownEnabled } = useShowExamCountdown();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -237,6 +242,16 @@ export default function Settings() {
             label="Titreşim"
             control={
               <SettingsSwitch value={prefs.haptics} onValueChange={(v) => togglePref('haptics', v)} />
+            }
+          />
+          <SettingRow
+            icon="timer-outline"
+            label={isLgs ? 'LGS Sınav Sayacı' : 'YKS Sınav Sayacı'}
+            control={
+              <SettingsSwitch
+                value={examCountdownEnabled}
+                onValueChange={setExamCountdownEnabled}
+              />
             }
           />
         </Card>
