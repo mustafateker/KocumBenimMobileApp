@@ -154,6 +154,30 @@ function SignUpForm() {
             onPress={submit}
             style={styles.submit}
           />
+
+          <View style={styles.legalNotice}>
+            <Txt variant="tiny" color={OnboardingPalette.textFaint} center>
+              Kayıt olarak{' '}
+              <Txt
+                variant="tiny"
+                color={OnboardingPalette.accent}
+                weight="semibold"
+                onPress={() => router.push('/terms')}
+              >
+                Kullanım Şartları
+              </Txt>
+              {' '}ve{' '}
+              <Txt
+                variant="tiny"
+                color={OnboardingPalette.accent}
+                weight="semibold"
+                onPress={() => router.push('/privacy-policy')}
+              >
+                Gizlilik Politikası
+              </Txt>
+              &apos;nı kabul etmiş olursun.
+            </Txt>
+          </View>
         </View>
 
         <PressScale onPress={() => router.replace('/login')}>
@@ -193,6 +217,10 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: Space.lg,
+  },
+  legalNotice: {
+    paddingHorizontal: Space.sm,
+    paddingTop: Space.xs,
   },
   field: {
     gap: 6,

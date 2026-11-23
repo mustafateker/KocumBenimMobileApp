@@ -42,6 +42,9 @@ export function PlayReviewPrompt() {
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const isIos = Platform.OS === 'ios';
+  const storeName = isIos ? 'App Store' : 'Google Play';
+
   useEffect(() => {
     return subscribePlayReviewPrompt((v) => {
       setVisible(v);
@@ -105,9 +108,9 @@ export function PlayReviewPrompt() {
               <RaccoonIcon size={44} />
             </View>
             <View style={styles.playBadge}>
-              <Ionicons name="logo-google-playstore" size={13} color={Accent} />
+              <Ionicons name={isIos ? 'logo-apple-appstore' : 'logo-google-playstore'} size={13} color={Accent} />
               <Txt variant="tiny" color={Accent}>
-                Google Play Değerlendirme
+                {storeName} Değerlendirmesi
               </Txt>
             </View>
           </View>
@@ -117,7 +120,7 @@ export function PlayReviewPrompt() {
               Koçum Senin İçin Çalışıyor!
             </Txt>
             <Txt variant="small" color={Palette.textDim} center>
-              Yapay zeka koçun Koçum ile çalışma planını ve konu analizlerini hazırladık. Google Play&apos;de vereceğin 5 yıldız ve güzel bir yorum, senin gibi binlerce öğrencinin hedeflerine ulaşmasına büyük güç katıyor. Bize 10 saniyeni ayırıp destek olur musun?
+              {`Yapay zeka koçun Koçum ile çalışma planını ve konu analizlerini hazırladık. ${storeName}'de vereceğin 5 yıldız ve güzel bir yorum, senin gibi binlerce öğrencinin hedeflerine ulaşmasına büyük güç katıyor. Bize 10 saniyeni ayırıp destek olur musun?`}
             </Txt>
           </View>
 
@@ -174,7 +177,7 @@ export function PlayReviewPrompt() {
           {/* Aksiyon Butonları */}
           <View style={styles.actionsCol}>
             <NeonButton
-              label="Google Play'de Değerlendir ve Gönder"
+              label={`${storeName}'de Değerlendir ve Gönder`}
               icon="star"
               color={Accent}
               size="lg"

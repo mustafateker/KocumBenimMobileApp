@@ -90,7 +90,14 @@
       "reactCompiler": true
     },
     "ios": {
-      "bundleIdentifier": "com.triworkster.kocumbenimmobileapp"
+      "bundleIdentifier": "com.triworkster.kocumbenimmobileapp",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Takıldığın soru ve ödevlerin fotoğrafını çekip koçuna gönderebilmen için kameraya erişim izni gereklidir.",
+        "NSPhotoLibraryUsageDescription": "Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.",
+        "NSPhotoLibraryAddUsageDescription": "Çözülen soruları ve çalışma notlarını cihazına kaydedebilmen için fotoğraf arşivine kayıt izni gereklidir."
+      }
     },
     "extra": {
       "router": {

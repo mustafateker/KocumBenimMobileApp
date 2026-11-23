@@ -7,6 +7,7 @@ const PLAY_REVIEW_STORAGE_KEY = 'kocumbenim.playReviewState.v1';
 export const PLAY_STORE_PACKAGE = 'com.triworkster.kocumbenimmobileapp';
 export const PLAY_STORE_WEB_URL = `https://play.google.com/store/apps/details?id=${PLAY_STORE_PACKAGE}`;
 export const PLAY_STORE_MARKET_URL = `market://details?id=${PLAY_STORE_PACKAGE}`;
+export const APP_STORE_URL = 'https://apps.apple.com/app/kocum-benim/id6742512999';
 
 type PlayReviewState = {
   aiCoachUsed: boolean;
@@ -110,7 +111,7 @@ export async function submitPlayReviewAndOpenStore(options: {
       .post('/feedback', {
         name: options.studentName || 'Öğrenci',
         email: options.studentEmail || 'ogrenci@kocumbenim.app',
-        subject: `Google Play Değerlendirmesi (${options.rating} Yıldız)`,
+        subject: `${Platform.OS === 'ios' ? 'App Store' : 'Google Play'} Değerlendirmesi (${options.rating} Yıldız)`,
         message: cleanComment,
       })
       .catch(() => {});
@@ -123,9 +124,11 @@ export async function submitPlayReviewAndOpenStore(options: {
         await Linking.openURL(PLAY_STORE_MARKET_URL);
         return;
       }
+      await Linking.openURL(PLAY_STORE_WEB_URL);
+    } else if (Platform.OS === 'ios') {
+      await Linking.openURL(APP_STORE_URL);
     }
-    await Linking.openURL(PLAY_STORE_WEB_URL);
   } catch {
-    Linking.openURL(PLAY_STORE_WEB_URL).catch(() => {});
+    // sessizce devam
   }
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState, Linking } from 'react-native';
+import { AppState, Linking, Platform } from 'react-native';
 
 import { logHandledError } from '@/lib/crash-reporter';
 import { isUpdateAvailable } from '@/lib/play-update';
@@ -7,6 +7,7 @@ import { isUpdateAvailable } from '@/lib/play-update';
 import { AppDialog } from './app-dialog';
 
 const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.triworkster.kocumbenimmobileapp';
+const APP_STORE_URL = 'https://apps.apple.com/app/kocum-benim/id6742512999';
 
 /**
  * Play Store'da yeni surum yayinlandiysa "Guncelle" pop-up'ini gosterir.
@@ -43,7 +44,8 @@ export function UpdatePrompt({ enabled }: { enabled: boolean }) {
 
   const update = useCallback(() => {
     setVisible(false);
-    Linking.openURL(PLAY_STORE_URL).catch((err) => logHandledError('UPDATE_OPEN_STORE', err));
+    const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
+    Linking.openURL(storeUrl).catch((err) => logHandledError('UPDATE_OPEN_STORE', err));
   }, []);
 
   return (

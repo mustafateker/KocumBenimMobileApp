@@ -157,6 +157,26 @@ export default function Login() {
             Giriş bilgilerini koçundan alabilirsin.
           </Txt>
         )}
+
+        <View style={styles.legalFooter}>
+          <Txt
+            variant="tiny"
+            color={OnboardingPalette.textFaint}
+            onPress={() => router.push('/privacy-policy')}
+          >
+            Gizlilik Politikası
+          </Txt>
+          <Txt variant="tiny" color={OnboardingPalette.textFaint}>
+            {' · '}
+          </Txt>
+          <Txt
+            variant="tiny"
+            color={OnboardingPalette.textFaint}
+            onPress={() => router.push('/terms')}
+          >
+            Kullanım Şartları
+          </Txt>
+        </View>
       </KeyboardAwareScrollView>
     </ScreenBackground>
   );
@@ -211,5 +231,11 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: OnboardingPalette.accent,
     borderColor: OnboardingPalette.accent,
+  },
+  legalFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Space.sm,
   },
 });

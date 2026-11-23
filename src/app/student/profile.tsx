@@ -11,6 +11,7 @@ import { Card, Pill, ProgressBar } from '@/components/ui';
 import { getSummary } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { getLevelInfo } from '@/lib/gamification';
 import { getExamTrack } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import type { Student, StudentSummary } from '@/lib/types';
@@ -107,12 +108,9 @@ export default function Profile() {
   const discipline = student.disciplineMeaning ?? [];
   const motivation = student.motivationSources ?? [];
 
-  // Seviye ve XP Hesaplaması (Her 500 XP bir seviye)
+  // Seviye ve XP Hesaplaması (gamification kuralları)
   const xp = student.xp || 0;
-  const level = Math.floor(xp / 500) + 1;
-  const levelXpFloor = (level - 1) * 500;
-  const xpInCurrentLevel = xp - levelXpFloor;
-  const xpProgress = Math.min(1, Math.max(0.08, xpInCurrentLevel / 500));
+  const levelInfo = useMemo(() => getLevelInfo(xp), [xp]);
 
   const initials = getInitials(student.name);
 
@@ -167,15 +165,15 @@ export default function Profile() {
             <View style={styles.levelTitleWrap}>
               <Ionicons name="trophy-outline" size={14} color={Palette.textDim} />
               <Typography.SmallStrong color={Palette.text}>
-                Seviye {level} Öğrenci
+                Seviye {levelInfo.level} · {levelInfo.title}
               </Typography.SmallStrong>
             </View>
             <Typography.Tiny color={Palette.textDim}>
-              {xpInCurrentLevel} / 500 XP (Sonraki Seviye)
+              {levelInfo.currentLevelXp} / 500 XP (Sonraki Seviye)
             </Typography.Tiny>
           </View>
           <ProgressBar
-            progress={xpProgress}
+            progress={levelInfo.progressPercent}
             height={7}
             color={DetailAccent}
             track={Palette.surfaceHi}
