@@ -521,43 +521,65 @@ function AddExamModal({
   const aytSubs = useMemo(() => getAytSubjectsForField(yksField), [yksField]);
 
   const getSubjectScore = useCallback(
-    (subj: string) => {
-      return scores[subj] ?? { correct: '0', wrong: '0', empty: '0' };
+    (subj: string, totalQuestions: number) => {
+      return (
+        scores[subj] ?? {
+          correct: '',
+          wrong: '',
+          empty: String(totalQuestions),
+        }
+      );
     },
     [scores]
   );
 
-  const handleScoreChange = (subject: string, field: 'correct' | 'wrong' | 'empty', val: string) => {
+  const handleScoreChange = (
+    subject: string,
+    field: 'correct' | 'wrong' | 'empty',
+    val: string,
+    totalQuestions: number
+  ) => {
     const clean = val.replace(/[^0-9]/g, '');
-    setScores((prev) => ({
-      ...prev,
-      [subject]: {
-        ...(prev[subject] ?? { correct: '0', wrong: '0', empty: '0' }),
-        [field]: clean,
-      },
-    }));
+    setScores((prev) => {
+      const cur = prev[subject] ?? { correct: '', wrong: '', empty: String(totalQuestions) };
+      const next = { ...cur, [field]: clean };
+
+      // Kullanıcı Doğru veya Yanlış girdiğinde testin toplam soru sayısından
+      // otomatik olarak Boş sayısını hesapla ve doldur
+      if (field === 'correct' || field === 'wrong') {
+        const c = Number(next.correct) || 0;
+        const w = Number(next.wrong) || 0;
+        const autoEmpty = Math.max(0, totalQuestions - c - w);
+        next.empty = String(autoEmpty);
+      }
+
+      return {
+        ...prev,
+        [subject]: next,
+      };
+    });
   };
 
   // LGS Canlı Net ve Puan Hesabı (3 Yanlış 1 Doğruyu Götürür)
   const lgsSozelComputed = useMemo(() => {
     return lgsSozel.map((s) => {
-      const sc = getSubjectScore(s.subject);
+      const sc = getSubjectScore(s.subject, s.totalQuestions);
       const c = Number(sc.correct) || 0;
       const w = Number(sc.wrong) || 0;
       const e = Number(sc.empty) || 0;
       const net = calculateNet(c, w, 'lgs');
-      return { subject: s.subject, correct: c, wrong: w, empty: e, net };
+      return { subject: s.subject, totalQuestions: s.totalQuestions, correct: c, wrong: w, empty: e, net };
     });
   }, [lgsSozel, getSubjectScore]);
 
   const lgsSayisalComputed = useMemo(() => {
     return lgsSayisal.map((s) => {
-      const sc = getSubjectScore(s.subject);
+      const sc = getSubjectScore(s.subject, s.totalQuestions);
       const c = Number(sc.correct) || 0;
       const w = Number(sc.wrong) || 0;
       const e = Number(sc.empty) || 0;
       const net = calculateNet(c, w, 'lgs');
-      return { subject: s.subject, correct: c, wrong: w, empty: e, net };
+      return { subject: s.subject, totalQuestions: s.totalQuestions, correct: c, wrong: w, empty: e, net };
     });
   }, [lgsSayisal, getSubjectScore]);
 
@@ -578,23 +600,23 @@ function AddExamModal({
   // YKS Canlı Net ve Puan Hesabı (4 Yanlış 1 Doğruyu Götürür)
   const tytComputed = useMemo(() => {
     return tytSubs.map((s) => {
-      const sc = getSubjectScore(s.subject);
+      const sc = getSubjectScore(s.subject, s.totalQuestions);
       const c = Number(sc.correct) || 0;
       const w = Number(sc.wrong) || 0;
       const e = Number(sc.empty) || 0;
       const net = calculateNet(c, w, 'tyt');
-      return { subject: s.subject, correct: c, wrong: w, empty: e, net };
+      return { subject: s.subject, totalQuestions: s.totalQuestions, correct: c, wrong: w, empty: e, net };
     });
   }, [tytSubs, getSubjectScore]);
 
   const aytComputed = useMemo(() => {
     return aytSubs.map((s) => {
-      const sc = getSubjectScore(s.subject);
+      const sc = getSubjectScore(s.subject, s.totalQuestions);
       const c = Number(sc.correct) || 0;
       const w = Number(sc.wrong) || 0;
       const e = Number(sc.empty) || 0;
       const net = calculateNet(c, w, 'ayt');
-      return { subject: s.subject, correct: c, wrong: w, empty: e, net };
+      return { subject: s.subject, totalQuestions: s.totalQuestions, correct: c, wrong: w, empty: e, net };
     });
   }, [aytSubs, getSubjectScore]);
 
@@ -906,9 +928,10 @@ function AddExamModal({
                     <SubjectInputRow
                       key={sub.subject}
                       subject={sub.subject}
-                      correct={getSubjectScore(sub.subject).correct}
-                      wrong={getSubjectScore(sub.subject).wrong}
-                      empty={getSubjectScore(sub.subject).empty}
+                      totalQuestions={sub.totalQuestions}
+                      correct={getSubjectScore(sub.subject, sub.totalQuestions).correct}
+                      wrong={getSubjectScore(sub.subject, sub.totalQuestions).wrong}
+                      empty={getSubjectScore(sub.subject, sub.totalQuestions).empty}
                       net={sub.net}
                       accentColor={DetailAccent}
                       onChange={handleScoreChange}
@@ -928,9 +951,10 @@ function AddExamModal({
                     <SubjectInputRow
                       key={sub.subject}
                       subject={sub.subject}
-                      correct={getSubjectScore(sub.subject).correct}
-                      wrong={getSubjectScore(sub.subject).wrong}
-                      empty={getSubjectScore(sub.subject).empty}
+                      totalQuestions={sub.totalQuestions}
+                      correct={getSubjectScore(sub.subject, sub.totalQuestions).correct}
+                      wrong={getSubjectScore(sub.subject, sub.totalQuestions).wrong}
+                      empty={getSubjectScore(sub.subject, sub.totalQuestions).empty}
                       net={sub.net}
                       accentColor={DetailAccent}
                       onChange={handleScoreChange}
@@ -969,9 +993,10 @@ function AddExamModal({
                         <SubjectInputRow
                           key={sub.subject}
                           subject={sub.subject}
-                          correct={getSubjectScore(sub.subject).correct}
-                          wrong={getSubjectScore(sub.subject).wrong}
-                          empty={getSubjectScore(sub.subject).empty}
+                          totalQuestions={sub.totalQuestions}
+                          correct={getSubjectScore(sub.subject, sub.totalQuestions).correct}
+                          wrong={getSubjectScore(sub.subject, sub.totalQuestions).wrong}
+                          empty={getSubjectScore(sub.subject, sub.totalQuestions).empty}
                           net={sub.net}
                           accentColor={Accent}
                           onChange={handleScoreChange}
@@ -1010,9 +1035,10 @@ function AddExamModal({
                         <SubjectInputRow
                           key={sub.subject}
                           subject={sub.subject}
-                          correct={getSubjectScore(sub.subject).correct}
-                          wrong={getSubjectScore(sub.subject).wrong}
-                          empty={getSubjectScore(sub.subject).empty}
+                          totalQuestions={sub.totalQuestions}
+                          correct={getSubjectScore(sub.subject, sub.totalQuestions).correct}
+                          wrong={getSubjectScore(sub.subject, sub.totalQuestions).wrong}
+                          empty={getSubjectScore(sub.subject, sub.totalQuestions).empty}
                           net={sub.net}
                           accentColor={Accent}
                           onChange={handleScoreChange}
@@ -1044,6 +1070,7 @@ function AddExamModal({
 
 function SubjectInputRow({
   subject,
+  totalQuestions,
   correct,
   wrong,
   empty,
@@ -1052,37 +1079,49 @@ function SubjectInputRow({
   onChange,
 }: {
   subject: string;
+  totalQuestions: number;
   correct: string;
   wrong: string;
   empty: string;
   net: number;
   accentColor: string;
-  onChange: (subject: string, field: 'correct' | 'wrong' | 'empty', val: string) => void;
+  onChange: (subject: string, field: 'correct' | 'wrong' | 'empty', val: string, totalQuestions: number) => void;
 }) {
   return (
     <View style={styles.subjectInputRow}>
-      <Txt variant="smallStrong" color={Palette.text} style={{ flex: 1 }}>
-        {subject}
-      </Txt>
+      <View style={{ flex: 1, gap: 1 }}>
+        <Txt variant="smallStrong" color={Palette.text} numberOfLines={1}>
+          {subject}
+        </Txt>
+        <Txt variant="tiny" color={Palette.textFaint}>
+          {totalQuestions} Soru
+        </Txt>
+      </View>
       <TextInput
         style={styles.scoreInput}
         keyboardType="number-pad"
+        placeholder="0"
+        placeholderTextColor={Palette.textFaint}
         value={correct}
-        onChangeText={(val) => onChange(subject, 'correct', val)}
+        onChangeText={(val) => onChange(subject, 'correct', val, totalQuestions)}
         selectTextOnFocus
       />
       <TextInput
         style={styles.scoreInput}
         keyboardType="number-pad"
+        placeholder="0"
+        placeholderTextColor={Palette.textFaint}
         value={wrong}
-        onChangeText={(val) => onChange(subject, 'wrong', val)}
+        onChangeText={(val) => onChange(subject, 'wrong', val, totalQuestions)}
         selectTextOnFocus
       />
       <TextInput
-        style={styles.scoreInput}
+        style={[styles.scoreInput, styles.autoEmptyInput]}
         keyboardType="number-pad"
+        placeholder="0"
+        placeholderTextColor={Palette.textFaint}
         value={empty}
-        onChangeText={(val) => onChange(subject, 'empty', val)}
+        onChangeText={(val) => onChange(subject, 'empty', val, totalQuestions)}
         selectTextOnFocus
       />
       <View style={styles.netBox}>
@@ -1465,6 +1504,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: Font.semibold,
     fontSize: 14,
+  },
+  autoEmptyInput: {
+    backgroundColor: Palette.surfaceHi,
+    color: Palette.text,
   },
   netBox: {
     width: 48,
