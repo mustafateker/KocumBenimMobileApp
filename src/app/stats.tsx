@@ -674,10 +674,8 @@ const styles = StyleSheet.create({
   // Koçluk Kartı
   coachCard: {
     backgroundColor: Palette.surface,
-    borderLeftWidth: 4,
-    borderLeftColor: DetailAccent,
     gap: Space.sm,
-    padding: Space.md,
+    padding: Space.lg,
   },
   coachHead: {
     flexDirection: 'row',

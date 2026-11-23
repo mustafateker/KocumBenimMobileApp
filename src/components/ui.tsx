@@ -15,6 +15,7 @@ import {
   Accent,
   Border,
   DetailAccent,
+  Elevation,
   Font,
   OnColor,
   OnboardingPalette,
@@ -47,7 +48,6 @@ export function Txt({
 
 export function Card({
   style,
-  accent,
   children,
   ...rest
 }: ViewProps & { accent?: string }) {
@@ -55,7 +55,6 @@ export function Card({
     <View
       style={[
         styles.card,
-        accent ? { borderLeftColor: accent, borderLeftWidth: 3 } : null,
         style,
       ]}
       {...rest}
@@ -239,6 +238,7 @@ const styles = StyleSheet.create({
     borderWidth: Border.thin,
     borderColor: Palette.border,
     padding: Space.lg,
+    ...Elevation.card,
   },
   pill: {
     flexDirection: 'row',
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     borderWidth: Border.thin,
     borderColor: Palette.border,
-    backgroundColor: Palette.bg,
+    backgroundColor: Palette.surface,
     paddingHorizontal: Space.lg,
     color: Palette.text,
     fontFamily: Font.regular,

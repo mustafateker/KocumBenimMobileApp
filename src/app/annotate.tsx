@@ -24,7 +24,7 @@ import { logHandledError } from '@/lib/crash-reporter';
 import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
 import type { CanvasItem } from '@/lib/types';
-import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
 const PENS = ['#FF3B5C', '#2B7FFF', '#12C46A', '#FFB020', '#111827'];
@@ -462,7 +462,7 @@ const styles = StyleSheet.create({
   noteInput: {
     flex: 1,
     color: Palette.text,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: Font.regular,
     fontSize: 14,
   },
   toolbar: {
@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
     paddingHorizontal: Space.lg,
     color: Palette.text,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: Font.regular,
     fontSize: 15,
   },
   modalActions: {

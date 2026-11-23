@@ -42,11 +42,11 @@ export function PressScale({
         // Reanimated paylasilan degerleri mutasyon icin tasarlandi; React
         // Compiler'in degismezlik kurali bu kullanimi tanimiyor.
         // eslint-disable-next-line react-hooks/immutability
-        scale.value = withSpring(scaleTo, { damping: 18, stiffness: 320 });
+        scale.value = withSpring(scaleTo, Motion.spring.snappy);
       }}
       onPressOut={() => {
         // eslint-disable-next-line react-hooks/immutability
-        scale.value = withSpring(1, { damping: 14, stiffness: 260 });
+        scale.value = withSpring(1, Motion.spring.soft);
       }}
       onPress={() => {
         if (disabled) return;
@@ -84,7 +84,7 @@ function ChunkyButton({
   borderColor,
   style,
 }: ChunkyButtonProps & { fill: string; textColor: string; borderColor?: string }) {
-  const height = size === 'lg' ? 56 : 46;
+  const height = size === 'lg' ? 56 : 48;
   const press = useSharedValue(0);
 
   const innerStyle = useAnimatedStyle(() => ({

@@ -19,7 +19,7 @@ import Animated, {
 
 import { PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
-import { Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
+import { Border, DetailAccent, Elevation, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 type TodayStudyCardProps = {
   pomodoroMinutes: number;
@@ -156,11 +156,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     borderWidth: Border.thin,
     borderColor: Palette.border,
-    borderLeftWidth: 4,
-    borderLeftColor: DetailAccent,
-    paddingHorizontal: Space.md,
-    paddingVertical: Space.md,
-    gap: Space.sm,
+    paddingHorizontal: Space.lg,
+    paddingVertical: Space.lg,
+    gap: Space.md,
+    ...Elevation.card,
   },
   headerRow: {
     flexDirection: 'row',
