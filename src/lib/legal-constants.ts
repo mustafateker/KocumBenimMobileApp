@@ -8,6 +8,7 @@
 export const SUPPORT_EMAIL = 'infokocumbenim@gmail.com';
 export const APP_NAME = 'Koçum Benim';
 export const APP_OWNER = 'Koçum Benim';
+export const WEB_SUPPORT_URL = 'https://kocpanel.triworkster.com/destek';
 const MAILTO_SUPPORT = `mailto:${SUPPORT_EMAIL}`;
 
 export function mailtoWithSubject(subject: string): string {
