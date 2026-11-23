@@ -39,5 +39,9 @@ fastlane supply --aab "$AAB" --track "$TRACK" --package_name "$PACKAGE" \
 echo "==> Etiket ve GitHub release"
 git tag "$TAG"
 git push origin "$TAG"
-gh release create "$TAG" --title "$VERSION (build $VERSION_CODE)" --generate-notes
+if [ "$TRACK" = "production" ]; then
+  gh release create "$TAG" --title "$VERSION (build $VERSION_CODE)" --generate-notes
+else
+  gh release create "$TAG" --title "$VERSION (build $VERSION_CODE) - $TRACK" --prerelease --generate-notes
+fi
 echo "Tamam: $TAG"
