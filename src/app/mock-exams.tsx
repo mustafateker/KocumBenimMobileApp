@@ -1448,6 +1448,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Space.sm,
     flex: 1,
+    flexShrink: 1,
   },
   aiTitleTextWrap: {
     flex: 1,
@@ -1460,16 +1461,18 @@ const styles = StyleSheet.create({
     backgroundColor: DetailAccent,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
   probabilityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
     backgroundColor: Palette.greenSoft,
     borderRadius: Radius.pill,
-    maxWidth: 155,
+    flexShrink: 0,
+    maxWidth: 175,
   },
   probabilityText: {
     fontWeight: '700',

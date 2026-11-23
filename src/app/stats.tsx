@@ -183,6 +183,25 @@ export default function Stats() {
     return { message, levelTitle };
   }, [stats.currentStreak, todayMinutes, student]);
 
+  const dynamicQuote = useMemo(() => {
+    if (student.goal) {
+      return `“${student.goal}”`;
+    }
+    if (student.targetHighSchool) {
+      return `“${student.targetHighSchool} hedefi, her gün atılan kararlı adımların toplamıdır.”`;
+    }
+    if (student.targetUniversity) {
+      return `“${student.targetUniversity} hedefine ulaşmak, bugünkü çalışma disiplininden geçer.”`;
+    }
+    if (student.career) {
+      return `“Geleceğin başarılı ${student.career} adayı olarak bugün attığın her adım seni hayaline yaklaştırıyor.”`;
+    }
+    if (stats.currentStreak >= 3) {
+      return `“${stats.currentStreak} günlük serin devam ediyor. Başarı, her gün tekrarlanan küçük disiplinlerin sonucudur.”`;
+    }
+    return '“Gelecek, bugünden hazırlananlara aittir.”';
+  }, [student.goal, student.targetHighSchool, student.targetUniversity, student.career, stats.currentStreak]);
+
   return (
     <Screen tint={Palette.bg}>
       <ScreenHeader
@@ -229,7 +248,7 @@ export default function Stats() {
 
             <View style={styles.quoteBox}>
               <Txt variant="tiny" color={Palette.textDim} style={styles.quoteText}>
-                {'“Gelecek, bugünden hazırlananlara aittir.”'}
+                {dynamicQuote}
               </Txt>
             </View>
           </Card>

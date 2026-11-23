@@ -10,6 +10,7 @@ import { Card, IconBubble, Pill, Txt } from '@/components/ui';
 import { getSummary } from '@/lib/api';
 import { humanDuration } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { getExamTrack } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import type { Student, StudentSummary } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, glow, pillRadius, softOf } from '@/theme/tokens';
@@ -39,7 +40,19 @@ export default function Profile() {
     }, [showError])
   );
 
-  const dreams = DREAM_ITEMS.map((item) => ({ ...item, value: item.pick(student) })).filter((item) => item.value);
+  const isLgs = getExamTrack(student.grade) === 'lgs';
+  const dreams = DREAM_ITEMS.filter((item) => {
+    // Ortaokul (LGS) için lise ve meslek; lise (YKS) için üniversite ve bölüm hedefleri gösterilir
+    if (isLgs && (item.label === 'Gideceğim Üniversite' || item.label === 'Okuyacağım Bölüm')) {
+      return false;
+    }
+    if (!isLgs && item.label === 'Gideceğim Lise') {
+      return false;
+    }
+    return true;
+  })
+    .map((item) => ({ ...item, value: item.pick(student) }))
+    .filter((item) => item.value);
   const discipline = student.disciplineMeaning ?? [];
   const motivation = student.motivationSources ?? [];
 

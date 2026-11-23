@@ -393,38 +393,40 @@ export async function generateAiExamAnalysis(
     (isLgs ? 'Hedef Fen Lisesi' : 'Hedef Üniversite');
 
   if (exams.length === 0) {
+    const progress = student.curriculumProgress || {};
+    const defaultLgsTopics: AiShortcutTopic[] = [
+      {
+        subject: 'Matematik',
+        topic: progress['Matematik'] || 'Kareköklü İfadeler',
+        averageQuestions: 'Her Yıl 3 Soru',
+        potentialGain: '+3 Net',
+      },
+      {
+        subject: 'Türkçe',
+        topic: progress['Türkçe'] || 'Paragrafta Anlam',
+        averageQuestions: 'Her Yıl 8-10 Soru',
+        potentialGain: '+4 Net',
+      },
+    ];
+    const defaultYksTopics: AiShortcutTopic[] = [
+      {
+        subject: 'Temel Matematik',
+        topic: progress['Matematik'] || 'Problemler',
+        averageQuestions: 'Her Yıl 11-13 Soru',
+        potentialGain: '+5 Net',
+      },
+      {
+        subject: 'Türkçe',
+        topic: progress['Türkçe'] || 'Paragrafta Anlam',
+        averageQuestions: 'Her Yıl 24-26 Soru',
+        potentialGain: '+4 Net',
+      },
+    ];
+
     return {
       summary: `${student.name.split(' ')[0]}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. İlk denemeni eklediğinde genel durum analizin ve gerçek sınavda en çok soru çıkan ağırlıklı konular burada hesaplanacak.`,
       targetProbability: 'Henüz Veri Yok',
-      shortcutTopics: isLgs
-        ? [
-            {
-              subject: 'Matematik',
-              topic: 'Kareköklü İfadeler',
-              averageQuestions: 'Her Yıl 3 Soru',
-              potentialGain: '+3 Net',
-            },
-            {
-              subject: 'Türkçe',
-              topic: 'Paragrafta Anlam',
-              averageQuestions: 'Her Yıl 8-10 Soru',
-              potentialGain: '+4 Net',
-            },
-          ]
-        : [
-            {
-              subject: 'Temel Matematik',
-              topic: 'Problemler',
-              averageQuestions: 'Her Yıl 11-13 Soru',
-              potentialGain: '+5 Net',
-            },
-            {
-              subject: 'Türkçe',
-              topic: 'Paragrafta Anlam',
-              averageQuestions: 'Her Yıl 24-26 Soru',
-              potentialGain: '+4 Net',
-            },
-          ],
+      shortcutTopics: isLgs ? defaultLgsTopics : defaultYksTopics,
       strategyTip: isLgs
         ? 'LGS sözelde 75 dakikada 50 soruyu çözerken paragraflarda ilk okuyuşta ana fikri yakalamaya odaklan.'
         : 'TYT 165 dakikalık sürede turlama tekniği kullanarak takıldığın sorulara en fazla 1.5 dakika ayır.',
@@ -470,13 +472,15 @@ export async function generateAiExamAnalysis(
 - En Zorlandığı / En Düşük Netli Ders: ${lowestSubj} (${Math.round(lowestAvg * 10) / 10} ortalama net)
 
 ÖNEMLİ KURAL:
-Öğrenci denemedeki soruların hangi konudan çıktığı bilgisini girmemiştir (yalnızca ders bazında doğru ve yanlış neti bilinmektedir). Bu yüzden denemede uydurma konu tespiti yapma!
-Bunun yerine: Gerçek ${isLgs ? 'MEB LGS' : 'ÖSYM YKS'} sınav istatistiklerine göre, öğrencinin en çok zorlandığı "${lowestSubj}" dersinde her yıl en çok soru çıkan ağırlıklı konuları ve ortalama soru sayılarını listele.
+1. Kesinlikle hiçbir emoji kullanma.
+2. Öğrenci denemedeki soruların hangi konudan çıktığı bilgisini girmemiştir (yalnızca ders bazında doğru ve yanlış neti bilinmektedir). Bu yüzden denemede uydurma konu tespiti yapma!
+3. Bunun yerine: Gerçek ${isLgs ? 'MEB LGS' : 'ÖSYM YKS'} sınav istatistiklerine göre, öğrencinin en çok zorlandığı "${lowestSubj}" dersinde her yıl en çok soru çıkan ağırlıklı konuları ve ortalama soru sayılarını listele.
+4. "targetProbability" alanını en fazla 20 karakter olacak şekilde kısa tut (örn: "%78 Hedefe Yakın", "%65 Gelişime Açık"). Uzun açıklama yazma.
 
 JSON ŞEMASI:
 {
-  "summary": "Öğrencinin son netine ve hedefine göre 2-3 cümlelik gerçekçi durum analizi",
-  "targetProbability": "Kısa rozet metni, örn: %78 Hedefe Yakın",
+  "summary": "Öğrencinin son netine ve hedefine göre 2-3 cümlelik gerçekçi durum analizi (emojisiz)",
+  "targetProbability": "Kısa rozet metni, en fazla 20 karakter, örn: %78 Hedefe Yakın",
   "shortcutTopics": [
     {
       "subject": "${lowestSubj}",

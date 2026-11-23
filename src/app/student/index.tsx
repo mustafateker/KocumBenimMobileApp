@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
@@ -16,6 +16,7 @@ import { getAiCoachContext, getSummary, getTasks, getUpcomingLessons, requestAiC
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { hasIncompleteCurriculumTopics, loadLocalCurriculumProgress } from '@/lib/maarif-curriculum';
+import { getExamTrack } from '@/lib/mock-exams';
 import { useSyncRoutineReminders } from '@/lib/routine-reminders';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
@@ -30,6 +31,24 @@ const DURATIONS = [
 
 const MIN_SECONDS = 5 * 60;
 const MAX_SECONDS = 180 * 60;
+
+function parseDailyMinutes(dailyHours?: string | null): number {
+  if (!dailyHours) return 60;
+  const lower = dailyHours.toLowerCase().trim();
+  if (lower.includes('dakika') || lower.includes('dk')) {
+    const num = parseInt(lower.replace(/[^\d]/g, ''), 10);
+    return isNaN(num) || num <= 0 ? 30 : num;
+  }
+  if (lower.includes('saat')) {
+    const clean = lower.replace('saat', '').replace(',', '.').trim();
+    const val = parseFloat(clean);
+    if (!isNaN(val) && val > 0) {
+      return Math.round(val * 60);
+    }
+  }
+  const fallbackNum = parseInt(lower.replace(/[^\d]/g, ''), 10);
+  return !isNaN(fallbackNum) && fallbackNum > 0 ? fallbackNum * 60 : 60;
+}
 
 export default function Home() {
   const router = useRouter();
@@ -135,10 +154,31 @@ export default function Home() {
     hasIncompleteTopics: showCurriculumPrompt,
   });
 
+  const activeProgressEntry = useMemo(() => {
+    if (!student.curriculumProgress || typeof student.curriculumProgress !== 'object') {
+      return null;
+    }
+    for (const [subject, topic] of Object.entries(student.curriculumProgress)) {
+      if (typeof topic === 'string' && topic.trim().length > 0) {
+        return { subject, topic: topic.trim() };
+      }
+    }
+    return null;
+  }, [student.curriculumProgress]);
+
   // Otomatik gunluk AI koç onerileri (sunucudan veya yerel veriden)
-  const targetMinutes = aiContext?.student?.targetMinutes ?? 60;
+  const targetMinutes = aiContext?.student?.targetMinutes ?? parseDailyMinutes(student.dailyHours);
   const gradeLabel = aiContext?.student?.grade ?? student.grade ?? '8. Sınıf';
   const pendingCount = tasks.filter((t) => t.completedAt === null).length;
+
+  const recSubject =
+    aiContext?.weakTopics?.[0]?.subject ??
+    activeProgressEntry?.subject ??
+    (getExamTrack(student.grade) === 'lgs' ? 'Matematik' : 'Temel Matematik');
+  const recTopic =
+    aiContext?.weakTopics?.[0]?.topic ??
+    activeProgressEntry?.topic ??
+    'Konu ve Soru Çalışması';
 
   const dailyRecommendations: AiDailyRecommendation[] =
     aiContext?.dailyRecommendations && aiContext.dailyRecommendations.length > 0
@@ -148,16 +188,16 @@ export default function Home() {
             id: 'local-topic',
             category: 'topic',
             badge: `${gradeLabel} Müfredat`,
-            title: aiContext?.weakTopics?.[0]
-              ? `${aiContext.weakTopics[0].subject} · ${aiContext.weakTopics[0].topic}`
-              : `${gradeLabel} Konu ve Soru Çalışması`,
+            title: `${recSubject} · ${recTopic}`,
             description: aiContext?.weakTopics?.[0]
               ? `Son soru çözümlerinde %${aiContext.weakTopics[0].accuracyRate} başarı (${aiContext.weakTopics[0].wrongCount} yanlış) görülüyor. Bugün konu tekrarı ve 20 soru çözümü önerilir.`
-              : `Sınıf seviyene uygun günlük konu tekrarı ve soru çözümü görevlerini panona ekleyebilirsin.`,
+              : activeProgressEntry
+                ? `Müfredatta işaretlediğin ${activeProgressEntry.subject} dersi "${activeProgressEntry.topic}" konusunda eksiklerini kapatmak için bugün tekrar ve 20 soru çözümü önerilir.`
+                : `${gradeLabel} seviyene uygun günlük konu tekrarı ve soru çözümü görevlerini panona ekleyebilirsin.`,
             actionType: 'assign_task',
             actionLabel: 'Günlük Ödev Ata',
-            subject: aiContext?.weakTopics?.[0]?.subject,
-            topic: aiContext?.weakTopics?.[0]?.topic,
+            subject: recSubject,
+            topic: recTopic,
           },
           {
             id: 'local-duration',

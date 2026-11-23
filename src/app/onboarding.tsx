@@ -177,11 +177,8 @@ export default function Onboarding() {
       const finalProgress: CurriculumProgressMap = {};
       for (const s of subjects) {
         const chosen = form.curriculumProgress[s.name];
-        const firstTopic = s.units[0]?.topics[0];
-        if (chosen) {
-          finalProgress[s.name] = chosen;
-        } else if (firstTopic) {
-          finalProgress[s.name] = firstTopic;
+        if (chosen && chosen.trim()) {
+          finalProgress[s.name] = chosen.trim();
         }
       }
 
@@ -311,12 +308,14 @@ export default function Onboarding() {
                 value={form.grade}
                 onSelect={(v) => {
                   const subjects = getCurriculumSubjectsForGrade(v);
-                  const defaults: CurriculumProgressMap = {};
-                  for (const s of subjects) {
-                    const first = s.units[0]?.topics[0];
-                    if (first) defaults[s.name] = first;
+                  const validNames = new Set(subjects.map((s) => s.name));
+                  const retained: CurriculumProgressMap = {};
+                  for (const [sName, top] of Object.entries(form.curriculumProgress)) {
+                    if (validNames.has(sName) && top) {
+                      retained[sName] = top;
+                    }
                   }
-                  setForm((f) => ({ ...f, grade: v, curriculumProgress: defaults }));
+                  setForm((f) => ({ ...f, grade: v, curriculumProgress: retained }));
                 }}
                 color={meta.color}
               />
