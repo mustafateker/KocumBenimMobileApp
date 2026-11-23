@@ -35,11 +35,11 @@ export const Palette = {
   purple: '#3A3967',
   purpleSoft: '#F3EEEA',
 
-  /** Ikonlar, rozetler ve enerji vurgulari (Seri, XP, motivasyon). */
-  gold: '#FF7828',
-  goldSoft: 'rgba(255, 120, 40, 0.14)',
-  orange: '#FF7828',
-  orangeSoft: 'rgba(255, 120, 40, 0.14)',
+  /** Ikonlar, rozetler ve kucuk enerji vurgulari (kayisi / tatli turuncu). */
+  gold: '#FBAE75',
+  goldSoft: 'rgba(251, 174, 117, 0.20)',
+  orange: '#FBAE75',
+  orangeSoft: 'rgba(251, 174, 117, 0.20)',
 
   /** Durum ve anlam vurgulari — artik tek tona zorlanmaz, net ve canli. */
   pink: '#F43F5E',

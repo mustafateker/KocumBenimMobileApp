@@ -110,8 +110,8 @@ Uygulamanın özgün sıcak kimliği korunurken, donuklaştıran tek-renk filtre
 
 ### 4.3. Enerji & Durum Vurguları (Semantic Accents)
 * **Marka Vurgusu (`primary / amber`):** `#3A3967` (Derin Karakter)
-* **Enerji Turuncusu (`orange / detailAccent`):** `#FF7828`  
-  *Seri (streak), XP ve motivasyon bildirimlerinde canlı sıcaklık.*
+* **Enerji Turuncusu / Kayısı (`orange / detailAccent`):** `#FBAE75` (Yumuşak zemin: `rgba(251, 174, 117, 0.20)`)  
+  *Orijinal sıcak, sakin kayısı/turuncu tonu; gözü yormayan sıcak aksiyon ve rozet vurguları.*
 * **Başarı Zümrüdü (`green`):** `#10B981` (Yumuşak zemin: `#ECFDF5`)  
   *Doğru çözülen sorular, tamamlanan görevler, "Çözümü Gör" butonu.*
 * **Odak & Ders İndigosu (`blue`):** `#4F46E5` (Yumuşak zemin: `#EEF2FF`)  
