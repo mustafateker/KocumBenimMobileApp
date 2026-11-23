@@ -173,6 +173,19 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
         setMessages((prev) => [...prev, raccoonMsg]);
         if (res.createdTasks && res.createdTasks.length > 0) {
           loadContext();
+          import('expo-notifications')
+            .then((Notifications) => {
+              Notifications.scheduleNotificationAsync({
+                content: {
+                  title: 'Koçun Yeni Ödev Atadı',
+                  body: `${res.createdTasks?.length ?? 1} yeni ödev panona eklendi.`,
+                  data: { type: 'task_assigned' },
+                  sound: true,
+                },
+                trigger: null,
+              }).catch(() => {});
+            })
+            .catch(() => {});
         }
       } catch {
         const lower = trimmed.toLowerCase();
@@ -319,7 +332,7 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
 
         {/* Textbox Üstü Kısa Hazır Sorular + Mesaj Girdi Alanı */}
         <KeyboardStickyView>
-          <View style={[styles.bottomArea, { paddingBottom: Math.max(insets.bottom, Space.sm) + 64 }]}>
+          <View style={[styles.bottomArea, { paddingBottom: Math.max(insets.bottom, Space.sm) + 84 }]}>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -617,8 +630,8 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
     borderTopWidth: Border.thin,
     borderTopColor: Palette.border,
-    paddingTop: Space.xs + 2,
-    gap: Space.xs + 2,
+    paddingTop: Space.sm,
+    gap: Space.sm,
   },
   quickPromptsRow: {
     paddingHorizontal: Space.lg,
@@ -642,20 +655,21 @@ const styles = StyleSheet.create({
     borderColor: Palette.border,
     paddingLeft: Space.md,
     paddingRight: Space.xs,
-    paddingVertical: 4,
+    paddingVertical: 6,
+    marginBottom: 4,
   },
   textInput: {
     flex: 1,
     fontFamily: Font.regular,
-    fontSize: 14,
+    fontSize: 15,
     color: Palette.text,
-    maxHeight: 80,
+    maxHeight: 88,
     paddingVertical: 6,
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: Accent,
     alignItems: 'center',
     justifyContent: 'center',

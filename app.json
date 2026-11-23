@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Koçum Benim",
+    "name": "Kocum Benim",
     "slug": "KocumBenimMobileApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -92,10 +92,11 @@
       "reactCompiler": true
     },
     "ios": {
-      "bundleIdentifier": "com.triworkster.kocumbenimmobileapp",
+      "bundleIdentifier": "com.triworkster.kocumbenim",
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
+        "CFBundleDisplayName": "Koçum Benim",
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Takıldığın soru ve ödevlerin fotoğrafını çekip koçuna gönderebilmen için kameraya erişim izni gereklidir.",
         "NSPhotoLibraryUsageDescription": "Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.",

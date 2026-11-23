@@ -4,8 +4,8 @@ import zipfile
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 FONT_PATH = "/System/Library/Fonts/HelveticaNeue.ttc"
-BASE_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/app-store-assets"
-RAW_DIR = os.path.join(BASE_DIR, "raw")
+BASE_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/store-assets"
+RAW_DIR = os.path.join(BASE_DIR, "clean-screens")
 PROJECT_ROOT = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp"
 
 SCREENS = [
@@ -153,6 +153,19 @@ TARGET_SIZES = [
     },
     {
         "name": "ipad-duo-2007x2853",
+        "w": 2007,
+        "h": 2853,
+        "is_landscape": False,
+        "is_tablet": True,
+        "badge_size": 36,
+        "title_size": 104,
+        "sub_size": 50,
+        "screen_w": 1110,
+        "bezel": 18,
+        "phone_top": 680,
+    },
+    {
+        "name": "iphone-duo-2007x2853",
         "w": 2007,
         "h": 2853,
         "is_landscape": False,
@@ -369,7 +382,7 @@ def render_portrait_banner(spec, target):
         mascot_path = os.path.join(PROJECT_ROOT, mascot_rel)
         if os.path.exists(mascot_path):
             mascot_img = Image.open(mascot_path).convert("RGBA")
-            mw = int(820 if is_tablet else (530 * (W / 1206)))
+            mw = int(980 if is_tablet else (660 * (W / 1206)))
             mh = int(mw * (mascot_img.height / mascot_img.width))
             mascot_resized = mascot_img.resize((mw, mh), Image.Resampling.LANCZOS)
             
@@ -523,7 +536,7 @@ def render_landscape_banner(spec, target):
         mascot_path = os.path.join(PROJECT_ROOT, mascot_rel)
         if os.path.exists(mascot_path):
             mascot_img = Image.open(mascot_path).convert("RGBA")
-            mw = int(640 * scale)
+            mw = int(820 * scale)
             mh = int(mw * (mascot_img.height / mascot_img.width))
             mascot_resized = mascot_img.resize((mw, mh), Image.Resampling.LANCZOS)
             

@@ -12,7 +12,6 @@ import { useSession } from '@/lib/session';
 import {
   Accent,
   Border,
-  DetailAccent,
   Elevation,
   Palette,
   Radius,
@@ -104,9 +103,7 @@ export function PlayReviewPrompt() {
           <View style={styles.accentBar} />
 
           <View style={styles.heroWrap}>
-            <View style={styles.iconCircle}>
-              <RaccoonIcon size={44} />
-            </View>
+            <RaccoonIcon size={56} />
             <View style={styles.playBadge}>
               <Ionicons name={isIos ? 'logo-apple-appstore' : 'logo-google-playstore'} size={13} color={Accent} />
               <Txt variant="tiny" color={Accent}>
@@ -231,18 +228,8 @@ const styles = StyleSheet.create({
   },
   heroWrap: {
     alignItems: 'center',
-    gap: Space.xs,
+    gap: Space.sm,
     marginTop: Space.xs,
-  },
-  iconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DetailAccent,
-    borderWidth: Border.thick,
-    borderColor: Accent,
   },
   playBadge: {
     flexDirection: 'row',

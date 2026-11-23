@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Kocum Benim</string>
+	<string>Koçum Benim</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -28,12 +28,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>kocumbenimmobileapp</string>
-				<string>com.triworkster.kocumbenimmobileapp</string>
+				<string>com.triworkster.kocumbenim</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSMinimumSystemVersion</key>
 	<string>12.0</string>
 	<key>LSRequiresIPhoneOS</key>
@@ -46,11 +48,27 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>Takıldığın soru ve ödevlerin fotoğrafını çekip koçuna gönderebilmen için kameraya erişim izni gereklidir.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.</string>
+	<string>Takıldığın soruyu fotoğraflayabilmen için kameraya erişmemiz gerekiyor.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Çözülen soruları ve çalışma notlarını cihazına kaydedebilmen için fotoğraf arşivine kayıt izni gereklidir.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.</string>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
+	</array>
+	<key>RCTMetroPort</key>
+	<string>$(RCT_METRO_PORT)</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
+	<key>RCTRootViewBackgroundColor</key>
+	<integer>4294830288</integer>
+	<key>UILaunchStoryboardName</key>
+	<string>SplashScreen</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>arm64</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -68,20 +86,6 @@
 			</array>
 		</dict>
 	</dict>
-	<key>NSUserActivityTypes</key>
-	<array>
-		<string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
-	</array>
-	<key>RCTMetroPort</key>
-	<string>$(RCT_METRO_PORT)</string>
-	<key>RCTNewArchEnabled</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>SplashScreen</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arm64</string>
-	</array>
 	<key>UIRequiresFullScreen</key>
 	<false/>
 	<key>UIStatusBarStyle</key>
@@ -90,6 +94,13 @@
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>

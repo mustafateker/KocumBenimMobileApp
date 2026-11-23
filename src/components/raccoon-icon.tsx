@@ -29,12 +29,11 @@ export function RaccoonIcon({
           : {
               width: size,
               height: size,
-              borderRadius: Math.round(size * 0.26),
             },
         style,
       ]}
     >
-      <Image source={RACCOON_SOURCE} style={styles.image} contentFit="cover" />
+      <Image source={RACCOON_SOURCE} style={styles.image} contentFit="contain" />
     </View>
   );
 }

@@ -3,9 +3,9 @@ import zipfile
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 FONT_PATH = "/System/Library/Fonts/HelveticaNeue.ttc"
-RAW_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/app-store-assets/raw"
+RAW_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/store-assets/clean-screens"
 PROJECT_ROOT = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp"
-OUTPUT_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/app-store-assets/showcase-banners"
+OUTPUT_DIR = "/Users/mustafa/Desktop/cod/KocumBenimMobileApp/store-assets/showcase-banners"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 BANNER_SIZES = [
@@ -200,34 +200,34 @@ def render_showcase(cfg):
     draw = ImageDraw.Draw(canvas)
     
     left_x = int(W * 0.065)
-    # Reduced max width so text wraps to 3 lines without touching the phones!
-    max_text_w = int(W * (0.33 if is_ultrawide else 0.31))
+    # Reduced max width so text wraps cleanly to 3 lines with safe margin from phones
+    max_text_w = int(W * (0.32 if is_ultrawide else 0.29))
     
-    # 3.1 App Icon (Enlarged)
-    icon_size = int(340 * scale)
+    # 3.1 App Icon (Enlarged and refined)
+    icon_size = int(320 * scale)
     icon_path = os.path.join(PROJECT_ROOT, "assets/images/icon.png")
     app_icon = Image.open(icon_path).convert("RGBA").resize((icon_size, icon_size), Image.Resampling.LANCZOS)
-    icon_mask = draw_rounded_mask(icon_size, icon_size, int(74 * scale))
+    icon_mask = draw_rounded_mask(icon_size, icon_size, int(70 * scale))
     
     icon_shadow = Image.new("RGBA", (icon_size + int(80*scale), icon_size + int(80*scale)), (0, 0, 0, 0))
     is_draw = ImageDraw.Draw(icon_shadow)
-    is_draw.rounded_rectangle([int(20*scale), int(25*scale), icon_size + int(20*scale), icon_size + int(25*scale)], radius=int(74*scale), fill=(43, 22, 8, 90))
-    icon_shadow = icon_shadow.filter(ImageFilter.GaussianBlur(int(26 * scale)))
+    is_draw.rounded_rectangle([int(20*scale), int(25*scale), icon_size + int(20*scale), icon_size + int(25*scale)], radius=int(70*scale), fill=(43, 22, 8, 85))
+    icon_shadow = icon_shadow.filter(ImageFilter.GaussianBlur(int(24 * scale)))
     
-    icon_top_y = int(170 * scale)
+    icon_top_y = int(140 * scale)
     canvas.alpha_composite(icon_shadow, (left_x - int(20*scale), icon_top_y - int(12*scale)))
     
     framed_icon = Image.new("RGBA", (icon_size, icon_size), (0, 0, 0, 0))
     framed_icon.paste(app_icon, (0, 0), icon_mask)
     fi_draw = ImageDraw.Draw(framed_icon)
-    fi_draw.rounded_rectangle([0, 0, icon_size, icon_size], radius=int(74*scale), outline=(228, 198, 168), width=max(3, int(4*scale)))
+    fi_draw.rounded_rectangle([0, 0, icon_size, icon_size], radius=int(70*scale), outline=(228, 198, 168), width=max(3, int(4*scale)))
     canvas.alpha_composite(framed_icon, (left_x, icon_top_y))
     
-    # Brand Text beside icon
-    font_brand_title = ImageFont.truetype(FONT_PATH, int(118 * scale), index=1)
-    font_brand_sub = ImageFont.truetype(FONT_PATH, int(46 * scale), index=10)
+    # Brand Text beside icon (Strictly NO Maarif badge, 2-line subtitle in orange)
+    font_brand_title = ImageFont.truetype(FONT_PATH, int(114 * scale), index=1)
+    font_brand_sub = ImageFont.truetype(FONT_PATH, int(45 * scale), index=10)
     
-    brand_text_x = left_x + icon_size + int(50 * scale)
+    brand_text_x = left_x + icon_size + int(48 * scale)
     
     sub_line1 = "YKS, LGS Yapay Zeka Destekli"
     sub_line2 = "Özel Ders ve Koçluk"
@@ -235,64 +235,74 @@ def render_showcase(cfg):
     b_title = draw.textbbox((0, 0), "Koçum Benim", font=font_brand_title)
     b_sub1 = draw.textbbox((0, 0), sub_line1, font=font_brand_sub)
     
-    # Vertically centered beside the icon
-    app_title_y = icon_top_y + int(36 * scale)
+    app_title_y = icon_top_y + int(32 * scale)
     draw.text((brand_text_x, app_title_y), "Koçum Benim", font=font_brand_title, fill=(43, 22, 8))
     
-    sub1_y = app_title_y + (b_title[3] - b_title[1]) + int(24 * scale)
+    sub1_y = app_title_y + (b_title[3] - b_title[1]) + int(28 * scale)
     draw.text((brand_text_x, sub1_y), sub_line1, font=font_brand_sub, fill=(185, 71, 24))
     
-    sub2_y = sub1_y + (b_sub1[3] - b_sub1[1]) + int(14 * scale)
+    sub2_y = sub1_y + (b_sub1[3] - b_sub1[1]) + int(16 * scale)
     draw.text((brand_text_x, sub2_y), sub_line2, font=font_brand_sub, fill=(185, 71, 24))
     
-    # 3.2 Hero Slogan (Increased padding and generous line-height)
-    font_slogan = ImageFont.truetype(FONT_PATH, int(170 * scale), index=1)
-    slogan_y = icon_top_y + icon_size + int(105 * scale)
+    # 3.2 Hero Slogan (Balanced line-height and generous margins)
+    font_slogan = ImageFont.truetype(FONT_PATH, int(164 * scale), index=1)
+    slogan_y = icon_top_y + icon_size + int(90 * scale)
     line1 = "Hedeflerine Akıllı"
     line2 = "Adımlarla Yürü"
     
     bbox1 = draw.textbbox((0, 0), line1, font=font_slogan)
     draw.text((left_x - bbox1[0], slogan_y), line1, font=font_slogan, fill=(43, 22, 8))
     
-    slogan_y2 = slogan_y + (bbox1[3] - bbox1[1]) + int(38 * scale)
+    slogan_y2 = slogan_y + (bbox1[3] - bbox1[1]) + int(32 * scale)
     bbox2 = draw.textbbox((0, 0), line2, font=font_slogan)
     draw.text((left_x - bbox2[0], slogan_y2), line2, font=font_slogan, fill=(185, 71, 24))
     
-    # 3.3 Description Paragraph (Increased line spacing and safe max width)
-    font_desc = ImageFont.truetype(FONT_PATH, int(54 * scale), index=10)
+    # 3.3 Description Paragraph (Safe width avoiding any phone collision)
+    font_desc = ImageFont.truetype(FONT_PATH, int(52 * scale), index=10)
     desc_text = "Birebir yapay zeka rehberliği, sokratik soru çözümleri, akıllı Pomodoro takibi ve güncel Maarif müfredatına tam uyumlu kişisel çalışma planı."
-    curr_y = slogan_y2 + (bbox2[3] - bbox2[1]) + int(65 * scale)
+    curr_y = slogan_y2 + (bbox2[3] - bbox2[1]) + int(50 * scale)
     desc_lines = wrap_text(desc_text, font_desc, max_text_w, draw)
     for line in desc_lines:
         bbox = draw.textbbox((0, 0), line, font=font_desc)
         draw.text((left_x - bbox[0], curr_y), line, font=font_desc, fill=(124, 67, 34))
-        curr_y += (bbox[3] - bbox[1]) + int(28 * scale)
+        curr_y += (bbox[3] - bbox[1]) + int(24 * scale)
         
-    # 3.4 Feature Highlights Pills (Increased paddings and breathing room)
-    curr_y += int(50 * scale)
-    features = ["Kişisel Çalışma Planı", "Şipşak Soru Çözümü", "Seviye & Lig Sistemi"]
-    pill_font = ImageFont.truetype(FONT_PATH, int(38 * scale), index=1)
+    # 3.4 Feature Highlights Pills (Comfortable vertical separation)
+    curr_y += int(40 * scale)
+    features = ["Kişisel Çalışma Planı", "Şıpşak Soru Çözümü", "Seviye & Lig Sistemi"]
+    pill_font = ImageFont.truetype(FONT_PATH, int(36 * scale), index=1)
     pill_x = left_x
     for feat in features:
         fb = draw.textbbox((0, 0), feat, font=pill_font)
         fw = fb[2] - fb[0]
         fh = fb[3] - fb[1]
-        pw = fw + int(52 * scale)
-        ph = fh + int(30 * scale)
+        pw = fw + int(48 * scale)
+        ph = fh + int(28 * scale)
         draw.rounded_rectangle([pill_x, curr_y, pill_x + pw, curr_y + ph], radius=ph // 2, fill=(255, 253, 249), outline=(226, 204, 181), width=max(2, int(2.5 * scale)))
-        draw.text((pill_x + int(26*scale) - fb[0], curr_y + int(15*scale) - fb[1]), feat, font=pill_font, fill=(43, 22, 8))
-        pill_x += pw + int(26 * scale)
+        draw.text((pill_x + int(24*scale) - fb[0], curr_y + int(14*scale) - fb[1]), feat, font=pill_font, fill=(43, 22, 8))
+        pill_x += pw + int(22 * scale)
         
-    # 3.5 Mascot Underneath (Prominently enlarged, perfectly proportioned)
+    # 3.5 Mascot Underneath (Prominently enlarged, well-proportioned with clear breathing gap)
     mascot_path = os.path.join(PROJECT_ROOT, "assets/images/mascot-wave.png")
     mascot_img = Image.open(mascot_path).convert("RGBA")
     
-    mw = int(1480 * scale if not is_ultrawide else 1220 * scale)
+    mw = int(1360 * scale if not is_ultrawide else 1150 * scale)
     mh = int(mw * (mascot_img.height / mascot_img.width))
     mascot_resized = mascot_img.resize((mw, mh), Image.Resampling.LANCZOS)
     
-    mx = left_x + int(40 * scale)
-    my = H - mh - int(35 * scale)
+    mx = left_x + int(35 * scale)
+    my = H - mh - int(25 * scale)
+    
+    # Ground shadow
+    m_shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    ms_draw = ImageDraw.Draw(m_shadow)
+    ms_draw.ellipse(
+        [mx + int(mw * 0.12), my + mh - int(mh * 0.08), mx + mw - int(mw * 0.12), my + mh + int(mh * 0.05)],
+        fill=(43, 22, 8, 140)
+    )
+    m_shadow = m_shadow.filter(ImageFilter.GaussianBlur(int(45 * scale)))
+    canvas.alpha_composite(m_shadow)
+    canvas.alpha_composite(mascot_resized, (mx, my))
     
     # Ground shadow
     m_shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))

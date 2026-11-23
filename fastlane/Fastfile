@@ -1,0 +1,41 @@
+default_platform(:ios)
+
+platform :ios do
+  private_lane :asc_api_key do
+    key_path = ENV.fetch(
+      "APP_STORE_CONNECT_API_KEY_PATH",
+      File.expand_path("../.release-secrets/AuthKey_A746S8QJ2Y.p8", __dir__)
+    )
+    UI.user_error!("App Store Connect API anahtarı bulunamadı: #{key_path}") unless File.exist?(key_path)
+
+    app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID", "A746S8QJ2Y"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID", "c52e6cf6-318d-452a-9a47-82f5b2d39467"),
+      key_filepath: key_path,
+      in_house: false
+    )
+  end
+
+  desc "App Store Provisioning Profilini indirir veya yeniler"
+  lane :get_profile do
+    sigh(
+      api_key: asc_api_key,
+      app_identifier: "com.triworkster.kocumbenim",
+      force: false
+    )
+  end
+
+  desc "Native IPA'yı App Store Connect TestFlight kanalına yükler"
+  lane :upload_testflight do
+    ipa_path = ENV.fetch("IOS_IPA_PATH", nil)
+    UI.user_error!("IOS_IPA_PATH ortam değişkeni zorunludur") if ipa_path.nil? || !File.exist?(ipa_path)
+
+    upload_to_testflight(
+      api_key: asc_api_key,
+      ipa: ipa_path,
+      app_identifier: "com.triworkster.kocumbenim",
+      skip_waiting_for_build_processing: true,
+      skip_submission: true
+    )
+  end
+end

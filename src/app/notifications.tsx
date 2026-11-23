@@ -88,7 +88,7 @@ export default function Notifications() {
         <EmptyState
           icon="notifications-outline"
           title="Henüz bildirim yok"
-          subtitle="Hocan sana bir görev atadığında ya da bir sorunu cevapladığında burada göreceksin."
+          subtitle="Koçun sana yeni bir ödev atadığında ya da bir sorunu cevapladığında burada göreceksin."
           color={DetailAccent}
         />
       ) : (

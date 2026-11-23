@@ -108,7 +108,7 @@ function TabButton({
         style={[
           meta.featured ? styles.featuredIconSlot : styles.iconSlot,
           iconStyle,
-          focused && (meta.featured ? styles.featuredFocusedSlot : { backgroundColor: DetailAccent }),
+          focused && !meta.featured && { backgroundColor: DetailAccent },
         ]}
       >
         {meta.customIcon ? (
@@ -162,18 +162,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   featuredIconSlot: {
-    width: 38,
-    height: 38,
-    borderRadius: 13,
+    width: 42,
+    height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Palette.surfaceHi,
-    borderWidth: 1.5,
-    borderColor: Palette.border,
-    overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
-  featuredFocusedSlot: {
-    borderColor: DetailAccent,
-    borderWidth: 2,
-  },
+  featuredFocusedSlot: {},
 });

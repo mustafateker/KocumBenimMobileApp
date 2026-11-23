@@ -8,28 +8,30 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		281C2785BC75CF0288581530 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 1222A903A843E60A47DF658E /* PrivacyInfo.xcprivacy */; };
+		15014F46A1D6D0C6BF08D733 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		6CDA9DCA6E3310CD4FF86595 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 869BC61D8546D32399B94BCC /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		CEDA51746FF58B295ACA3B36 /* libPods-KocumBenim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3994EE6F220DA1362F621459 /* libPods-KocumBenim.a */; };
+		D63246A476E41E5FCE733F9F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F11748422D0307B40044C1DA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1DA /* SceneDelegate.swift */; };
+		FA6B305D099738345E9FFFBC /* libPods-KocumBenim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1222A903A843E60A47DF658E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = KocumBenim/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* KocumBenim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KocumBenim.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = KocumBenim/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = KocumBenim/Info.plist; sourceTree = "<group>"; };
-		3994EE6F220DA1362F621459 /* libPods-KocumBenim.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KocumBenim.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		869BC61D8546D32399B94BCC /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-KocumBenim/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		A068922B0C370E43A563931F /* Pods-KocumBenim.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.debug.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.debug.xcconfig"; sourceTree = "<group>"; };
+		7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-KocumBenim/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.debug.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = KocumBenim/SplashScreen.storyboard; sourceTree = "<group>"; };
+		B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KocumBenim.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		C64A1C98E662BC93219EAED7 /* Pods-KocumBenim.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.release.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.release.xcconfig"; sourceTree = "<group>"; };
+		D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = KocumBenim/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = KocumBenim/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748412D0307B40044C1DA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = KocumBenim/SceneDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* KocumBenim-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "KocumBenim-Bridging-Header.h"; path = "KocumBenim/KocumBenim-Bridging-Header.h"; sourceTree = "<group>"; };
+		F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.release.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CEDA51746FF58B295ACA3B36 /* libPods-KocumBenim.a in Frameworks */,
+				FA6B305D099738345E9FFFBC /* libPods-KocumBenim.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,39 +50,34 @@
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
+				F11748412D0307B40044C1DA /* SceneDelegate.swift */,
 				F11748442D0722820044C1D9 /* KocumBenim-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				1222A903A843E60A47DF658E /* PrivacyInfo.xcprivacy */,
+				D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */,
 			);
 			name = KocumBenim;
+			sourceTree = "<group>";
+		};
+		14436A5F49FDFBA158F53D7B /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */,
+				F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				3994EE6F220DA1362F621459 /* libPods-KocumBenim.a */,
+				B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		2E5DB840E51D4285E190D2D6 /* KocumBenim */ = {
-			isa = PBXGroup;
-			children = (
-				869BC61D8546D32399B94BCC /* ExpoModulesProvider.swift */,
-			);
-			name = KocumBenim;
-			sourceTree = "<group>";
-		};
-		4247EF939D486586604ECBB7 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				2E5DB840E51D4285E190D2D6 /* KocumBenim */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -97,8 +94,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				C9C6D325F1B611BBFD1EE69A /* Pods */,
-				4247EF939D486586604ECBB7 /* ExpoModulesProviders */,
+				14436A5F49FDFBA158F53D7B /* Pods */,
+				B65CF08131CEDC43334A3CE4 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -113,6 +110,22 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		A07901294EE8204F9C17165D /* KocumBenim */ = {
+			isa = PBXGroup;
+			children = (
+				7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */,
+			);
+			name = KocumBenim;
+			sourceTree = "<group>";
+		};
+		B65CF08131CEDC43334A3CE4 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				A07901294EE8204F9C17165D /* KocumBenim */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -120,16 +133,6 @@
 			);
 			name = Supporting;
 			path = KocumBenim/Supporting;
-			sourceTree = "<group>";
-		};
-		C9C6D325F1B611BBFD1EE69A /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				A068922B0C370E43A563931F /* Pods-KocumBenim.debug.xcconfig */,
-				C64A1C98E662BC93219EAED7 /* Pods-KocumBenim.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -140,13 +143,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "KocumBenim" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				12DFE46C859B10FA4B86B7C2 /* [Expo] Configure project */,
+				0E74575541E45D3E1B733EA5 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				F666A818D3E3857DD61E19B5 /* [CP] Embed Pods Frameworks */,
+				A3B0235C5EB40745B9BB4C1B /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -196,7 +199,7 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				281C2785BC75CF0288581530 /* PrivacyInfo.xcprivacy in Resources */,
+				15014F46A1D6D0C6BF08D733 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,7 +245,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		12DFE46C859B10FA4B86B7C2 /* [Expo] Configure project */ = {
+		0E74575541E45D3E1B733EA5 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -304,7 +307,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KocumBenim/Pods-KocumBenim-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F666A818D3E3857DD61E19B5 /* [CP] Embed Pods Frameworks */ = {
+		A3B0235C5EB40745B9BB4C1B /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -362,7 +365,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				6CDA9DCA6E3310CD4FF86595 /* ExpoModulesProvider.swift in Sources */,
+				F11748422D0307B40044C1DA /* SceneDelegate.swift in Sources */,
+				D63246A476E41E5FCE733F9F /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -371,7 +375,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A068922B0C370E43A563931F /* Pods-KocumBenim.debug.xcconfig */;
+			baseConfigurationReference = 900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -396,19 +400,19 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.triworkster.kocumbenimmobileapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.triworkster.kocumbenim;
 				PRODUCT_NAME = KocumBenim;
 				SWIFT_OBJC_BRIDGING_HEADER = "KocumBenim/KocumBenim-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C64A1C98E662BC93219EAED7 /* Pods-KocumBenim.release.xcconfig */;
+			baseConfigurationReference = F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -428,11 +432,11 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.triworkster.kocumbenimmobileapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.triworkster.kocumbenim;
 				PRODUCT_NAME = KocumBenim;
 				SWIFT_OBJC_BRIDGING_HEADER = "KocumBenim/KocumBenim-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;

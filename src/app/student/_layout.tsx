@@ -16,7 +16,7 @@ const TABS: Record<string, TabMeta> = {
     icon: 'sparkles',
     featured: true,
     customIcon: () => (
-      <RaccoonIcon fill />
+      <RaccoonIcon size={42} />
     ),
   },
   questions: { label: 'Sorularım', icon: 'camera' },

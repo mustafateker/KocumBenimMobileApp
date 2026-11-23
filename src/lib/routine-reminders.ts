@@ -66,8 +66,8 @@ export async function syncRoutineReminders(
       await Notifications.scheduleNotificationAsync({
         identifier: ROUTINE_TASK_ID,
         content: {
-          title: 'Bugün Tamamlanması Gereken Görevler',
-          body: 'Programında bekleyen ödevlerin bulunuyor. Günlük hedeflerini tamamlamak için görev listeni kontrol edebilirsin.',
+          title: 'Bugün Tamamlanması Gereken Ödevler',
+          body: 'Programında bekleyen ödevlerin bulunuyor. Günlük hedeflerini tamamlamak için ödev listeni kontrol edebilirsin.',
           data: { type: 'task_reminder' },
           sound: true,
         },

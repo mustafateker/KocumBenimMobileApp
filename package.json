@@ -53,7 +53,9 @@
     "lint": "expo lint",
     "release": "bash scripts/release-android.sh",
     "release:internal": "TRACK=internal bash scripts/release-android.sh",
-    "release:open": "TRACK=beta bash scripts/release-android.sh"
+    "release:open": "TRACK=beta bash scripts/release-android.sh",
+    "release:ios": "node scripts/release-ios.mjs testflight",
+    "build:ios": "node scripts/release-ios.mjs build"
   },
   "private": true
 }
