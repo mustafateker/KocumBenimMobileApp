@@ -1,8 +1,7 @@
-import { useRouter } from 'expo-router';
+import { usePathname, useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { HamburgerMenu } from '@/components/hamburger-menu';
-import { Palette } from '@/theme/tokens';
+import { HamburgerMenu, type HamburgerMenuItem } from '@/components/hamburger-menu';
 
 import { useSession, useStudent } from './session';
 
@@ -12,12 +11,12 @@ const HamburgerMenuContext = createContext<HamburgerMenuContextValue | null>(nul
 
 /**
  * Hamburger menuyu tek yerde monte eder ve her sekmeden ayni ornegi
- * tetiklemeyi saglar — boylece Ayarlar/Bildirimler/Istatistikler/Cikis
- * listesi tek yerde tanimli kalir.
+ * tetiklemeyi saglar.
  */
 export function HamburgerMenuProvider({ children }: { children: React.ReactNode }) {
   const [visible, setVisible] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const student = useStudent();
   const { signOut } = useSession();
 
@@ -25,6 +24,61 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
   const close = useCallback(() => setVisible(false), []);
 
   const value = useMemo(() => ({ open }), [open]);
+
+  const mainItems: HamburgerMenuItem[] = useMemo(
+    () => [
+      {
+        icon: 'book-outline',
+        label: 'Derslerim',
+        selected: pathname?.startsWith('/subjects'),
+        onPress: () => router.push('/subjects'),
+      },
+      {
+        icon: 'notifications-outline',
+        label: 'Bildirimler',
+        selected: pathname?.startsWith('/notifications'),
+        onPress: () => router.push('/notifications'),
+      },
+      {
+        icon: 'stats-chart-outline',
+        label: 'Raporlar & İstatistikler',
+        selected: pathname?.startsWith('/stats'),
+        onPress: () => router.push('/stats'),
+      },
+      {
+        icon: 'calendar-outline',
+        label: 'Özel Derslerim',
+        selected: pathname?.startsWith('/lessons'),
+        onPress: () => router.push('/lessons'),
+      },
+      {
+        icon: 'settings-outline',
+        label: 'Ayarlar',
+        selected: pathname?.startsWith('/settings'),
+        onPress: () => router.push('/settings'),
+      },
+    ],
+    [pathname, router]
+  );
+
+  const footerItems: HamburgerMenuItem[] = useMemo(
+    () => [
+      {
+        icon: 'help-circle-outline',
+        label: 'Yardım & Destek',
+        selected: pathname?.startsWith('/help'),
+        onPress: () => router.push('/help'),
+      },
+      {
+        icon: 'log-out-outline',
+        label: 'Çıkış Yap',
+        onPress: () => {
+          signOut().then(() => router.replace('/login'));
+        },
+      },
+    ],
+    [pathname, router, signOut]
+  );
 
   return (
     <HamburgerMenuContext.Provider value={value}>
@@ -34,52 +88,8 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         onClose={close}
         title={student.nickname ?? student.name}
         subtitle="Menü"
-        items={[
-          {
-            icon: 'book-outline',
-            label: 'Derslerim',
-            color: Palette.orange,
-            onPress: () => router.push('/subjects'),
-          },
-          {
-            icon: 'notifications-outline',
-            label: 'Bildirimler',
-            color: Palette.purple,
-            onPress: () => router.push('/notifications'),
-          },
-          {
-            icon: 'stats-chart-outline',
-            label: 'Raporlar & İstatistikler',
-            color: Palette.blue,
-            onPress: () => router.push('/stats'),
-          },
-          {
-            icon: 'calendar-outline',
-            label: 'Özel Derslerim',
-            color: Palette.purple,
-            onPress: () => router.push('/lessons'),
-          },
-          {
-            icon: 'settings-outline',
-            label: 'Ayarlar',
-            color: Palette.textDim,
-            onPress: () => router.push('/settings'),
-          },
-          {
-            icon: 'help-circle-outline',
-            label: 'Yardım & Destek',
-            color: Palette.green,
-            onPress: () => router.push('/help'),
-          },
-          {
-            icon: 'log-out-outline',
-            label: 'Çıkış Yap',
-            color: Palette.pink,
-            onPress: () => {
-              signOut().then(() => router.replace('/login'));
-            },
-          },
-        ]}
+        items={mainItems}
+        footerItems={footerItems}
       />
     </HamburgerMenuContext.Provider>
   );

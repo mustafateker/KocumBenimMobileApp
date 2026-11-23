@@ -1,26 +1,25 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressScale } from './button';
-import { IconBubble, Txt } from './ui';
+import { Txt } from './ui';
 
-import { DetailAccent, Elevation, Motion, Palette, Radius, Space } from '@/theme/tokens';
+import { Accent, Border, Elevation, Motion, OnColor, Palette, Radius, Space } from '@/theme/tokens';
 
 export type HamburgerMenuItem = {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
-  /** Belirtilmezse notr metin/ikon rengi kullanilir — cikis gibi tek vurgu haric. */
+  selected?: boolean;
   color?: string;
   onPress: () => void;
 };
 
 /**
  * Soldan acilan menu paneli. Tetikleyici hamburger dugmesi tum ogrenci
- * ekranlarinda sol ustte durdugu icin panel de ayni kenardan giriyor; Ayarlar
- * ve Cikis Yap gibi sayfaya ozgu olmayan aksiyonlari burada topluyor.
+ * ekranlarinda sol ustte durdugu icin panel de ayni kenardan giriyor.
  */
 export function HamburgerMenu({
   visible,
@@ -28,20 +27,19 @@ export function HamburgerMenu({
   title,
   subtitle,
   items,
+  footerItems,
 }: {
   visible: boolean;
   onClose: () => void;
   title?: string;
   subtitle?: string;
   items: HamburgerMenuItem[];
+  footerItems?: HamburgerMenuItem[];
 }) {
   const insets = useSafeAreaInsets();
   const progress = useSharedValue(0);
   const [mounted, setMounted] = useState(visible);
 
-  // Kapaniş animasyonu bitene kadar Modal'i takili tutmak icin: acilirken
-  // hemen (render sirasinda) takili isaretlenir, kapanirken efekt geri
-  // cagirmasi (runOnJS) animasyon bitince sokup cikarir.
   if (visible && !mounted) {
     setMounted(true);
   }
@@ -76,9 +74,13 @@ export function HamburgerMenu({
             styles.panel,
             Elevation.xl,
             panelStyle,
-            { paddingTop: insets.top + Space.lg, paddingBottom: insets.bottom + Space.lg },
+            {
+              paddingTop: insets.top + Space.md,
+              paddingBottom: Math.max(insets.bottom, Space.md) + Space.xs,
+            },
           ]}
         >
+          {/* Baslik ve Kapatma */}
           <View style={styles.header}>
             <View style={styles.flex}>
               {title ? <Txt variant="section">{title}</Txt> : null}
@@ -95,25 +97,93 @@ export function HamburgerMenu({
             </PressScale>
           </View>
 
-          <View style={styles.items}>
-            {items.map((item) => (
-              <PressScale
-                key={item.label}
-                onPress={() => {
-                  onClose();
-                  item.onPress();
-                }}
-              >
-                <View style={styles.row}>
-                  <IconBubble name={item.icon} color={item.color ?? DetailAccent} size={38} />
-                  <Txt variant="bodyStrong" color={item.color ?? Palette.text} style={styles.flex}>
-                    {item.label}
-                  </Txt>
-                  <Ionicons name="chevron-forward" size={16} color={Palette.textFaint} />
+          {/* Ana Menü Öğeleri */}
+          <ScrollView
+            style={styles.mainScroll}
+            contentContainerStyle={styles.mainScrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            {items.map((item, index) => {
+              const isSelected = !!item.selected;
+              return (
+                <View key={item.label}>
+                  <PressScale
+                    onPress={() => {
+                      onClose();
+                      item.onPress();
+                    }}
+                  >
+                    <View style={[styles.row, isSelected && styles.rowSelected]}>
+                      <View style={[styles.iconWrap, isSelected && styles.iconWrapSelected]}>
+                        <Ionicons
+                          name={item.icon}
+                          size={19}
+                          color={isSelected ? OnColor : item.color ?? Palette.textDim}
+                        />
+                      </View>
+                      <Txt
+                        variant={isSelected ? 'bodyStrong' : 'body'}
+                        color={isSelected ? Accent : item.color ?? Palette.text}
+                        style={styles.flex}
+                      >
+                        {item.label}
+                      </Txt>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={15}
+                        color={isSelected ? Accent : Palette.textFaint}
+                      />
+                    </View>
+                  </PressScale>
+                  {index < items.length - 1 && <View style={styles.divider} />}
                 </View>
-              </PressScale>
-            ))}
-          </View>
+              );
+            })}
+          </ScrollView>
+
+          {/* Alt Sabit Kısım: Yardım ve Destek + Çıkış Yap */}
+          {footerItems && footerItems.length > 0 && (
+            <View style={styles.footer}>
+              <View style={styles.fullDivider} />
+              {footerItems.map((item, index) => {
+                const isSelected = !!item.selected;
+                return (
+                  <View key={item.label}>
+                    {index > 0 && <View style={styles.fullDivider} />}
+                    <PressScale
+                      onPress={() => {
+                        onClose();
+                        item.onPress();
+                      }}
+                    >
+                      <View style={[styles.row, isSelected && styles.rowSelected]}>
+                        <View style={[styles.iconWrap, isSelected && styles.iconWrapSelected]}>
+                          <Ionicons
+                            name={item.icon}
+                            size={19}
+                            color={isSelected ? OnColor : item.color ?? Palette.textDim}
+                          />
+                        </View>
+                        <Txt
+                          variant={isSelected ? 'bodyStrong' : 'body'}
+                          color={isSelected ? Accent : item.color ?? Palette.text}
+                          style={styles.flex}
+                        >
+                          {item.label}
+                        </Txt>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={15}
+                          color={isSelected ? Accent : Palette.textFaint}
+                        />
+                      </View>
+                    </PressScale>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </Animated.View>
       </View>
     </Modal>
@@ -142,15 +212,17 @@ const styles = StyleSheet.create({
     width: PANEL_WIDTH,
     maxWidth: '82%',
     backgroundColor: Palette.surface,
-    borderTopRightRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
+    borderTopRightRadius: Radius.sheet,
+    borderBottomRightRadius: Radius.sheet,
     paddingHorizontal: Space.lg,
-    gap: Space.xl,
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: Space.md,
+    paddingBottom: Space.md,
+    borderBottomWidth: Border.thin,
+    borderBottomColor: Palette.border,
   },
   closeButton: {
     width: 32,
@@ -160,13 +232,45 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Palette.surfaceHi,
   },
-  items: {
-    gap: Space.xs,
+  mainScroll: {
+    flex: 1,
+  },
+  mainScrollContent: {
+    paddingVertical: Space.xs,
+  },
+  footer: {
+    paddingTop: Space.xs,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Palette.border,
+    marginHorizontal: Space.xs,
+  },
+  fullDivider: {
+    height: 1,
+    backgroundColor: Palette.border,
+    marginVertical: 4,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
-    paddingVertical: Space.md,
+    paddingVertical: 10,
+    paddingHorizontal: Space.sm,
+    borderRadius: Radius.md,
+  },
+  rowSelected: {
+    backgroundColor: 'rgba(58, 57, 103, 0.05)',
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.surfaceHi,
+  },
+  iconWrapSelected: {
+    backgroundColor: Accent,
   },
 });
