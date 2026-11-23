@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import {
   Award,
   BookOpen,
@@ -28,9 +28,9 @@ import { dayLabel, humanDuration, relativeTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { Rules } from '@/lib/gamification';
 import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
-import { useStudent } from '@/lib/session';
+import { useSession } from '@/lib/session';
 import { categoryIcon } from '@/lib/task-categories';
-import type { StudentStats, StudentSummary, Task, TopicBreakdown, TopicReport } from '@/lib/types';
+import type { Student, StudentStats, StudentSummary, Task, TopicBreakdown, TopicReport } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 type ReportTab = 'overview' | 'subjects' | 'history';
@@ -51,7 +51,24 @@ const EMPTY_STATS: StudentStats = {
 };
 
 export default function Stats() {
-  const student = useStudent();
+  const { user, loading } = useSession();
+
+  if (loading) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, backgroundColor: Palette.bg }} />
+      </Screen>
+    );
+  }
+
+  if (!user || user.role !== 'student') {
+    return <Redirect href="/login" />;
+  }
+
+  return <StatsContent student={user} />;
+}
+
+function StatsContent({ student }: { student: Student }) {
   const isLgs = getExamTrack(student.grade) === 'lgs';
   const { showError } = useErrorDialog();
   const router = useRouter();

@@ -197,10 +197,40 @@ function CameraPane() {
   );
 }
 
+const DEMO_QUESTIONS: Question[] = [
+  {
+    id: 991,
+    studentId: 1,
+    subject: 'Matematik',
+    imageUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600',
+    strokes: { w: 1000, h: 1000, items: [] },
+    note: 'Parantez içi işlem önceliğini nasıl belirlemeliyim?',
+    status: 'answered',
+    teacherReply: 'Önce parantez içi işlem yapılır: 24 : (3 + 5) = 24 : 8 = 3. Ardından çarpma işlemi tamamlanır.',
+    resolvedByStudent: true,
+    createdAt: new Date().toISOString(),
+    answeredAt: new Date().toISOString(),
+  },
+  {
+    id: 992,
+    studentId: 1,
+    subject: 'Fen Bilimleri',
+    imageUrl: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600',
+    strokes: { w: 1000, h: 1000, items: [] },
+    note: 'Pürüzlü yüzeylerde sürtünme kuvveti hareketi nasıl etkiler?',
+    status: 'answered',
+    teacherReply: 'Pürüzlü yüzeylerde sürtünme kuvveti artar ve cismin hareketini yavaşlatır.',
+    resolvedByStudent: true,
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    answeredAt: new Date(Date.now() - 3600000).toISOString(),
+  },
+];
+
 function QuestionList() {
   useStudent();
+  const { demo } = useLocalSearchParams<{ demo?: string }>();
   const insets = useSafeAreaInsets();
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<Question[]>(DEMO_QUESTIONS);
   const [filterSubject, setFilterSubject] = useState<string>('all');
   const [activeSolution, setActiveSolution] = useState<{
     imageUri?: string | null;
@@ -211,10 +241,13 @@ function QuestionList() {
 
   useFocusEffect(
     useCallback(() => {
+      if (demo === '1') return;
       getQuestions()
-        .then(setQuestions)
+        .then((res) => {
+          if (res && res.length > 0) setQuestions(res);
+        })
         .catch((err) => showError(err, { title: 'Sorular yüklenemedi', code: 'QUESTIONS_LOAD' }));
-    }, [showError])
+    }, [demo, showError])
   );
 
   const handleResolved = useCallback((updated: Question) => {
@@ -450,7 +483,7 @@ function QuestionCard({
 
   const solutionImageUri =
     rawSolutionUri ||
-    (question.status === 'answered' ? `/questions/${question.id}/reply-image` : null);
+    (question.status === 'answered' && question.id < 900 ? `/questions/${question.id}/reply-image` : null);
 
   const cleanReplyText =
     rawReply &&

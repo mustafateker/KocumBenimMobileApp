@@ -10,7 +10,7 @@ import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { LogBox, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -31,6 +31,7 @@ SplashScreen.setOptions({ fade: true, duration: 250 });
 // Ilk render'dan once takilmali: React agacinin disinda olusan yakalanmamis
 // hatalari da (zamanlayici, olay isleyicisi) kayit altina alir.
 installCrashReporter();
+LogBox.ignoreAllLogs(true);
 
 /** Kok yigindaki bir hata bu ekrani gosterir — beyaz ekran/sessiz kapanma yerine. */
 export { AppErrorBoundary as ErrorBoundary };

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import type { ComponentProps, ReactNode } from 'react';
 import { useEffect } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -11,9 +12,9 @@ import { Txt } from './ui';
 
 export type TabMeta = {
   label: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
+  icon: ComponentProps<typeof Ionicons>['name'];
   featured?: boolean;
-  customIcon?: (focused: boolean) => React.ReactNode;
+  customIcon?: (focused: boolean) => ReactNode;
 };
 
 /**
@@ -47,7 +48,7 @@ export function TabBar({
   const activeRouteKey = state.routes[state.index]?.key;
 
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 16 : 4, 4) }]}>
+    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 4 : 8, 8) }]}>
       <View style={styles.bar}>
         {orderedRoutes.map((route) => {
           const meta = tabs[route.name];
@@ -115,12 +116,12 @@ function TabButton({
         ) : (
           <Ionicons
             name={focused ? meta.icon : (`${meta.icon}-outline` as TabMeta['icon'])}
-            size={meta.featured ? 28 : 20}
+            size={meta.featured ? 32 : 21}
             color={focused ? Accent : Palette.textFaint}
           />
         )}
       </Animated.View>
-      <Txt variant={meta.featured ? 'tiny' : 'tiny'} color={focused ? Accent : Palette.textFaint}>
+      <Txt variant="tiny" color={focused ? Accent : Palette.textFaint}>
         {meta.label}
       </Txt>
     </Pressable>
@@ -137,33 +138,33 @@ const styles = StyleSheet.create({
     borderTopWidth: Border.thin,
     borderTopColor: Palette.border,
     paddingHorizontal: Space.md,
-    paddingTop: 2,
+    paddingTop: 5,
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Palette.surface,
-    paddingVertical: 1,
+    paddingVertical: 3,
     paddingHorizontal: Space.xs,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 1,
-    paddingVertical: 1,
+    gap: 2,
+    paddingVertical: 2,
   },
   iconSlot: {
-    width: 36,
-    height: 25,
+    width: 38,
+    height: 27,
     borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   featuredIconSlot: {
-    width: 34,
-    height: 34,
-    borderRadius: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.surfaceHi,

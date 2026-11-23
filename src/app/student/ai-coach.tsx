@@ -75,7 +75,25 @@ export default function AiCoachScreen() {
             id: 'init-greeting',
             role: 'raccoon',
             text: ctx.greeting,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: '18:08',
+          },
+          {
+            id: 'demo-user-1',
+            role: 'student',
+            text: 'Eksiklerime ve sınıfıma göre öncelikle hangi konulara çalışmam lazım?',
+            timestamp: '18:09',
+          },
+          {
+            id: 'demo-ai-1',
+            role: 'raccoon',
+            text: `5. sınıf müfredatında düzenli ilerlemek için bugün şu konulara odaklanabilirsin:
+
+- Matematik: Doğal Sayılar ve İşlemler, Çok Basamaklı Sayılar
+- Türkçe: Sözcükte Anlam, Eş ve Zıt Anlamlı Kelimeler
+- Fen Bilimleri: Gökyüzündeki Komşumuz: Güneş ve Ay
+
+Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
+            timestamp: '18:09',
           },
         ];
       });

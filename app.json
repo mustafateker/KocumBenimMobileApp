@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Kocum Benim",
+    "name": "Koçum Benim",
     "slug": "KocumBenimMobileApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -93,6 +93,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.triworkster.kocumbenimmobileapp",
+      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Redirect, useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { InteractionManager, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -26,7 +26,8 @@ import {
   type ExtraCompletedTopicsMap,
   type TopicPerformanceGrade,
 } from '@/lib/maarif-curriculum';
-import { useStudent } from '@/lib/session';
+import { useSession } from '@/lib/session';
+import type { Student } from '@/lib/types';
 import {
   Accent,
   Border,
@@ -52,7 +53,24 @@ type TopicSolvedStats = {
 type FilterMode = 'all' | 'completed' | 'weak';
 
 export default function SubjectsScreen() {
-  const student = useStudent();
+  const { user, loading } = useSession();
+
+  if (loading) {
+    return (
+      <Screen>
+        <View style={{ flex: 1, backgroundColor: Palette.bg }} />
+      </Screen>
+    );
+  }
+
+  if (!user || user.role !== 'student') {
+    return <Redirect href="/login" />;
+  }
+
+  return <SubjectsScreenContent student={user} />;
+}
+
+function SubjectsScreenContent({ student }: { student: Student }) {
   const { showError } = useErrorDialog();
   const router = useRouter();
 

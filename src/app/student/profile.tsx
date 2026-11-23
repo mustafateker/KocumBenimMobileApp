@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -77,8 +77,10 @@ export default function Profile() {
   const student = useStudent();
   const { showError } = useErrorDialog();
 
+  const { journey } = useLocalSearchParams<{ journey?: string }>();
   const [summary, setSummary] = useState<StudentSummary | null>(null);
-  const [journeyOpen, setJourneyOpen] = useState(false);
+  const [internalJourneyOpen, setInternalJourneyOpen] = useState<boolean | null>(null);
+  const journeyOpen = internalJourneyOpen ?? (journey === '1');
 
   useFocusEffect(
     useCallback(() => {
@@ -129,7 +131,7 @@ export default function Profile() {
       <Card style={styles.heroCard}>
         <View style={styles.heroTopRow}>
           {/* Avatar: Seviye Karakteri Görseli */}
-          <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.93}>
+          <PressScale onPress={() => setInternalJourneyOpen(true)} scaleTo={0.93}>
             <View style={styles.avatarWrap}>
               <View style={styles.avatarSquircle}>
                 <Image
@@ -154,7 +156,7 @@ export default function Profile() {
             </Typography.Title>
 
             {/* Karakter Ünvanı */}
-            <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.96}>
+            <PressScale onPress={() => setInternalJourneyOpen(true)} scaleTo={0.96}>
               <View style={styles.characterTitleChip}>
                 <Ionicons name="sparkles" size={13} color={DetailAccent} />
                 <Typography.SmallStrong color={DetailAccent}>
@@ -205,7 +207,7 @@ export default function Profile() {
         ) : null}
 
         {/* Seviye & XP İlerleme Çubuğu */}
-        <PressScale onPress={() => setJourneyOpen(true)} scaleTo={0.98}>
+        <PressScale onPress={() => setInternalJourneyOpen(true)} scaleTo={0.98}>
           <View style={styles.levelProgressBox}>
             <View style={styles.levelLabelsRow}>
               <View style={styles.levelTitleWrap}>
@@ -449,10 +451,10 @@ export default function Profile() {
         visible={journeyOpen}
         animationType="slide"
         transparent
-        onRequestClose={() => setJourneyOpen(false)}
+        onRequestClose={() => setInternalJourneyOpen(false)}
       >
         <View style={styles.modalBackdrop}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setJourneyOpen(false)} />
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setInternalJourneyOpen(false)} />
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
@@ -464,7 +466,7 @@ export default function Profile() {
                   Sınav hazırlık maratonunda her basamak yeni bir unvan kazandırır
                 </Typography.Tiny>
               </View>
-              <PressScale onPress={() => setJourneyOpen(false)} scaleTo={0.9}>
+              <PressScale onPress={() => setInternalJourneyOpen(false)} scaleTo={0.9}>
                 <View style={styles.modalCloseBtn}>
                   <Ionicons name="close" size={20} color={Palette.text} />
                 </View>

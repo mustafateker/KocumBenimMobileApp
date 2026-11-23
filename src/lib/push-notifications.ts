@@ -159,7 +159,10 @@ export function useNotificationRouting(): void {
       handledResponses.add(key);
 
       const data = (response.notification.request.content.data ?? {}) as PushPayload;
-      router.push(hrefForPush(data));
+      const target = hrefForPush(data);
+      setTimeout(() => {
+        router.push(target);
+      }, 100);
     };
 
     (async () => {

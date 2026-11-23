@@ -18,6 +18,7 @@ import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
 const TYPE_META: Record<NotificationType | string, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string }> = {
   task_assigned: { icon: 'clipboard', color: DetailAccent },
+  ai_task_assigned: { icon: 'clipboard', color: DetailAccent },
   question_answered: { icon: 'chatbubble-ellipses', color: DetailAccent },
   streak_reminder: { icon: 'flame', color: DetailAccent },
   announcement: { icon: 'megaphone', color: DetailAccent },

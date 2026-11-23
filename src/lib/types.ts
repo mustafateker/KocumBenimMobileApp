@@ -148,6 +148,7 @@ export type Question = {
 
 export type NotificationType =
   | 'task_assigned'
+  | 'ai_task_assigned'
   | 'question_answered'
   | 'streak_reminder'
   | 'announcement'
@@ -157,7 +158,8 @@ export type NotificationType =
   | 'pomodoro_reminder'
   | 'task_reminder'
   | 'mock_exam_reminder'
-  | 'curriculum_reminder';
+  | 'curriculum_reminder'
+  | 'decay_warning';
 
 export type AppNotification = {
   id: number;
