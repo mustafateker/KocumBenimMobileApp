@@ -2,6 +2,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 import { HamburgerMenu, type HamburgerMenuItem } from '@/components/hamburger-menu';
+import { getExamTrack } from '@/lib/mock-exams';
 
 import { useSession, useStudent } from './session';
 
@@ -25,6 +26,8 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
 
   const value = useMemo(() => ({ open }), [open]);
 
+  const isLgs = useMemo(() => getExamTrack(student.grade) === 'lgs', [student.grade]);
+
   const mainItems: HamburgerMenuItem[] = useMemo(
     () => [
       {
@@ -35,7 +38,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
       },
       {
         icon: 'ribbon-outline',
-        label: 'Deneme Sınavlarım',
+        label: isLgs ? 'LGS Denemelerim' : 'YKS Denemelerim',
         selected: pathname?.startsWith('/mock-exams'),
         onPress: () => router.push('/mock-exams'),
       },
@@ -64,7 +67,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         onPress: () => router.push('/settings'),
       },
     ],
-    [pathname, router]
+    [pathname, router, isLgs]
   );
 
   const footerItems: HamburgerMenuItem[] = useMemo(

@@ -27,6 +27,7 @@ import { getCompletedTasks, getStats, getSummary } from '@/lib/api';
 import { dayLabel, humanDuration, relativeTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { Rules } from '@/lib/gamification';
+import { getExamTrack } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import { categoryIcon } from '@/lib/task-categories';
 import type { StudentStats, StudentSummary, Task, TopicBreakdown, TopicReport } from '@/lib/types';
@@ -51,6 +52,7 @@ const EMPTY_STATS: StudentStats = {
 
 export default function Stats() {
   const student = useStudent();
+  const isLgs = getExamTrack(student.grade) === 'lgs';
   const { showError } = useErrorDialog();
   const router = useRouter();
 
@@ -242,7 +244,7 @@ export default function Stats() {
                 <View style={styles.flex}>
                   <View style={styles.mockExamsTitleRow}>
                     <Txt variant="smallStrong" color={Palette.text}>
-                      Deneme Sınavları & Net Analizi
+                      {isLgs ? 'LGS Deneme & Net Analizi' : 'YKS Deneme & Net Analizi'}
                     </Txt>
                     <View style={styles.mockExamsAiBadge}>
                       <Sparkles size={11} color={DetailAccent} />

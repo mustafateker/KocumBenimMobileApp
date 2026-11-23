@@ -70,8 +70,9 @@ export default function MockExamsScreen() {
   const student = useStudent();
   const insets = useSafeAreaInsets();
 
-  const studentTrack = useMemo(() => getExamTrack(student.grade), [student.grade]);
-  const [activeTab, setActiveTab] = useState<ExamTrack>(studentTrack);
+  // Öğrencinin kayıtlı sınıfına göre sınav sistemi (5-8: LGS, 9-12/Mezun: YKS)
+  const track = useMemo(() => getExamTrack(student.grade), [student.grade]);
+  const isLgs = track === 'lgs';
 
   const [exams, setExams] = useState<MockExam[]>([]);
   const [, setLoading] = useState(true);
@@ -101,34 +102,34 @@ export default function MockExamsScreen() {
     }, [fetchExams])
   );
 
-  // Aktif sekmeye göre denemeleri filtrele
-  const filteredExams = useMemo(() => {
+  // Öğrencinin kayıtlı olduğu sınav sistemine ait denemeler
+  const studentExams = useMemo(() => {
     return exams.filter((e) => {
-      if (activeTab === 'lgs') {
+      if (isLgs) {
         return e.examType === 'lgs' || e.examType === 'general';
       }
       return e.examType === 'tyt' || e.examType === 'ayt' || e.examType === 'yks';
     });
-  }, [exams, activeTab]);
+  }, [exams, isLgs]);
 
-  const latestExam = filteredExams[0] ?? null;
+  const latestExam = studentExams[0] ?? null;
   const bestScore = useMemo(
-    () => (filteredExams.length > 0 ? Math.max(...filteredExams.map((e) => e.estimatedScore ?? 0)) : 0),
-    [filteredExams]
+    () => (studentExams.length > 0 ? Math.max(...studentExams.map((e) => e.estimatedScore ?? 0)) : 0),
+    [studentExams]
   );
   const bestNet = useMemo(
-    () => (filteredExams.length > 0 ? Math.max(...filteredExams.map((e) => e.totalNet)) : 0),
-    [filteredExams]
+    () => (studentExams.length > 0 ? Math.max(...studentExams.map((e) => e.totalNet)) : 0),
+    [studentExams]
   );
   const avgNet = useMemo(
     () =>
-      filteredExams.length > 0
-        ? Math.round((filteredExams.reduce((s, e) => s + e.totalNet, 0) / filteredExams.length) * 10) / 10
+      studentExams.length > 0
+        ? Math.round((studentExams.reduce((s, e) => s + e.totalNet, 0) / studentExams.length) * 10) / 10
         : 0,
-    [filteredExams]
+    [studentExams]
   );
 
-  const countdownInfo = useMemo(() => getExamCountdown(activeTab === 'lgs' ? '8. Sınıf' : '12. Sınıf'), [activeTab]);
+  const countdownInfo = useMemo(() => getExamCountdown(student.grade), [student.grade]);
 
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
@@ -149,15 +150,15 @@ export default function MockExamsScreen() {
   };
 
   const targetLabel =
-    (activeTab === 'lgs'
+    (isLgs
       ? student.targetHighSchool
       : student.targetUniversity || student.targetDepartment) ||
     student.goal ||
-    (activeTab === 'lgs' ? 'Hedef Lise' : 'Hedef Üniversite');
+    (isLgs ? 'Hedef Lise' : 'Hedef Üniversite');
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + Space.md }]}>
-      {/* Header */}
+      {/* Header - Sınıfa Göre Özel Başlık */}
       <View style={styles.header}>
         <PressScale onPress={() => router.back()} scaleTo={0.9}>
           <View style={styles.backButton}>
@@ -166,10 +167,12 @@ export default function MockExamsScreen() {
         </PressScale>
         <View style={styles.headerTitleWrap}>
           <Txt variant="section" color={Palette.text}>
-            Deneme Takip Sistemi
+            {isLgs ? 'LGS Deneme Sınavlarım' : 'YKS Deneme Sınavlarım'}
           </Txt>
           <Txt variant="tiny" color={Palette.textDim}>
-            {activeTab === 'lgs' ? '8. Sınıf & Liselere Geçiş' : 'YKS (TYT - AYT) & Üniversite'}
+            {isLgs
+              ? `${student.grade ?? '8. Sınıf'} · Liselere Geçiş Sistemi (LGS)`
+              : `${student.grade ?? '12. Sınıf'} · Yükseköğretim Kurumları Sınavı (TYT - AYT)`}
           </Txt>
         </View>
         <PressScale onPress={() => setModalOpen(true)} scaleTo={0.92}>
@@ -179,50 +182,17 @@ export default function MockExamsScreen() {
         </PressScale>
       </View>
 
-      {/* Sınav Türü Seçici (LGS vs YKS) */}
-      <View style={styles.tabSwitcherRow}>
-        <PressScale
-          onPress={() => setActiveTab('lgs')}
-          style={styles.flex}
-          scaleTo={0.97}
-        >
-          <View style={[styles.examTrackTab, activeTab === 'lgs' && styles.examTrackTabActive]}>
-            <Txt
-              variant="smallStrong"
-              color={activeTab === 'lgs' ? OnColor : Palette.textDim}
-            >
-              LGS Denemeleri (8. Sınıf)
-            </Txt>
-          </View>
-        </PressScale>
-
-        <PressScale
-          onPress={() => setActiveTab('yks')}
-          style={styles.flex}
-          scaleTo={0.97}
-        >
-          <View style={[styles.examTrackTab, activeTab === 'yks' && styles.examTrackTabActive]}>
-            <Txt
-              variant="smallStrong"
-              color={activeTab === 'yks' ? OnColor : Palette.textDim}
-            >
-              YKS Denemeleri (TYT - AYT)
-            </Txt>
-          </View>
-        </PressScale>
-      </View>
-
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + Space.xxl }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sınav Format & Kural Kartı */}
+        {/* Sınav Format & Kural Kartı (Öğrencinin Sınavına Özel) */}
         <Card style={styles.rulesCard}>
           <View style={styles.rulesHeader}>
             <View style={styles.rulesBadge}>
-              <Info size={14} color={Accent} />
-              <Txt variant="tiny" color={Accent} style={{ fontWeight: '700' }}>
-                {activeTab === 'lgs' ? 'LGS SİSTEMİ KURALLARI' : 'YKS SİSTEMİ KURALLARI'}
+              <Info size={14} color={isLgs ? DetailAccent : Accent} />
+              <Txt variant="tiny" color={isLgs ? DetailAccent : Accent} style={{ fontWeight: '700' }}>
+                {isLgs ? 'LGS SİSTEMİ KURALLARI' : 'YKS SİSTEMİ KURALLARI'}
               </Txt>
             </View>
             <Txt variant="tiny" color={Palette.textFaint}>
@@ -240,7 +210,7 @@ export default function MockExamsScreen() {
               </Txt>
             </View>
             <View style={styles.ruleChip}>
-              <Award size={12} color={DetailAccent} />
+              <Award size={12} color={isLgs ? DetailAccent : Accent} />
               <Txt variant="tiny" color={Palette.textDim}>
                 {countdownInfo.penaltyRule}
               </Txt>
@@ -279,7 +249,7 @@ export default function MockExamsScreen() {
               <Target size={16} color={Palette.blue} strokeWidth={2.2} />
             </View>
             <Txt variant="smallStrong" color={Palette.text}>
-              {filteredExams.length > 0 ? `${avgNet} Net` : '-'}
+              {studentExams.length > 0 ? `${avgNet} Net` : '-'}
             </Txt>
             <Txt variant="tiny" color={Palette.textDim}>
               Ortalama Net
@@ -353,34 +323,34 @@ export default function MockExamsScreen() {
         {/* Kayıtlı Denemeler Başlığı */}
         <View style={styles.listHeaderRow}>
           <Txt variant="section" color={Palette.text}>
-            {activeTab === 'lgs' ? 'LGS Denemeleri' : 'YKS (TYT/AYT) Denemeleri'} ({filteredExams.length})
+            {isLgs ? 'Kayıtlı LGS Denemeleri' : 'Kayıtlı YKS Denemeleri'} ({studentExams.length})
           </Txt>
           <PressScale onPress={() => setModalOpen(true)} scaleTo={0.92}>
             <View style={styles.addTextBtn}>
               <Plus size={16} color={Accent} strokeWidth={2.4} />
               <Txt variant="smallStrong" color={Accent}>
-                Deneme Ekle
+                {isLgs ? 'LGS Denemesi Ekle' : 'YKS Denemesi Ekle'}
               </Txt>
             </View>
           </PressScale>
         </View>
 
         {/* Deneme Listesi */}
-        {filteredExams.length === 0 ? (
+        {studentExams.length === 0 ? (
           <Card style={styles.emptyCard}>
             <BookOpen size={40} color={Palette.textFaint} strokeWidth={1.5} />
             <Txt variant="body" color={Palette.textDim} center>
-              Henüz kaydedilmiş {activeTab === 'lgs' ? 'LGS' : 'YKS'} deneme sınavı bulunmuyor.
+              Henüz kaydedilmiş {isLgs ? 'LGS' : 'YKS'} deneme sınavın bulunmuyor.
             </Txt>
             <NeonButton
-              label={activeTab === 'lgs' ? 'LGS Denemesi Ekle' : 'YKS Denemesi Ekle'}
+              label={isLgs ? 'İlk LGS Denemeni Ekle' : 'İlk YKS Denemeni Ekle'}
               icon="add"
               onPress={() => setModalOpen(true)}
               size="md"
             />
           </Card>
         ) : (
-          filteredExams.map((exam) => {
+          studentExams.map((exam) => {
             const isExpanded = expandedExamId === exam.id;
             const toggleExpand = () => setExpandedExamId(isExpanded ? null : exam.id);
 
@@ -400,7 +370,7 @@ export default function MockExamsScreen() {
                                   ? `AYT (${exam.yksField?.toUpperCase() ?? '80 S'})`
                                   : 'YKS (TYT+AYT)'
                           }
-                          color={exam.examType === 'lgs' ? Accent : Palette.blue}
+                          color={exam.examType === 'lgs' ? DetailAccent : Palette.blue}
                         />
                         <View style={styles.dateChip}>
                           <Calendar size={12} color={Palette.textFaint} />
@@ -451,11 +421,11 @@ export default function MockExamsScreen() {
 
                     <View style={styles.examRightCol}>
                       <View style={styles.totalNetBox}>
-                        <Txt variant="section" color={Accent}>
+                        <Txt variant="section" color={isLgs ? DetailAccent : Accent}>
                           {exam.totalNet}
                         </Txt>
                         <Txt variant="tiny" color={Palette.textDim}>
-                          Toplam Net
+                          {isLgs ? 'Toplam Net / 90' : 'Toplam Net'}
                         </Txt>
                       </View>
                       {exam.estimatedScore ? (
@@ -540,7 +510,7 @@ export default function MockExamsScreen() {
         )}
       </ScrollView>
 
-      {/* Sınav Giriş Modalı (LGS ve YKS için ayrılmış motor) */}
+      {/* Sınav Giriş Modalı (Öğrencinin kayıtlı sınıfına göre LGS veya YKS) */}
       <AddExamModal
         visible={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -548,28 +518,28 @@ export default function MockExamsScreen() {
           setModalOpen(false);
           fetchExams();
         }}
-        initialTrack={activeTab}
+        track={track}
       />
     </View>
   );
 }
 
 // -----------------------------------------------------------------------------
-// YENİ DENEME EKLEME MODALI (LGS ve YKS Ayrılmış Oturum Motoru)
+// YENİ DENEME EKLEME MODALI (Öğrencinin Sınav Sistemine Özel)
 // -----------------------------------------------------------------------------
 
 function AddExamModal({
   visible,
   onClose,
   onSaved,
-  initialTrack,
+  track,
 }: {
   visible: boolean;
   onClose: () => void;
   onSaved: () => void;
-  initialTrack: ExamTrack;
+  track: ExamTrack;
 }) {
-  const [modalTrack, setModalTrack] = useState<ExamTrack>(initialTrack);
+  const isLgs = track === 'lgs';
   const [title, setTitle] = useState('');
   const [date, setDate] = useState(localTodayStr());
 
@@ -587,7 +557,6 @@ function AddExamModal({
   const tytSubs = TYT_DEFAULT_SUBJECTS;
   const aytSubs = useMemo(() => getAytSubjectsForField(yksField), [yksField]);
 
-  // Skorları sıfırla/doldur
   const getSubjectScore = useCallback(
     (subj: string) => {
       return scores[subj] ?? { correct: '0', wrong: '0', empty: '0' };
@@ -690,7 +659,7 @@ function AddExamModal({
 
     setSaving(true);
     try {
-      if (modalTrack === 'lgs') {
+      if (isLgs) {
         const allSubjects = [...lgsSozelComputed, ...lgsSayisalComputed];
         const totalC = allSubjects.reduce((s, sub) => s + sub.correct, 0);
         const totalW = allSubjects.reduce((s, sub) => s + sub.wrong, 0);
@@ -770,44 +739,17 @@ function AddExamModal({
             <View style={styles.modalHeader}>
               <View>
                 <Txt variant="section" color={Palette.text}>
-                  Yeni Deneme Kaydı
+                  {isLgs ? 'Yeni LGS Denemesi' : 'Yeni YKS Denemesi'}
                 </Txt>
                 <Txt variant="tiny" color={Palette.textDim}>
-                  {modalTrack === 'lgs'
-                    ? 'LGS: Sözel + Sayısal (3 Yanlış 1 Doğru)'
-                    : 'YKS: TYT + AYT (4 Yanlış 1 Doğru)'}
+                  {isLgs
+                    ? 'Sözel + Sayısal (3 Yanlış 1 Doğruyu Götürür)'
+                    : 'TYT + AYT (4 Yanlış 1 Doğruyu Götürür)'}
                 </Txt>
               </View>
               <PressScale onPress={onClose} scaleTo={0.9}>
                 <View style={styles.closeBtn}>
                   <Ionicons name="close" size={20} color={Palette.textDim} />
-                </View>
-              </PressScale>
-            </View>
-
-            {/* Sınav Modu Seçici */}
-            <View style={styles.typeSelectorRow}>
-              <PressScale onPress={() => setModalTrack('lgs')} style={styles.flex}>
-                <View style={[styles.typePill, modalTrack === 'lgs' && styles.typePillActive]}>
-                  <Txt
-                    variant="smallStrong"
-                    color={modalTrack === 'lgs' ? OnColor : Palette.textDim}
-                    center
-                  >
-                    LGS (8. Sınıf)
-                  </Txt>
-                </View>
-              </PressScale>
-
-              <PressScale onPress={() => setModalTrack('yks')} style={styles.flex}>
-                <View style={[styles.typePill, modalTrack === 'yks' && styles.typePillActive]}>
-                  <Txt
-                    variant="smallStrong"
-                    color={modalTrack === 'yks' ? OnColor : Palette.textDim}
-                    center
-                  >
-                    YKS (TYT - AYT)
-                  </Txt>
                 </View>
               </PressScale>
             </View>
@@ -819,7 +761,7 @@ function AddExamModal({
                   Deneme Adı & Yayın
                 </Txt>
                 <TextInput
-                  placeholder={modalTrack === 'lgs' ? 'Örn: Özdebir LGS-3, Mozaik Türkiye Geneli' : 'Örn: 3D TYT-2, Bilgi Sarmal AYT'}
+                  placeholder={isLgs ? 'Örn: Özdebir LGS-3, Mozaik Türkiye Geneli' : 'Örn: 3D TYT-2, Bilgi Sarmal AYT'}
                   placeholderTextColor={Palette.textFaint}
                   value={title}
                   onChangeText={setTitle}
@@ -841,7 +783,7 @@ function AddExamModal({
               </View>
 
               {/* YKS için Oturum ve Alan Seçimi */}
-              {modalTrack === 'yks' && (
+              {!isLgs && (
                 <View style={styles.yksConfigBlock}>
                   <View style={styles.formGroup}>
                     <Txt variant="smallStrong" color={Palette.text}>
@@ -909,13 +851,13 @@ function AddExamModal({
               )}
 
               {/* Canlı Net & Puan Göstergesi */}
-              {modalTrack === 'lgs' ? (
+              {isLgs ? (
                 <View style={styles.liveSummaryBox}>
                   <View style={styles.liveSummaryCol}>
                     <Txt variant="tiny" color={Palette.textDim}>
                       SÖZEL (50 S / 75 dk)
                     </Txt>
-                    <Txt variant="bodyStrong" color={Accent}>
+                    <Txt variant="bodyStrong" color={DetailAccent}>
                       {lgsSozelNet} Net
                     </Txt>
                   </View>
@@ -923,7 +865,7 @@ function AddExamModal({
                     <Txt variant="tiny" color={Palette.textDim}>
                       SAYISAL (40 S / 80 dk)
                     </Txt>
-                    <Txt variant="bodyStrong" color={Accent}>
+                    <Txt variant="bodyStrong" color={DetailAccent}>
                       {lgsSayisalNet} Net
                     </Txt>
                   </View>
@@ -970,15 +912,15 @@ function AddExamModal({
               )}
 
               {/* Oturum Ders Tabloları */}
-              {modalTrack === 'lgs' ? (
+              {isLgs ? (
                 <View style={styles.subjectsInputList}>
                   {/* LGS Sözel Oturum */}
                   <View style={styles.sessionHeaderRow}>
-                    <Txt variant="smallStrong" color={Accent}>
+                    <Txt variant="smallStrong" color={DetailAccent}>
                       1. Oturum: Sözel Bölüm (75 dk · 50 Soru)
                     </Txt>
                     <Txt variant="tiny" color={Palette.textFaint}>
-                      Türkçe, İnkılap, Din, İngilizce
+                      Türkçe (20), İnkılap (10), Din (10), İngilizce (10)
                     </Txt>
                   </View>
                   <View style={styles.inputTableHead}>
@@ -994,7 +936,7 @@ function AddExamModal({
                     <Txt variant="tiny" color={Palette.textFaint} style={styles.inputColHead}>
                       Boş
                     </Txt>
-                    <Txt variant="tiny" color={Accent} style={styles.inputColHead}>
+                    <Txt variant="tiny" color={DetailAccent} style={styles.inputColHead}>
                       Net (3Y=1D)
                     </Txt>
                   </View>
@@ -1007,17 +949,18 @@ function AddExamModal({
                       wrong={getSubjectScore(sub.subject).wrong}
                       empty={getSubjectScore(sub.subject).empty}
                       net={sub.net}
+                      accentColor={DetailAccent}
                       onChange={handleScoreChange}
                     />
                   ))}
 
                   {/* LGS Sayısal Oturum */}
                   <View style={[styles.sessionHeaderRow, { marginTop: Space.md }]}>
-                    <Txt variant="smallStrong" color={Accent}>
+                    <Txt variant="smallStrong" color={DetailAccent}>
                       2. Oturum: Sayısal Bölüm (80 dk · 40 Soru)
                     </Txt>
                     <Txt variant="tiny" color={Palette.textFaint}>
-                      Matematik, Fen Bilimleri
+                      Matematik (20), Fen Bilimleri (20)
                     </Txt>
                   </View>
                   {lgsSayisalComputed.map((sub) => (
@@ -1028,6 +971,7 @@ function AddExamModal({
                       wrong={getSubjectScore(sub.subject).wrong}
                       empty={getSubjectScore(sub.subject).empty}
                       net={sub.net}
+                      accentColor={DetailAccent}
                       onChange={handleScoreChange}
                     />
                   ))}
@@ -1071,6 +1015,7 @@ function AddExamModal({
                           wrong={getSubjectScore(sub.subject).wrong}
                           empty={getSubjectScore(sub.subject).empty}
                           net={sub.net}
+                          accentColor={Accent}
                           onChange={handleScoreChange}
                         />
                       ))}
@@ -1114,6 +1059,7 @@ function AddExamModal({
                           wrong={getSubjectScore(sub.subject).wrong}
                           empty={getSubjectScore(sub.subject).empty}
                           net={sub.net}
+                          accentColor={Accent}
                           onChange={handleScoreChange}
                         />
                       ))}
@@ -1147,6 +1093,7 @@ function SubjectInputRow({
   wrong,
   empty,
   net,
+  accentColor,
   onChange,
 }: {
   subject: string;
@@ -1154,6 +1101,7 @@ function SubjectInputRow({
   wrong: string;
   empty: string;
   net: number;
+  accentColor: string;
   onChange: (subject: string, field: 'correct' | 'wrong' | 'empty', val: string) => void;
 }) {
   return (
@@ -1183,7 +1131,7 @@ function SubjectInputRow({
         selectTextOnFocus
       />
       <View style={styles.netBox}>
-        <Txt variant="smallStrong" color={Accent}>
+        <Txt variant="smallStrong" color={accentColor}>
           {net}
         </Txt>
       </View>
@@ -1229,26 +1177,6 @@ const styles = StyleSheet.create({
     backgroundColor: Accent,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabSwitcherRow: {
-    flexDirection: 'row',
-    gap: Space.xs,
-    paddingHorizontal: Space.lg,
-    paddingBottom: Space.md,
-  },
-  examTrackTab: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: Radius.pill,
-    backgroundColor: Palette.surface,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  examTrackTabActive: {
-    backgroundColor: Accent,
-    borderColor: Accent,
   },
   scrollContent: {
     paddingHorizontal: Space.lg,
