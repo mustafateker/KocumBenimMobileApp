@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
 import { getShowExamCountdown, useShowExamCountdown } from '@/lib/countdown-settings';
-import { getExamCountdown, type ExamCountdownInfo } from '@/lib/mock-exams';
+import { getExamCountdown, isExamYearStudent, type ExamCountdownInfo } from '@/lib/mock-exams';
 import {
   Accent,
   Border,
@@ -70,8 +70,8 @@ export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
     return () => clearInterval(interval);
   }, [grade]);
 
-  // Ayarlardan kapatıldıysa veya henüz yükleniyorsa gizle
-  if (loading || !enabled) {
+  // Yalnızca 8. ve 12. sınıflar için sayaç aktiftir; ayarlardan kapatıldıysa veya yükleniyorsa gizle
+  if (loading || !enabled || !isExamYearStudent(grade)) {
     return null;
   }
 

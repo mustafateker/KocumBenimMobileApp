@@ -44,6 +44,7 @@ import {
   generateAiExamAnalysis,
   getAytSubjectsForField,
   getExamTrack,
+  isExamYearStudent,
   LGS_SAYISAL_SUBJECTS,
   LGS_SOZEL_SUBJECTS,
   loadMockExams,
@@ -181,6 +182,51 @@ export default function MockExamsScreen() {
       : student.targetUniversity || student.targetDepartment) ||
     student.goal ||
     (isLgs ? 'Hedef Lise' : 'Hedef Üniversite');
+
+  if (!isExamYearStudent(student?.grade)) {
+    return (
+      <View style={[styles.root, { paddingTop: insets.top + Space.md }]}>
+        <View style={styles.header}>
+          <PressScale onPress={() => router.back()} scaleTo={0.9}>
+            <View style={styles.backButton}>
+              <Ionicons name="chevron-back" size={22} color={Palette.text} />
+            </View>
+          </PressScale>
+          <View style={styles.headerTitleWrap}>
+            <Txt variant="section" color={Palette.text}>
+              Deneme Sınavları
+            </Txt>
+            <Txt variant="tiny" color={Palette.textDim}>
+              {student?.grade ?? 'Öğrenci'}
+            </Txt>
+          </View>
+        </View>
+
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: Space.xl }}>
+          <Card style={{ padding: Space.xl, alignItems: 'center', width: '100%' }}>
+            <View style={[styles.aiIconBubble, { width: 56, height: 56, borderRadius: 28, marginBottom: Space.md }]}>
+              <Award size={28} color={OnColor} strokeWidth={2.4} />
+            </View>
+            <Txt variant="title" color={Palette.text} style={{ textAlign: 'center', marginBottom: Space.sm }}>
+              Sınav Yılı Modülü
+            </Txt>
+            <Txt
+              variant="body"
+              color={Palette.textDim}
+              style={{ textAlign: 'center', lineHeight: 22, marginBottom: Space.xl }}
+            >
+              Haftalık deneme sınavları ve net analizi yalnızca 8. sınıf (LGS) ve 12. sınıf (YKS) hazırlık öğrencileri için sunulmaktadır. Derslerindeki konu ilerlemeni takip etmek için Derslerim sayfasını kullanabilirsin.
+            </Txt>
+            <NeonButton
+              label="Derslerimi İncele"
+              onPress={() => router.replace('/subjects')}
+              style={{ width: '100%' }}
+            />
+          </Card>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + Space.md }]}>

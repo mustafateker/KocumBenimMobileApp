@@ -15,6 +15,8 @@ import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/u
 import { getAiCoachContext, getSummary, getTasks, getUpcomingLessons, requestAiCoachTask } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
+import { hasIncompleteCurriculumTopics, loadLocalCurriculumProgress } from '@/lib/maarif-curriculum';
+import { useSyncRoutineReminders } from '@/lib/routine-reminders';
 import { useSession, useStudent } from '@/lib/session';
 import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
 import type { AiCoachContext, AiDailyRecommendation, PrivateLesson, StudentSummary, Task } from '@/lib/types';
@@ -42,6 +44,7 @@ export default function Home() {
   const [aiContext, setAiContext] = useState<AiCoachContext | null>(null);
   const [assigningRecId, setAssigningRecId] = useState<string | null>(null);
   const [assignedRecIds, setAssignedRecIds] = useState<Record<string, boolean>>({});
+  const [showCurriculumPrompt, setShowCurriculumPrompt] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(DURATIONS[0].seconds);
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
@@ -71,7 +74,13 @@ export default function Home() {
     } catch (err) {
       showError(err, { title: 'Ders bilgisi yüklenemedi', code: 'HOME_LESSON_LOAD' });
     }
-  }, [showError]);
+    try {
+      const prog = await loadLocalCurriculumProgress(student?.id);
+      setShowCurriculumPrompt(hasIncompleteCurriculumTopics(student?.grade, prog));
+    } catch {
+      setShowCurriculumPrompt(false);
+    }
+  }, [showError, student]);
 
   useFocusEffect(
     useCallback(() => {
@@ -119,6 +128,12 @@ export default function Home() {
     }
     return sum;
   }, 0);
+
+  useSyncRoutineReminders(student, {
+    tasks,
+    pomodoroMinutesToday: todayPomodoroMinutes,
+    hasIncompleteTopics: showCurriculumPrompt,
+  });
 
   // Otomatik gunluk AI koç onerileri (sunucudan veya yerel veriden)
   const targetMinutes = aiContext?.student?.targetMinutes ?? 60;
@@ -246,6 +261,32 @@ export default function Home() {
           <NotificationBell />
         </View>
       </View>
+
+      {/* Eksik Konu İlerleme Uyarısı */}
+      {showCurriculumPrompt && (
+        <PressScale onPress={() => router.push('/subjects')} scaleTo={0.98}>
+          <Card style={styles.curriculumPromptCard}>
+            <View style={styles.curriculumPromptHeader}>
+              <View style={styles.curriculumPromptIconWrap}>
+                <Ionicons name="bookmark" size={18} color={DetailAccent} />
+              </View>
+              <View style={styles.flex}>
+                <Txt variant="smallStrong" color={Palette.text}>
+                  Konu İlerlemeni Tamamla
+                </Txt>
+                <Txt variant="tiny" color={Palette.textDim} style={styles.curriculumPromptText}>
+                  Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden geldiğin konuya kadar işaretle.
+                </Txt>
+              </View>
+            </View>
+            <View style={styles.curriculumPromptActionRow}>
+              <Txt variant="smallStrong" color={Accent}>
+                Konuları İşaretle →
+              </Txt>
+            </View>
+          </Card>
+        </PressScale>
+      )}
 
       {/* Gunluk Calisma Ozeti Karti */}
       <TodayStudyCard
@@ -731,5 +772,36 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: 'row',
     gap: Space.md,
+  },
+  curriculumPromptCard: {
+    padding: Space.md,
+    borderRadius: Radius.md,
+    borderWidth: 1.5,
+    borderColor: DetailAccent + '60',
+    backgroundColor: Palette.surfaceHi,
+    gap: Space.xs,
+  },
+  curriculumPromptHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Space.sm,
+  },
+  curriculumPromptIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: DetailAccent + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  curriculumPromptText: {
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  curriculumPromptActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginTop: 2,
   },
 });

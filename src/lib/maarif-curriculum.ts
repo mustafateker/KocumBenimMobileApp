@@ -413,3 +413,23 @@ export async function markTopicStudiedAndCompleted(
   }
 }
 
+/**
+ * Öğrencinin sınıf müfredatındaki tüm dersler için okulda gelinen konunun
+ * işaretlenip işaretlenmediğini kontrol eder.
+ * Henüz tüm dersler işaretlenmediyse true döner.
+ */
+export function hasIncompleteCurriculumTopics(
+  gradeRaw: string | number | null | undefined,
+  progress: CurriculumProgressMap
+): boolean {
+  const subjects = getCurriculumSubjectsForGrade(gradeRaw);
+  if (!subjects || subjects.length === 0) return false;
+  for (const s of subjects) {
+    const current = progress[s.name];
+    if (!current || typeof current !== 'string' || current.trim().length === 0) {
+      return true;
+    }
+  }
+  return false;
+}
+

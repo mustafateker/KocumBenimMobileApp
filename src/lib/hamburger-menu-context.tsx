@@ -2,7 +2,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
 import { HamburgerMenu, type HamburgerMenuItem } from '@/components/hamburger-menu';
-import { getExamTrack } from '@/lib/mock-exams';
+import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 
 import { useSession, useStudent } from './session';
 
@@ -27,6 +27,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
   const value = useMemo(() => ({ open }), [open]);
 
   const isLgs = useMemo(() => getExamTrack(student.grade) === 'lgs', [student.grade]);
+  const isExamYear = useMemo(() => isExamYearStudent(student.grade), [student.grade]);
 
   const mainItems: HamburgerMenuItem[] = useMemo(
     () => [
@@ -36,12 +37,16 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         selected: pathname?.startsWith('/subjects'),
         onPress: () => router.push('/subjects'),
       },
-      {
-        icon: 'ribbon-outline',
-        label: isLgs ? 'LGS Denemelerim' : 'YKS Denemelerim',
-        selected: pathname?.startsWith('/mock-exams'),
-        onPress: () => router.push('/mock-exams'),
-      },
+      ...(isExamYear
+        ? [
+            {
+              icon: 'ribbon-outline' as const,
+              label: isLgs ? 'LGS Denemelerim' : 'YKS Denemelerim',
+              selected: pathname?.startsWith('/mock-exams'),
+              onPress: () => router.push('/mock-exams'),
+            },
+          ]
+        : []),
       {
         icon: 'notifications-outline',
         label: 'Bildirimler',
@@ -67,7 +72,7 @@ export function HamburgerMenuProvider({ children }: { children: React.ReactNode 
         onPress: () => router.push('/settings'),
       },
     ],
-    [pathname, router, isLgs]
+    [pathname, router, isLgs, isExamYear]
   );
 
   const footerItems: HamburgerMenuItem[] = useMemo(

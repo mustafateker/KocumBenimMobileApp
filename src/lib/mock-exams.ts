@@ -68,6 +68,17 @@ export function getExamTrack(gradeRaw?: string | number | null): ExamTrack {
   return g <= 8 ? 'lgs' : 'yks';
 }
 
+/**
+ * Deneme sınavı takibi yalnızca 8. sınıf (LGS) ve 12. sınıf / Mezun (YKS)
+ * hazırlık kademeleri için geçerlidir; ara sınıflarda (5, 6, 7, 9, 10, 11)
+ * haftalık deneme çözülmez.
+ */
+export function isExamYearStudent(gradeRaw?: string | number | null): boolean {
+  if (!gradeRaw) return false;
+  const g = parseGradeNumber(gradeRaw);
+  return g === 8 || g === 12;
+}
+
 export type ExamCountdownInfo = {
   examTrack: ExamTrack;
   title: string;

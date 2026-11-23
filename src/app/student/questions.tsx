@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -201,6 +201,7 @@ function QuestionList() {
   useStudent();
   const insets = useSafeAreaInsets();
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [filterSubject, setFilterSubject] = useState<string>('all');
   const [activeSolution, setActiveSolution] = useState<{
     imageUri?: string | null;
     replyText?: string | null;
@@ -220,6 +221,19 @@ function QuestionList() {
     setQuestions((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
   }, []);
 
+  const availableSubjects = useMemo(() => {
+    const set = new Set<string>();
+    questions.forEach((q) => {
+      if (q.subject) set.add(q.subject);
+    });
+    return Array.from(set);
+  }, [questions]);
+
+  const filteredQuestions = useMemo(() => {
+    if (filterSubject === 'all') return questions;
+    return questions.filter((q) => q.subject === filterSubject);
+  }, [questions, filterSubject]);
+
   if (questions.length === 0) {
     return (
       <EmptyState
@@ -233,11 +247,42 @@ function QuestionList() {
 
   return (
     <>
+      {availableSubjects.length > 0 ? (
+        <View style={styles.filterWrap}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterChips}
+          >
+            <PressScale onPress={() => setFilterSubject('all')} scaleTo={0.94}>
+              <View style={[styles.filterChip, filterSubject === 'all' && styles.filterChipActive]}>
+                <Txt variant="tiny" color={filterSubject === 'all' ? OnColor : Palette.textDim}>
+                  Tümü ({questions.length})
+                </Txt>
+              </View>
+            </PressScale>
+            {availableSubjects.map((s: string) => {
+              const count = questions.filter((q: Question) => q.subject === s).length;
+              const active = filterSubject === s;
+              return (
+                <PressScale key={s} onPress={() => setFilterSubject(s)} scaleTo={0.94}>
+                  <View style={[styles.filterChip, active && styles.filterChipActive]}>
+                    <Txt variant="tiny" color={active ? OnColor : Palette.textDim}>
+                      {s} ({count})
+                    </Txt>
+                  </View>
+                </PressScale>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : null}
+
       <ScrollView
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 110 }]}
         showsVerticalScrollIndicator={false}
       >
-        {questions.map((q) => (
+        {filteredQuestions.map((q: Question) => (
           <QuestionCard
             key={q.id}
             question={q}
@@ -435,6 +480,9 @@ function QuestionCard({
   return (
     <Card accent={meta.color} style={styles.questionCard}>
       <View style={styles.questionHead}>
+        {question.subject ? (
+          <Pill label={question.subject} color={Palette.purple} icon="book-outline" />
+        ) : null}
         <Pill label={meta.label} color={meta.color} icon={meta.icon} />
         {question.resolvedByStudent ? <Pill label="Kendim Çözdüm" color={Palette.green} icon="checkmark-circle" /> : null}
       </View>
@@ -682,6 +730,26 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     backgroundColor: DetailAccent,
+  },
+  filterWrap: {
+    paddingHorizontal: Space.lg,
+    marginBottom: Space.sm,
+  },
+  filterChips: {
+    gap: Space.xs,
+    paddingVertical: 2,
+  },
+  filterChip: {
+    paddingHorizontal: Space.md,
+    paddingVertical: 6,
+    borderRadius: pillRadius(28),
+    backgroundColor: Palette.surface,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  filterChipActive: {
+    backgroundColor: Accent,
+    borderColor: Accent,
   },
   listContent: {
     paddingHorizontal: Space.lg,

@@ -186,13 +186,19 @@ export async function completeTask(taskId: number, correct: number, wrong: numbe
   return completed;
 }
 
-export function createQuestion(input: { imageUri: string; strokes: CanvasData; note: string }) {
+export function createQuestion(input: {
+  imageUri: string;
+  strokes: CanvasData;
+  note: string;
+  subject?: string;
+}) {
   return api.uploadFile<Question>('/questions', {
     fieldName: 'image',
     fileUri: localImageUri(input.imageUri),
     fields: {
       strokes: JSON.stringify(input.strokes),
       note: input.note,
+      subject: input.subject || 'Matematik',
     },
   });
 }

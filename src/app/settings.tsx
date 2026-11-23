@@ -11,7 +11,7 @@ import { changePassword, deleteAccount, getPreferences, patchMe, patchPreference
 import { ApiError } from '@/lib/api-client';
 import { useShowExamCountdown } from '@/lib/countdown-settings';
 import { useErrorDialog } from '@/lib/error-dialog';
-import { getExamTrack } from '@/lib/mock-exams';
+import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 import { useSession, useStudent } from '@/lib/session';
 import type { Preferences } from '@/lib/types';
 import { EMAIL_RE } from '@/lib/validation';
@@ -244,16 +244,18 @@ export default function Settings() {
               <SettingsSwitch value={prefs.haptics} onValueChange={(v) => togglePref('haptics', v)} />
             }
           />
-          <SettingRow
-            icon="timer-outline"
-            label={isLgs ? 'LGS Sınav Sayacı' : 'YKS Sınav Sayacı'}
-            control={
-              <SettingsSwitch
-                value={examCountdownEnabled}
-                onValueChange={setExamCountdownEnabled}
-              />
-            }
-          />
+          {isExamYearStudent(student?.grade) && (
+            <SettingRow
+              icon="timer-outline"
+              label={isLgs ? 'LGS Sınav Sayacı' : 'YKS Sınav Sayacı'}
+              control={
+                <SettingsSwitch
+                  value={examCountdownEnabled}
+                  onValueChange={setExamCountdownEnabled}
+                />
+              }
+            />
+          )}
         </Card>
       </View>
 

@@ -27,6 +27,10 @@ const ROUTES: Record<NotificationType, Href> = {
   lesson_scheduled: '/lessons',
   lesson_updated: '/lessons',
   lesson_cancelled: '/lessons',
+  pomodoro_reminder: '/student',
+  task_reminder: '/student/tasks',
+  mock_exam_reminder: '/mock-exams',
+  curriculum_reminder: '/subjects',
 };
 
 function isKnownType(type: string | undefined): type is NotificationType {

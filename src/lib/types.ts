@@ -133,7 +133,11 @@ export type NotificationType =
   | 'announcement'
   | 'lesson_scheduled'
   | 'lesson_updated'
-  | 'lesson_cancelled';
+  | 'lesson_cancelled'
+  | 'pomodoro_reminder'
+  | 'task_reminder'
+  | 'mock_exam_reminder'
+  | 'curriculum_reminder';
 
 export type AppNotification = {
   id: number;

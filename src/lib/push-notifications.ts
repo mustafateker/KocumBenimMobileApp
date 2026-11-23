@@ -40,13 +40,43 @@ async function ensureAndroidChannel(
 ): Promise<void> {
   if (Platform.OS !== 'android') return;
 
-  await Notifications.setNotificationChannelAsync('default', {
-    name: 'Genel',
-    // Gorev atamasi ekranda banner olarak gorunmeli; DEFAULT sessiz kalabiliyor.
-    importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: DetailAccent,
-  });
+  await Promise.all([
+    Notifications.setNotificationChannelAsync('default', {
+      name: 'Genel',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: DetailAccent,
+    }),
+    Notifications.setNotificationChannelAsync('study_reminders', {
+      name: 'Çalışma ve Odak Hatırlatıcıları',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: DetailAccent,
+    }),
+    Notifications.setNotificationChannelAsync('tasks_homework', {
+      name: 'Ödev ve Görevler',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: DetailAccent,
+    }),
+    Notifications.setNotificationChannelAsync('questions_academic', {
+      name: 'Soru Çözümleri',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 300, 200, 300],
+      lightColor: DetailAccent,
+    }),
+    Notifications.setNotificationChannelAsync('lessons_live', {
+      name: 'Birebir Dersler',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 350, 250, 350],
+      lightColor: DetailAccent,
+    }),
+    Notifications.setNotificationChannelAsync('streak_motivation', {
+      name: 'Gelişim ve İlerleme',
+      importance: Notifications.AndroidImportance.DEFAULT,
+      lightColor: DetailAccent,
+    }),
+  ]);
 }
 
 export async function registerForPushNotifications(): Promise<void> {

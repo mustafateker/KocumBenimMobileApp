@@ -7,6 +7,7 @@ import {
   Keyboard,
   Modal,
   PanResponder,
+  ScrollView,
   StyleSheet,
   TextInput,
   View,
@@ -21,6 +22,7 @@ import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/bu
 import { Txt } from '@/components/ui';
 import { createQuestion } from '@/lib/api';
 import { logHandledError } from '@/lib/crash-reporter';
+import { getSubjectNamesForGrade } from '@/lib/maarif-curriculum';
 import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
 import type { CanvasItem } from '@/lib/types';
@@ -33,11 +35,16 @@ type Tool = 'pen' | 'highlight' | 'text';
 
 export default function Annotate() {
   const router = useRouter();
-  useStudent();
+  const student = useStudent();
   const { refresh } = useSession();
   const insets = useSafeAreaInsets();
 
   const { uri = '' } = useLocalSearchParams<{ uri?: string }>();
+  const subjects = useMemo(() => {
+    const list = getSubjectNamesForGrade(student?.grade);
+    return list && list.length > 0 ? list : ['Matematik', 'Türkçe', 'Fen Bilimleri', 'Sosyal Bilgiler', 'İngilizce'];
+  }, [student?.grade]);
+  const [selectedSubject, setSelectedSubject] = useState(() => subjects[0] || 'Matematik');
 
   const [tool, setTool] = useState<Tool>('pen');
   const [color, setColor] = useState(PENS[0]);
@@ -161,6 +168,7 @@ export default function Annotate() {
         imageUri: uri,
         strokes: { w: frame.w, h: frame.h, items },
         note: note.trim(),
+        subject: selectedSubject,
       });
       await refresh();
       // Sunucuda duruyor; yerel kopyayi tutmaya gerek yok.
@@ -181,7 +189,7 @@ export default function Annotate() {
       setUploadError({ message: entry.message, code: entry.code });
       setSaving(false);
     }
-  }, [saving, uri, frame.w, frame.h, items, note, refresh, router]);
+  }, [saving, uri, frame.w, frame.h, items, note, refresh, router, selectedSubject]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -282,6 +290,29 @@ export default function Annotate() {
                 <View style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]} />
               </PressScale>
             ))}
+          </View>
+
+          {/* Ders secimi */}
+          <View style={styles.subjectSelectorWrap}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.subjectChips}
+              keyboardShouldPersistTaps="handled"
+            >
+              {subjects.map((s) => {
+                const active = s === selectedSubject;
+                return (
+                  <PressScale key={s} onPress={() => setSelectedSubject(s)} scaleTo={0.93}>
+                    <View style={[styles.subjectChip, active && styles.subjectChipActive]}>
+                      <Txt variant="tiny" color={active ? OnColor : Palette.text}>
+                        {s}
+                      </Txt>
+                    </View>
+                  </PressScale>
+                );
+              })}
+            </ScrollView>
           </View>
 
           {/* Not alani */}
@@ -445,6 +476,26 @@ const styles = StyleSheet.create({
   },
   swatchActive: {
     borderColor: Palette.text,
+  },
+  subjectSelectorWrap: {
+    marginHorizontal: Space.lg,
+    marginBottom: Space.sm,
+  },
+  subjectChips: {
+    gap: Space.xs,
+    paddingVertical: 2,
+  },
+  subjectChip: {
+    paddingHorizontal: Space.md,
+    paddingVertical: 6,
+    borderRadius: pillRadius(28),
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thin,
+    borderColor: Palette.border,
+  },
+  subjectChipActive: {
+    backgroundColor: Accent,
+    borderColor: Accent,
   },
   noteRow: {
     flexDirection: 'row',

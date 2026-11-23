@@ -27,7 +27,7 @@ import { getCompletedTasks, getStats, getSummary } from '@/lib/api';
 import { dayLabel, humanDuration, relativeTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { Rules } from '@/lib/gamification';
-import { getExamTrack } from '@/lib/mock-exams';
+import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
 import { categoryIcon } from '@/lib/task-categories';
 import type { StudentStats, StudentSummary, Task, TopicBreakdown, TopicReport } from '@/lib/types';
@@ -234,33 +234,35 @@ export default function Stats() {
             </View>
           </Card>
 
-          {/* Deneme Sınavları & Net Analizi Tanıtım Kartı */}
-          <PressScale onPress={() => router.push('/mock-exams')} scaleTo={0.98}>
-            <Card style={styles.mockExamsPromoCard}>
-              <View style={styles.mockExamsPromoLeft}>
-                <View style={styles.mockExamsIconBox}>
-                  <Award size={20} color={DetailAccent} strokeWidth={2.4} />
-                </View>
-                <View style={styles.flex}>
-                  <View style={styles.mockExamsTitleRow}>
-                    <Txt variant="smallStrong" color={Palette.text}>
-                      {isLgs ? 'LGS Deneme & Net Analizi' : 'YKS Deneme & Net Analizi'}
-                    </Txt>
-                    <View style={styles.mockExamsAiBadge}>
-                      <Sparkles size={11} color={DetailAccent} />
-                      <Txt variant="tiny" color={DetailAccent} style={{ fontWeight: '700' }}>
-                        AI
-                      </Txt>
-                    </View>
+          {/* Deneme Sınavları & Net Analizi Tanıtım Kartı - Yalnızca 8 ve 12. Sınıflar */}
+          {isExamYearStudent(student?.grade) && (
+            <PressScale onPress={() => router.push('/mock-exams')} scaleTo={0.98}>
+              <Card style={styles.mockExamsPromoCard}>
+                <View style={styles.mockExamsPromoLeft}>
+                  <View style={styles.mockExamsIconBox}>
+                    <Award size={20} color={DetailAccent} strokeWidth={2.4} />
                   </View>
-                  <Txt variant="tiny" color={Palette.textDim}>
-                    Netlerini kaydet, hedef eğrini ve kestirme konularını incele
-                  </Txt>
+                  <View style={styles.flex}>
+                    <View style={styles.mockExamsTitleRow}>
+                      <Txt variant="smallStrong" color={Palette.text}>
+                        {isLgs ? 'LGS Deneme & Net Analizi' : 'YKS Deneme & Net Analizi'}
+                      </Txt>
+                      <View style={styles.mockExamsAiBadge}>
+                        <Sparkles size={11} color={DetailAccent} />
+                        <Txt variant="tiny" color={DetailAccent} style={{ fontWeight: '700' }}>
+                          AI
+                        </Txt>
+                      </View>
+                    </View>
+                    <Txt variant="tiny" color={Palette.textDim}>
+                      Netlerini kaydet, hedef eğrini ve kestirme konularını incele
+                    </Txt>
+                  </View>
                 </View>
-              </View>
-              <ChevronRight size={18} color={Palette.textDim} strokeWidth={2.2} />
-            </Card>
-          </PressScale>
+                <ChevronRight size={18} color={Palette.textDim} strokeWidth={2.2} />
+              </Card>
+            </PressScale>
+          )}
 
           {/* 6'lı Temel Performans Matrisi */}
           <View style={styles.metricGrid}>

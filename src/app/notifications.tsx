@@ -24,6 +24,10 @@ const TYPE_META: Record<NotificationType | string, { icon: React.ComponentProps<
   lesson_scheduled: { icon: 'calendar', color: DetailAccent },
   lesson_updated: { icon: 'calendar', color: DetailAccent },
   lesson_cancelled: { icon: 'calendar-outline', color: Palette.pink },
+  pomodoro_reminder: { icon: 'timer-outline', color: DetailAccent },
+  task_reminder: { icon: 'checkbox-outline', color: DetailAccent },
+  mock_exam_reminder: { icon: 'trophy-outline', color: Palette.green },
+  curriculum_reminder: { icon: 'book-outline', color: Palette.blue },
 };
 
 const DEFAULT_META: { icon: React.ComponentProps<typeof Ionicons>['name']; color: string } = {
