@@ -2,9 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import {
-  Award,
   Calendar,
-  Clock,
   Sparkles,
   Timer,
 } from 'lucide-react-native';
@@ -208,28 +206,6 @@ export function SideExamCountdown({ grade, target }: SideExamCountdownProps) {
               </Txt>
             </View>
 
-            {/* Oturum & Kural Bilgileri */}
-            <View style={styles.rulesBox}>
-              <View style={styles.ruleItem}>
-                <Clock size={14} color={Palette.green} />
-                <Txt variant="small" color={Palette.text} style={styles.ruleText}>
-                  {countdown.subInfo}
-                </Txt>
-              </View>
-              <View style={styles.ruleItem}>
-                <Award size={14} color={badgeColor} />
-                <Txt variant="small" color={Palette.text} style={styles.ruleText}>
-                  {countdown.penaltyRule}
-                </Txt>
-              </View>
-              <View style={styles.ruleItem}>
-                <Ionicons name="information-circle-outline" size={15} color={Palette.textDim} />
-                <Txt variant="small" color={Palette.textDim} style={styles.ruleText}>
-                  {countdown.sessionRule}
-                </Txt>
-              </View>
-            </View>
-
             {/* Eylemler */}
             <View style={styles.actionButtons}>
               <NeonButton
@@ -385,20 +361,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  rulesBox: {
-    backgroundColor: Palette.surfaceHi,
-    borderRadius: Radius.md,
-    padding: Space.sm,
-    gap: 8,
-  },
-  ruleItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  ruleText: {
-    flex: 1,
   },
   actionButtons: {
     gap: Space.xs,

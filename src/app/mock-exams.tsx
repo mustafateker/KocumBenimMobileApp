@@ -6,9 +6,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
-  Clock,
   Flame,
-  Info,
   Plus,
   Sparkles,
   Target,
@@ -39,7 +37,6 @@ import {
   estimateYksCompositeScore,
   generateAiExamAnalysis,
   getAytSubjectsForField,
-  getExamCountdown,
   getExamTrack,
   LGS_SAYISAL_SUBJECTS,
   LGS_SOZEL_SUBJECTS,
@@ -129,8 +126,6 @@ export default function MockExamsScreen() {
     [studentExams]
   );
 
-  const countdownInfo = useMemo(() => getExamCountdown(student.grade), [student.grade]);
-
   const handleDelete = (id: string, title: string) => {
     Alert.alert(
       'Denemeyi Sil',
@@ -186,38 +181,6 @@ export default function MockExamsScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + Space.xxl }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sınav Format & Kural Kartı (Öğrencinin Sınavına Özel) */}
-        <Card style={styles.rulesCard}>
-          <View style={styles.rulesHeader}>
-            <View style={styles.rulesBadge}>
-              <Info size={14} color={isLgs ? DetailAccent : Accent} />
-              <Txt variant="tiny" color={isLgs ? DetailAccent : Accent} style={{ fontWeight: '700' }}>
-                {isLgs ? 'LGS SİSTEMİ KURALLARI' : 'YKS SİSTEMİ KURALLARI'}
-              </Txt>
-            </View>
-            <Txt variant="tiny" color={Palette.textFaint}>
-              {countdownInfo.examDateStr}
-            </Txt>
-          </View>
-          <Txt variant="smallStrong" color={Palette.text}>
-            {countdownInfo.subInfo}
-          </Txt>
-          <View style={styles.rulesChipsRow}>
-            <View style={styles.ruleChip}>
-              <Clock size={12} color={Palette.green} />
-              <Txt variant="tiny" color={Palette.textDim}>
-                {countdownInfo.sessionRule}
-              </Txt>
-            </View>
-            <View style={styles.ruleChip}>
-              <Award size={12} color={isLgs ? DetailAccent : Accent} />
-              <Txt variant="tiny" color={Palette.textDim}>
-                {countdownInfo.penaltyRule}
-              </Txt>
-            </View>
-          </View>
-        </Card>
-
         {/* Bento Metrics (3'lü Özet) */}
         <View style={styles.bentoGrid}>
           <Card style={styles.bentoCard}>
@@ -467,7 +430,7 @@ export default function MockExamsScreen() {
                           B
                         </Txt>
                         <Txt variant="tiny" color={Accent} style={styles.cellRight}>
-                          Net ({exam.examType === 'lgs' ? '3Y=1D' : '4Y=1D'})
+                          Net
                         </Txt>
                       </View>
 
@@ -742,9 +705,7 @@ function AddExamModal({
                   {isLgs ? 'Yeni LGS Denemesi' : 'Yeni YKS Denemesi'}
                 </Txt>
                 <Txt variant="tiny" color={Palette.textDim}>
-                  {isLgs
-                    ? 'Sözel + Sayısal (3 Yanlış 1 Doğruyu Götürür)'
-                    : 'TYT + AYT (4 Yanlış 1 Doğruyu Götürür)'}
+                  {isLgs ? 'Sözel ve Sayısal Oturumları' : 'TYT ve Alan Oturumları'}
                 </Txt>
               </View>
               <PressScale onPress={onClose} scaleTo={0.9}>
@@ -937,7 +898,7 @@ function AddExamModal({
                       Boş
                     </Txt>
                     <Txt variant="tiny" color={DetailAccent} style={styles.inputColHead}>
-                      Net (3Y=1D)
+                      Net
                     </Txt>
                   </View>
 
@@ -985,9 +946,6 @@ function AddExamModal({
                         <Txt variant="smallStrong" color={Palette.blue}>
                           TYT Oturumu (165 dk · 120 Soru)
                         </Txt>
-                        <Txt variant="tiny" color={Palette.textFaint}>
-                          4 Yanlış 1 Doğruyu Götürür
-                        </Txt>
                       </View>
                       <View style={styles.inputTableHead}>
                         <Txt variant="tiny" color={Palette.textFaint} style={{ flex: 1 }}>
@@ -1003,7 +961,7 @@ function AddExamModal({
                           Boş
                         </Txt>
                         <Txt variant="tiny" color={Accent} style={styles.inputColHead}>
-                          Net (4Y=1D)
+                          Net
                         </Txt>
                       </View>
 
@@ -1029,9 +987,6 @@ function AddExamModal({
                         <Txt variant="smallStrong" color={Palette.blue}>
                           AYT Oturumu ({yksField.toUpperCase()} · 180 dk · 80 Soru)
                         </Txt>
-                        <Txt variant="tiny" color={Palette.textFaint}>
-                          4 Yanlış 1 Doğruyu Götürür
-                        </Txt>
                       </View>
                       <View style={styles.inputTableHead}>
                         <Txt variant="tiny" color={Palette.textFaint} style={{ flex: 1 }}>
@@ -1047,7 +1002,7 @@ function AddExamModal({
                           Boş
                         </Txt>
                         <Txt variant="tiny" color={Accent} style={styles.inputColHead}>
-                          Net (4Y=1D)
+                          Net
                         </Txt>
                       </View>
 
@@ -1181,36 +1136,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: Space.lg,
     gap: Space.lg,
-  },
-  rulesCard: {
-    gap: 6,
-    backgroundColor: Palette.surface,
-    borderColor: 'rgba(58, 57, 103, 0.1)',
-  },
-  rulesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rulesBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rulesChipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Space.sm,
-    marginTop: 2,
-  },
-  ruleChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Palette.surfaceHi,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: Radius.sm,
   },
   bentoGrid: {
     flexDirection: 'row',
