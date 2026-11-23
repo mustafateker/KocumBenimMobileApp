@@ -46,10 +46,17 @@ export type MockExam = {
   createdAt: string;
 };
 
+export type AiShortcutTopic = {
+  subject: string;
+  topic: string;
+  averageQuestions: string; // Örn: "Her Yıl 3-4 Soru"
+  potentialGain: string; // Örn: "+3 Net"
+};
+
 export type AiExamAnalysis = {
   summary: string;
-  targetProbability: string; // Örn: "%82 (Hedefe Yakın)"
-  shortcutTopics: { subject: string; topic: string; potentialGain: string }[];
+  targetProbability: string; // Örn: "%78 (Hedefe Yakın)"
+  shortcutTopics: AiShortcutTopic[];
   strategyTip: string;
 };
 
@@ -376,16 +383,36 @@ export async function generateAiExamAnalysis(
 
   if (exams.length === 0) {
     return {
-      summary: `${student.name.split(' ')[0]}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. Girdiğin ilk denemeyi eklediğinde net tahminin ve hedef eğrin burada hesaplanacak.`,
+      summary: `${student.name.split(' ')[0]}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. İlk denemeni eklediğinde genel durum analizin ve gerçek sınavda en çok soru çıkan ağırlıklı konular burada hesaplanacak.`,
       targetProbability: 'Henüz Veri Yok',
       shortcutTopics: isLgs
         ? [
-            { subject: 'Matematik', topic: 'Kareköklü İfadeler & Çarpanlar', potentialGain: '+3 Net' },
-            { subject: 'Türkçe', topic: 'Paragrafta Anlam & Söz Sanatları', potentialGain: '+3 Net' },
+            {
+              subject: 'Matematik',
+              topic: 'Kareköklü İfadeler',
+              averageQuestions: 'Her Yıl 3 Soru',
+              potentialGain: '+3 Net',
+            },
+            {
+              subject: 'Türkçe',
+              topic: 'Paragrafta Anlam',
+              averageQuestions: 'Her Yıl 8-10 Soru',
+              potentialGain: '+4 Net',
+            },
           ]
         : [
-            { subject: 'Temel Matematik', topic: 'Problemler & Fonksiyonlar', potentialGain: '+4 Net' },
-            { subject: 'Türkçe', topic: 'Paragraf Taktikleri & Dil Bilgisi', potentialGain: '+3 Net' },
+            {
+              subject: 'Temel Matematik',
+              topic: 'Problemler',
+              averageQuestions: 'Her Yıl 11-13 Soru',
+              potentialGain: '+5 Net',
+            },
+            {
+              subject: 'Türkçe',
+              topic: 'Paragrafta Anlam',
+              averageQuestions: 'Her Yıl 24-26 Soru',
+              potentialGain: '+4 Net',
+            },
           ],
       strategyTip: isLgs
         ? 'LGS sözelde 75 dakikada 50 soruyu çözerken paragraflarda ilk okuyuşta ana fikri yakalamaya odaklan.'
@@ -421,9 +448,8 @@ export async function generateAiExamAnalysis(
   const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
   if (geminiKey) {
     try {
-      const prompt = `ÖĞRENCİ SINAV TAKİP BİLGİSİ:
-- Sınav Sistemi: ${isLgs ? 'LGS (Liselere Geçiş Sistemi, 8. Sınıf)' : 'YKS (Yükseköğretim Kurumları Sınavı, TYT/AYT)'}
-- Yanlış Kuralı: ${isLgs ? '3 Yanlış 1 Doğruyu Götürür' : '4 Yanlış 1 Doğruyu Götürür'}
+      const prompt = `ÖĞRENCİ BİLGİSİ:
+- Sınav Sistemi: ${isLgs ? 'MEB LGS (Liselere Geçiş Sistemi, 8. Sınıf)' : 'ÖSYM YKS (Yükseköğretim Kurumları Sınavı, TYT/AYT)'}
 - İsim: ${student.name}
 - Sınıf: ${grade}
 - Hedef: ${targetName}
@@ -432,19 +458,29 @@ export async function generateAiExamAnalysis(
 - Ortalama Net: ${avgNet} Net (En Yüksek: ${maxNet} Net)
 - En Zorlandığı / En Düşük Netli Ders: ${lowestSubj} (${Math.round(lowestAvg * 10) / 10} ortalama net)
 
-GÖREV:
-Yukarıdaki öğrenci için Türkiye'deki ${isLgs ? 'MEB LGS' : 'ÖSYM YKS (TYT/AYT)'} sınav formatı standartlarına göre JSON formatında net analizi ve kestirme konu tavsiyesi üret.
-Hiçbir emoji kullanma. Samimi, gerçekçi ve motive edici ol.
+ÖNEMLİ KURAL:
+Öğrenci denemedeki soruların hangi konudan çıktığı bilgisini girmemiştir (yalnızca ders bazında doğru ve yanlış neti bilinmektedir). Bu yüzden denemede uydurma konu tespiti yapma!
+Bunun yerine: Gerçek ${isLgs ? 'MEB LGS' : 'ÖSYM YKS'} sınav istatistiklerine göre, öğrencinin en çok zorlandığı "${lowestSubj}" dersinde her yıl en çok soru çıkan ağırlıklı konuları ve ortalama soru sayılarını listele.
 
 JSON ŞEMASI:
 {
-  "summary": "2-3 cümlelik net durum özeti",
-  "targetProbability": "Yüzde ve durum, örn: %78 (Yükseliş Trendinde)",
+  "summary": "Öğrencinin son netine ve hedefine göre 2-3 cümlelik gerçekçi durum analizi",
+  "targetProbability": "Kısa rozet metni, örn: %78 Hedefe Yakın",
   "shortcutTopics": [
-    {"subject": "Ders Adı", "topic": "En hızlı net kazandıracak konu adı", "potentialGain": "+3 Net"},
-    {"subject": "Ders Adı", "topic": "İkinci konu", "potentialGain": "+2 Net"}
+    {
+      "subject": "${lowestSubj}",
+      "topic": "Sınavda her yıl en çok soru çıkan ağırlıklı konu adı",
+      "averageQuestions": "Her Yıl Ortalama 3-4 Soru",
+      "potentialGain": "+3 Net"
+    },
+    {
+      "subject": "İkinci ders adı",
+      "topic": "Sınavda her yıl en çok soru çıkan konu adı",
+      "averageQuestions": "Her Yıl Ortalama 2-3 Soru",
+      "potentialGain": "+2 Net"
+    }
   ],
-  "strategyTip": "Deneme sınavında süre veya taktik ile ilgili 1 cümlelik strateji ipucu"
+  "strategyTip": "Gerçek sınav taktiği (turlama, süre kontrolü)"
 }`;
 
       const res = await expoFetch(
@@ -484,30 +520,34 @@ JSON ŞEMASI:
 
   return {
     summary: `${student.name.split(' ')[0]}, son denemende ${latest.totalNet} net yaptın. ${targetName} hedefine ulaşmak için özellikle ${lowestSubj} netlerini yukarı çekmen kritik öneme sahip.`,
-    targetProbability: `%${estimatedProb} (İstikrarlı İlerleme)`,
+    targetProbability: `%${estimatedProb} Başarı İhtimali`,
     shortcutTopics: isLgs
       ? [
           {
             subject: lowestSubj,
-            topic: 'Kareköklü İfadeler & Veri Analizi',
+            topic: lowestSubj === 'Matematik' ? 'Kareköklü İfadeler' : 'Doğrusal Denklemler',
+            averageQuestions: 'Her Yıl 3 Soru',
             potentialGain: '+3 Net',
           },
           {
             subject: lowestSubj === 'Fen Bilimleri' ? 'Matematik' : 'Fen Bilimleri',
-            topic: 'Mevsimler ve İklim',
-            potentialGain: '+2 Net',
+            topic: lowestSubj === 'Fen Bilimleri' ? 'Çarpanlar ve Katlar' : 'DNA ve Genetik Kod',
+            averageQuestions: 'Her Yıl 3-4 Soru',
+            potentialGain: '+3 Net',
           },
         ]
       : [
           {
             subject: lowestSubj,
-            topic: 'Problemler & Fonksiyonlar',
+            topic: lowestSubj.includes('Matematik') ? 'Problemler' : 'Temel Kavramlar',
+            averageQuestions: 'Her Yıl 11-13 Soru',
             potentialGain: '+4 Net',
           },
           {
-            subject: lowestSubj === 'Fen Bilimleri' ? 'Temel Matematik' : 'Sosyal Bilimler',
-            topic: 'Maddenin Halleri & Karışımlar',
-            potentialGain: '+2 Net',
+            subject: lowestSubj === 'Temel Matematik' ? 'Türkçe' : 'Temel Matematik',
+            topic: 'Paragrafta Anlam',
+            averageQuestions: 'Her Yıl 24-26 Soru',
+            potentialGain: '+4 Net',
           },
         ],
     strategyTip: isLgs

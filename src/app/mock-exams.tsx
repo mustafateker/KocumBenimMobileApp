@@ -5,6 +5,8 @@ import {
   BookOpen,
   Calendar,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ChevronUp,
   Flame,
   Plus,
@@ -13,11 +15,15 @@ import {
   Trash2,
   TrendingUp,
 } from 'lucide-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   Alert,
+  Dimensions,
   KeyboardAvoidingView,
+  type LayoutChangeEvent,
   Modal,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Platform,
   ScrollView,
   StyleSheet,
@@ -77,6 +83,31 @@ export default function MockExamsScreen() {
   const [analyzing, setAnalyzing] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [expandedExamId, setExpandedExamId] = useState<string | null>(null);
+
+  // AI Analiz Kartı İndikatör / Slider State
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [cardWidth, setCardWidth] = useState(() => Dimensions.get('window').width - Space.lg * 2);
+  const slideScrollRef = useRef<ScrollView>(null);
+
+  const goToSlide = (slideIndex: number) => {
+    setActiveSlide(slideIndex);
+    slideScrollRef.current?.scrollTo({ x: slideIndex * cardWidth, animated: true });
+  };
+
+  const handleSlideScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const page = Math.round(offsetX / (cardWidth || 1));
+    if (page !== activeSlide && (page === 0 || page === 1)) {
+      setActiveSlide(page);
+    }
+  };
+
+  const onCardLayout = (e: LayoutChangeEvent) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0 && Math.abs(w - cardWidth) > 1) {
+      setCardWidth(w);
+    }
+  };
 
   const fetchExams = useCallback(async () => {
     setLoading(true);
@@ -220,67 +251,149 @@ export default function MockExamsScreen() {
           </Card>
         </View>
 
-        {/* AI Net Tahmini & Hedef Eğrisi Kartı */}
-        <Card style={styles.aiCard}>
-          <View style={styles.aiCardHeader}>
-            <View style={styles.aiTitleWrap}>
-              <View style={styles.aiIconBubble}>
-                <Sparkles size={16} color={OnColor} strokeWidth={2.4} />
-              </View>
-              <View>
-                <Txt variant="smallStrong" color={Palette.text}>
-                  Hedef Eğrisi & Net Analizi
-                </Txt>
-                <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
-                  {targetLabel}
-                </Txt>
-              </View>
-            </View>
-
-            {analysis?.targetProbability ? (
-              <Pill label={analysis.targetProbability} color={Palette.green} icon="checkmark-circle" />
-            ) : null}
-          </View>
-
-          <Txt variant="body" color={Palette.text} style={styles.aiSummaryText}>
-            {analyzing ? 'Netleriniz ve hedefiniz yapay zeka tarafından analiz ediliyor...' : analysis?.summary}
-          </Txt>
-
-          {/* En Çok Net Kazandıracak Kestirme Konular */}
-          {analysis?.shortcutTopics && analysis.shortcutTopics.length > 0 ? (
-            <View style={styles.shortcutContainer}>
-              <Txt variant="tiny" color={Palette.textDim} style={styles.shortcutHeader}>
-                EN HIZLI NET KAZANDIRACAK KESTİRME KONULAR
-              </Txt>
-              <View style={styles.shortcutList}>
-                {analysis.shortcutTopics.map((item, idx) => (
-                  <View key={idx} style={styles.shortcutItem}>
-                    <View style={styles.shortcutLeft}>
-                      <View style={styles.shortcutDot} />
-                      <Txt variant="smallStrong" color={Palette.text}>
-                        {item.subject} · {item.topic}
-                      </Txt>
-                    </View>
-                    <View style={styles.gainBadge}>
-                      <Txt variant="tiny" color={Palette.green} style={styles.gainText}>
-                        {item.potentialGain}
-                      </Txt>
-                    </View>
+        {/* AI Net Tahmini & Hedef Eğrisi - 2 Sayfalı İndikatörlü Kart */}
+        <Card style={styles.aiCard} onLayout={onCardLayout}>
+          <ScrollView
+            ref={slideScrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleSlideScroll}
+            scrollEventThrottle={16}
+          >
+            {/* Sayfa 0: Genel Durum Değerlendirmesi */}
+            <View style={[styles.aiSlide, { width: cardWidth }]}>
+              <View style={styles.aiCardHeader}>
+                <View style={styles.aiTitleWrap}>
+                  <View style={styles.aiIconBubble}>
+                    <Sparkles size={16} color={OnColor} strokeWidth={2.4} />
                   </View>
-                ))}
+                  <View style={styles.aiTitleTextWrap}>
+                    <Txt variant="smallStrong" color={Palette.text} numberOfLines={1}>
+                      {isLgs ? 'LGS Hedef Eğrisi' : 'YKS Hedef Eğrisi'}
+                    </Txt>
+                    <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
+                      {targetLabel}
+                    </Txt>
+                  </View>
+                </View>
+
+                {analysis?.targetProbability ? (
+                  <View style={styles.probabilityBadge}>
+                    <View style={styles.statusDot} />
+                    <Txt variant="tiny" color={Palette.green} numberOfLines={1} style={styles.probabilityText}>
+                      {analysis.targetProbability}
+                    </Txt>
+                  </View>
+                ) : null}
+              </View>
+
+              <Txt variant="body" color={Palette.text} style={styles.aiSummaryText}>
+                {analyzing ? 'Netleriniz ve hedefiniz yapay zeka tarafından analiz ediliyor...' : analysis?.summary}
+              </Txt>
+
+              <View style={styles.aiFooterRow}>
+                <View style={styles.dotRow}>
+                  <PressScale onPress={() => goToSlide(0)}>
+                    <View style={[styles.dot, activeSlide === 0 ? styles.dotActive : styles.dotInactive]} />
+                  </PressScale>
+                  <PressScale onPress={() => goToSlide(1)}>
+                    <View style={[styles.dot, activeSlide === 1 ? styles.dotActive : styles.dotInactive]} />
+                  </PressScale>
+                </View>
+
+                <PressScale onPress={() => goToSlide(1)} scaleTo={0.96}>
+                  <View style={styles.swipeHintBtn}>
+                    <Txt variant="tiny" color={DetailAccent} style={styles.swipeHintText}>
+                      Deneme analizini görmek için kaydır
+                    </Txt>
+                    <ChevronRight size={14} color={DetailAccent} strokeWidth={2.5} />
+                  </View>
+                </PressScale>
               </View>
             </View>
-          ) : null}
 
-          {/* Strateji İpucu */}
-          {analysis?.strategyTip ? (
-            <View style={styles.strategyRow}>
-              <Flame size={14} color={DetailAccent} strokeWidth={2.2} />
-              <Txt variant="tiny" color={Palette.textDim} style={styles.strategyText}>
-                {analysis.strategyTip}
-              </Txt>
+            {/* Sayfa 1: Soru & Konu Dağılım Analizi */}
+            <View style={[styles.aiSlide, { width: cardWidth }]}>
+              <View style={styles.aiCardHeader}>
+                <View style={styles.aiTitleWrap}>
+                  <View style={[styles.aiIconBubble, { backgroundColor: Palette.blue }]}>
+                    <Target size={16} color={OnColor} strokeWidth={2.4} />
+                  </View>
+                  <View style={styles.aiTitleTextWrap}>
+                    <Txt variant="smallStrong" color={Palette.text} numberOfLines={1}>
+                      {isLgs ? 'LGS Soru Ağırlıkları' : 'YKS Soru Ağırlıkları'}
+                    </Txt>
+                    <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
+                      {isLgs ? 'MEB Sınav İstatistikleri' : 'ÖSYM Sınav İstatistikleri'}
+                    </Txt>
+                  </View>
+                </View>
+
+                <View style={[styles.probabilityBadge, { backgroundColor: Palette.blueSoft }]}>
+                  <Txt variant="tiny" color={Palette.blue} numberOfLines={1} style={styles.probabilityText}>
+                    Soru Analizi
+                  </Txt>
+                </View>
+              </View>
+
+              {/* En Çok Soru Çıkan Ağırlıklı Konular */}
+              {analysis?.shortcutTopics && analysis.shortcutTopics.length > 0 ? (
+                <View style={styles.shortcutList}>
+                  {analysis.shortcutTopics.map((item, idx) => (
+                    <View key={idx} style={styles.shortcutItem}>
+                      <View style={styles.shortcutLeft}>
+                        <View style={styles.shortcutDot} />
+                        <View style={styles.shortcutInfo}>
+                          <Txt variant="smallStrong" color={Palette.text} numberOfLines={1}>
+                            {item.subject} · {item.topic}
+                          </Txt>
+                          <Txt variant="tiny" color={Palette.textDim} numberOfLines={1}>
+                            {item.averageQuestions || 'Ağırlıklı Soru Konusu'}
+                          </Txt>
+                        </View>
+                      </View>
+                      <View style={styles.gainBadge}>
+                        <Txt variant="tiny" color={Palette.green} style={styles.gainText}>
+                          {item.potentialGain}
+                        </Txt>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+
+              {/* Strateji İpucu */}
+              {analysis?.strategyTip ? (
+                <View style={styles.strategyRow}>
+                  <Flame size={14} color={DetailAccent} strokeWidth={2.2} />
+                  <Txt variant="tiny" color={Palette.textDim} style={styles.strategyText}>
+                    {analysis.strategyTip}
+                  </Txt>
+                </View>
+              ) : null}
+
+              <View style={styles.aiFooterRow}>
+                <View style={styles.dotRow}>
+                  <PressScale onPress={() => goToSlide(0)}>
+                    <View style={[styles.dot, activeSlide === 0 ? styles.dotActive : styles.dotInactive]} />
+                  </PressScale>
+                  <PressScale onPress={() => goToSlide(1)}>
+                    <View style={[styles.dot, activeSlide === 1 ? styles.dotActive : styles.dotInactive]} />
+                  </PressScale>
+                </View>
+
+                <PressScale onPress={() => goToSlide(0)} scaleTo={0.96}>
+                  <View style={styles.swipeHintBtn}>
+                    <ChevronLeft size={14} color={DetailAccent} strokeWidth={2.5} />
+                    <Txt variant="tiny" color={DetailAccent} style={styles.swipeHintText}>
+                      Genel Duruma Dön
+                    </Txt>
+                  </View>
+                </PressScale>
+              </View>
             </View>
-          ) : null}
+          </ScrollView>
         </Card>
 
         {/* Kayıtlı Denemeler Başlığı */}
@@ -1197,21 +1310,31 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   aiCard: {
-    gap: Space.md,
     borderWidth: 1.5,
     borderColor: 'rgba(251, 174, 117, 0.4)',
     backgroundColor: '#FFFDF9',
+    padding: 0,
+    overflow: 'hidden',
+  },
+  aiSlide: {
+    padding: Space.lg,
+    gap: Space.md,
   },
   aiCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: Space.sm,
   },
   aiTitleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
     flex: 1,
+  },
+  aiTitleTextWrap: {
+    flex: 1,
+    gap: 2,
   },
   aiIconBubble: {
     width: 32,
@@ -1221,15 +1344,63 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  probabilityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: Palette.greenSoft,
+    borderRadius: Radius.pill,
+    maxWidth: 155,
+  },
+  probabilityText: {
+    fontWeight: '700',
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Palette.green,
+  },
   aiSummaryText: {
     lineHeight: 22,
   },
-  shortcutContainer: {
+  aiFooterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: Space.xs,
-    gap: Space.xs,
+    borderTopWidth: Border.thin,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
   },
-  shortcutHeader: {
-    letterSpacing: 0.6,
+  dotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+  },
+  dot: {
+    height: 6,
+    borderRadius: 3,
+  },
+  dotActive: {
+    width: 18,
+    backgroundColor: DetailAccent,
+  },
+  dotInactive: {
+    width: 6,
+    backgroundColor: Palette.border,
+  },
+  swipeHintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+  },
+  swipeHintText: {
+    fontWeight: '600',
   },
   shortcutList: {
     gap: Space.xs,
@@ -1238,15 +1409,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 6,
+    paddingVertical: 8,
     paddingHorizontal: Space.sm,
     backgroundColor: Palette.surfaceHi,
     borderRadius: Radius.sm,
+    gap: Space.sm,
   },
   shortcutLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
+    flex: 1,
   },
   shortcutDot: {
     width: 6,
@@ -1254,9 +1427,13 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: DetailAccent,
   },
+  shortcutInfo: {
+    flex: 1,
+    gap: 2,
+  },
   gainBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     backgroundColor: Palette.greenSoft,
     borderRadius: Radius.pill,
   },
