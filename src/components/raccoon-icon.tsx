@@ -6,6 +6,7 @@ const RACCOON_SOURCE = require('../../assets/images/ai-raccoon-icon.png');
 
 export type RaccoonIconProps = {
   size?: number;
+  fill?: boolean;
   color?: string;
   strokeWidth?: number;
   style?: StyleProp<ViewStyle>;
@@ -16,17 +17,20 @@ export type RaccoonIconProps = {
  */
 export function RaccoonIcon({
   size = 24,
+  fill = false,
   style,
 }: RaccoonIconProps) {
   return (
     <View
       style={[
         styles.wrap,
-        {
-          width: size,
-          height: size,
-          borderRadius: Math.round(size * 0.26),
-        },
+        fill
+          ? styles.fill
+          : {
+              width: size,
+              height: size,
+              borderRadius: Math.round(size * 0.26),
+            },
         style,
       ]}
     >
@@ -38,6 +42,10 @@ export function RaccoonIcon({
 const styles = StyleSheet.create({
   wrap: {
     overflow: 'hidden',
+  },
+  fill: {
+    width: '100%',
+    height: '100%',
   },
   image: {
     width: '100%',

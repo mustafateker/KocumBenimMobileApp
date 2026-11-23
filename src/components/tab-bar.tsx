@@ -47,7 +47,7 @@ export function TabBar({
   const activeRouteKey = state.routes[state.index]?.key;
 
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, Space.md) }]}>
+    <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 8 : 6, 6) }]}>
       <View style={styles.bar}>
         {orderedRoutes.map((route) => {
           const meta = tabs[route.name];
@@ -96,8 +96,8 @@ function TabButton({
 
   const iconStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: meta.featured ? -4 - lift.value * 3 : -lift.value * 3 },
-      { scale: 1 + lift.value * 0.12 },
+      { translateY: meta.featured ? -1 - lift.value * 2 : -lift.value * 2 },
+      { scale: 1 + lift.value * 0.08 },
     ],
   }));
 
@@ -137,41 +137,42 @@ const styles = StyleSheet.create({
     borderTopWidth: Border.thin,
     borderTopColor: Palette.border,
     paddingHorizontal: Space.md,
-    paddingTop: Space.sm,
+    paddingTop: 4,
   },
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Palette.surface,
-    paddingVertical: Space.xs,
+    paddingVertical: 2,
     paddingHorizontal: Space.xs,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    gap: 3,
-    paddingVertical: 2,
+    gap: 2,
+    paddingVertical: 1,
   },
   iconSlot: {
-    width: 40,
-    height: 32,
-    borderRadius: Radius.md,
+    width: 38,
+    height: 28,
+    borderRadius: Radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   featuredIconSlot: {
-    width: 52,
-    height: 44,
-    borderRadius: Radius.lg,
+    width: 38,
+    height: 38,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.surfaceHi,
-    borderWidth: Border.thick,
+    borderWidth: 1.5,
     borderColor: Palette.border,
+    overflow: 'hidden',
   },
   featuredFocusedSlot: {
-    backgroundColor: DetailAccent,
-    borderColor: Accent,
+    borderColor: DetailAccent,
+    borderWidth: 2,
   },
 });

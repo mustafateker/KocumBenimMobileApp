@@ -7,7 +7,6 @@ import { TabBar, type TabBarState, type TabMeta } from '@/components/tab-bar';
 import { HamburgerMenuProvider } from '@/lib/hamburger-menu-context';
 import { useNotificationRouting } from '@/lib/push-notifications';
 import { useSession } from '@/lib/session';
-import { Accent, Palette } from '@/theme/tokens';
 
 const TABS: Record<string, TabMeta> = {
   index: { label: 'Anasayfa', icon: 'home' },
@@ -16,8 +15,8 @@ const TABS: Record<string, TabMeta> = {
     label: 'Koçum',
     icon: 'sparkles',
     featured: true,
-    customIcon: (focused: boolean) => (
-      <RaccoonIcon size={34} color={focused ? Accent : Palette.textFaint} strokeWidth={focused ? 2.2 : 1.8} />
+    customIcon: () => (
+      <RaccoonIcon fill />
     ),
   },
   questions: { label: 'Sorularım', icon: 'camera' },
