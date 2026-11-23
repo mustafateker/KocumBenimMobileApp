@@ -13,7 +13,7 @@ import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
-import { Border, OnboardingPalette, Radius, Space } from '@/theme/tokens';
+import { Border, OnboardingPalette, Palette, Radius, Space } from '@/theme/tokens';
 
 /**
  * Giris: kullanici adi (veya e-posta) + parola. Hesabi kocu acar ve bilgileri paylasir;
@@ -165,7 +165,7 @@ export default function Login() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <View style={styles.field}>
-      <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
+      <Txt variant="smallStrong" color={OnboardingPalette?.textDim ?? Palette.textDim}>
         {label}
       </Txt>
       {children}

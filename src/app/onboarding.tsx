@@ -122,7 +122,7 @@ export default function Onboarding() {
   );
 
   const step = steps[Math.min(index, steps.length - 1)];
-  const meta = STEP_META[step];
+  const meta = (step && STEP_META[step]) || STEP_META.welcome;
 
   const set = useCallback(<K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));

@@ -21,10 +21,16 @@ import { useStudent } from '@/lib/session';
 import type { Question, QuestionStatus } from '@/lib/types';
 import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
-const STATUS_META: Record<QuestionStatus, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
+const STATUS_META: Record<QuestionStatus | string, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
   pending: { label: 'Hocada bekliyor', color: Palette.gold, icon: 'hourglass' },
   in_lesson: { label: 'Derste çözülecek', color: Palette.blue, icon: 'school' },
   answered: { label: 'Cevaplandı', color: Palette.green, icon: 'checkmark-circle' },
+};
+
+const DEFAULT_STATUS_META = {
+  label: 'İnceleniyor',
+  color: Palette.gold,
+  icon: 'hourglass' as React.ComponentProps<typeof Ionicons>['name'],
 };
 
 export default function Questions() {
@@ -324,7 +330,7 @@ function QuestionCard({
   onViewImage: (uri: string) => void;
   onViewSolution: (data: { imageUri?: string | null; replyText?: string | null }) => void;
 }) {
-  const meta = STATUS_META[question.status];
+  const meta = (question.status && STATUS_META[question.status]) || DEFAULT_STATUS_META;
   const [busy, setBusy] = useState(false);
   const [replyImgLoading, setReplyImgLoading] = useState(true);
   const [replyImgFailed, setReplyImgFailed] = useState(false);

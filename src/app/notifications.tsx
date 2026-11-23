@@ -16,7 +16,7 @@ import { useStudent } from '@/lib/session';
 import type { AppNotification, NotificationType } from '@/lib/types';
 import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
 
-const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string }> = {
+const TYPE_META: Record<NotificationType | string, { icon: React.ComponentProps<typeof Ionicons>['name']; color: string }> = {
   task_assigned: { icon: 'clipboard', color: DetailAccent },
   question_answered: { icon: 'chatbubble-ellipses', color: DetailAccent },
   streak_reminder: { icon: 'flame', color: DetailAccent },
@@ -24,6 +24,11 @@ const TYPE_META: Record<NotificationType, { icon: React.ComponentProps<typeof Io
   lesson_scheduled: { icon: 'calendar', color: DetailAccent },
   lesson_updated: { icon: 'calendar', color: DetailAccent },
   lesson_cancelled: { icon: 'calendar-outline', color: Palette.pink },
+};
+
+const DEFAULT_META: { icon: React.ComponentProps<typeof Ionicons>['name']; color: string } = {
+  icon: 'notifications',
+  color: DetailAccent,
 };
 
 export default function Notifications() {
@@ -62,7 +67,10 @@ export default function Notifications() {
         });
       }
 
-      router.push(hrefForNotification(notification));
+      const target = hrefForNotification(notification);
+      if (target !== '/notifications') {
+        router.push(target);
+      }
     },
     [markOneRead, router]
   );
@@ -81,11 +89,12 @@ export default function Notifications() {
       ) : (
         <View style={styles.list}>
           {notifications.map((n) => {
-            const meta = TYPE_META[n.type];
+            const meta = (n.type && TYPE_META[n.type]) || DEFAULT_META;
+            const accentColor = n.read ? undefined : (meta.color ?? DetailAccent);
             return (
               <PressScale key={n.id} onPress={() => open(n)}>
-                <Card style={styles.row} accent={n.read ? undefined : meta.color}>
-                  <IconBubble name={meta.icon} color={meta.color} size={40} />
+                <Card style={styles.row} accent={accentColor}>
+                  <IconBubble name={meta.icon ?? 'notifications'} color={meta.color ?? DetailAccent} size={40} />
                   <View style={styles.flex}>
                     <Txt variant="bodyStrong" numberOfLines={2}>
                       {n.title}
