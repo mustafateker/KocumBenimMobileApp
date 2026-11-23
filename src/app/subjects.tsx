@@ -6,8 +6,7 @@ import { Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
-import { Card, IconBubble, ProgressBar, SectionLabel, TextField, Txt } from '@/components/ui';
-import { getSubjectIcon } from '@/features/onboarding/curriculum-picker';
+import { Card, ProgressBar, SectionLabel, TextField, Txt } from '@/components/ui';
 import {
   getCompletedTasks,
   getCurriculumProgress,
@@ -354,11 +353,6 @@ export default function SubjectsScreen() {
               scaleTo={0.96}
             >
               <View style={[styles.subjectTab, active && styles.subjectTabActive]}>
-                <Ionicons
-                  name={getSubjectIcon(item.subject.name)}
-                  size={16}
-                  color={active ? '#FFFFFF' : Palette.textDim}
-                />
                 <Txt variant="smallStrong" color={active ? '#FFFFFF' : Palette.text}>
                   {item.subject.name}
                 </Txt>
@@ -382,11 +376,6 @@ export default function SubjectsScreen() {
       {activeSummary ? (
         <View style={styles.subjectBody}>
           <View style={styles.activeSubjectBanner}>
-            <IconBubble
-              name={getSubjectIcon(activeSummary.subject.name)}
-              color={Palette.green}
-              size={42}
-            />
             <View style={styles.flex}>
               <Txt variant="bodyStrong">{activeSummary.subject.name}</Txt>
               <Txt variant="tiny" color={Palette.textDim}>
