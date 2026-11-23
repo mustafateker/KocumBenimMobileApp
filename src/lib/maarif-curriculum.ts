@@ -135,11 +135,18 @@ const FOLD_MAP: Record<string, string> = {
   Ü: 'u',
 };
 
+const FOLD_CACHE = new Map<string, string>();
+
 export function foldTurkish(text: string): string {
-  return text
+  if (!text) return '';
+  const cached = FOLD_CACHE.get(text);
+  if (cached !== undefined) return cached;
+  const res = text
     .replace(/[çğıöşüâîûÇĞİIÖŞÜ]/g, (ch) => FOLD_MAP[ch] ?? ch)
     .toLowerCase()
     .replace(/[’'`]/g, '');
+  FOLD_CACHE.set(text, res);
+  return res;
 }
 
 export function searchSubjectUnits(units: CurriculumUnit[], query: string): CurriculumUnit[] {

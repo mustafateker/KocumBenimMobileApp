@@ -1,14 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { InteractionManager, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, ProgressBar, SectionLabel, TextField, Txt } from '@/components/ui';
 import {
-  getCompletedTasks,
   getCurriculumProgress,
   getStats,
   getTasks,
@@ -70,13 +69,11 @@ export default function SubjectsScreen() {
 
   const loadData = useCallback(async () => {
     try {
-      const [savedProg, savedExtra, statsRes, dayTasks, monthTasks, completedTasks] = await Promise.all([
+      const [savedProg, savedExtra, statsRes, dayTasks] = await Promise.all([
         getCurriculumProgress(student),
         loadExtraCompletedTopics(student.id),
         getStats().catch(() => null),
         getTasks('day').catch(() => []),
-        getTasks('month').catch(() => []),
-        getCompletedTasks(100).catch(() => []),
       ]);
 
       setProgressMap(savedProg);
@@ -102,17 +99,13 @@ export default function SubjectsScreen() {
         }
       }
 
-      const allTasksMap = new Map<number, (typeof dayTasks)[number]>();
-      for (const t of [...dayTasks, ...monthTasks, ...completedTasks]) {
-        allTasksMap.set(t.id, t);
-      }
-
+      // Günlük görevlerde tamamlanmış veya çözülmüş varsa yerel olarak birleştir
       const localAgg: Record<
         string,
         { subject: string; topic: string; correct: number; wrong: number; blank: number; study: number }
       > = {};
 
-      for (const task of allTasksMap.values()) {
+      for (const task of dayTasks) {
         if (!task.completedAt && (task.correctCount || 0) === 0 && (task.wrongCount || 0) === 0) continue;
         const subj = task.subject || 'Matematik';
         const top = task.topic || task.title;
@@ -159,25 +152,39 @@ export default function SubjectsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
+      // Ekran açılış geçiş animasyonunun takılmaması için ağır yüklemeyi animasyon sonrasına ertele
+      const task = InteractionManager.runAfterInteractions(() => {
+        loadData();
+      });
+      return () => {
+        task.cancel();
+      };
     }, [loadData])
   );
 
-  // Bir konunun tamamlanmış (yeşil tikli) olup olmadığını kontrol eder:
-  // 1) Okulda geldiği konuya kadar olan konular VEYA
-  // 2) Sonradan konu çalışması / soru çözümü tamamlanmış konular VEYA
-  // 3) Öğrencinin konu kartında tik atarak tamamladığı konular
+  // Ekstra tamamlanan konular için O(1) erişimli küme
+  const extraCompletedSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const [subj, topics] of Object.entries(extraCompletedMap)) {
+      const fSubj = foldTurkish(subj);
+      for (const t of topics) {
+        set.add(`${fSubj}::${foldTurkish(t)}`);
+      }
+    }
+    return set;
+  }, [extraCompletedMap]);
+
+  // Bir konunun tamamlanmış (yeşil tikli) olup olmadığını O(1) kontrol eder:
   const isTopicCompleted = useCallback(
     (subjectName: string, topicName: string, orderIdx: number, schoolCurrentIdx: number): boolean => {
       if (orderIdx !== -1 && orderIdx <= schoolCurrentIdx) return true;
-      const extraList = extraCompletedMap[subjectName] ?? [];
-      if (extraList.some((t) => foldTurkish(t) === foldTurkish(topicName))) return true;
-      const statsKey = `${foldTurkish(subjectName)}::${foldTurkish(topicName)}`;
-      const st = topicStatsMap[statsKey];
+      const key = `${foldTurkish(subjectName)}::${foldTurkish(topicName)}`;
+      if (extraCompletedSet.has(key)) return true;
+      const st = topicStatsMap[key];
       if (st && (st.studyCompleted > 0 || st.solved > 0)) return true;
       return false;
     },
-    [extraCompletedMap, topicStatsMap]
+    [extraCompletedSet, topicStatsMap]
   );
 
   const handleToggleTopicCheck = useCallback(
@@ -252,6 +259,14 @@ export default function SubjectsScreen() {
   const totalTopicsAll = subjectSummaries.reduce((acc, s) => acc + s.state.totalCount, 0);
   const totalSolvedAll = subjectSummaries.reduce((acc, s) => acc + s.solvedTotal, 0);
 
+  // Aktif dersin konuları için O(1) indeks haritası
+  const topicIndexMap = useMemo(() => {
+    if (!activeSummary) return new Map<string, number>();
+    const map = new Map<string, number>();
+    activeSummary.state.allTopics.forEach((t, i) => map.set(t, i));
+    return map;
+  }, [activeSummary]);
+
   const visibleUnits = useMemo(() => {
     if (!activeSummary) return [];
     const searched = searchSubjectUnits(activeSummary.subject.units, searchQuery);
@@ -261,7 +276,7 @@ export default function SubjectsScreen() {
       .map((u) => ({
         ...u,
         topics: u.topics.filter((t) => {
-          const orderIdx = activeSummary.state.allTopics.indexOf(t);
+          const orderIdx = topicIndexMap.get(t) ?? -1;
           const done = isTopicCompleted(
             activeSummary.subject.name,
             t,
@@ -275,7 +290,7 @@ export default function SubjectsScreen() {
         }),
       }))
       .filter((u) => u.topics.length > 0);
-  }, [activeSummary, searchQuery, filterMode, isTopicCompleted, topicStatsMap]);
+  }, [activeSummary, searchQuery, filterMode, isTopicCompleted, topicIndexMap, topicStatsMap]);
 
   return (
     <Screen tint={Palette.green}>
@@ -450,7 +465,7 @@ export default function SubjectsScreen() {
                 <SectionLabel>{unit.name}</SectionLabel>
                 <View style={styles.topicList}>
                   {unit.topics.map((topic) => {
-                    const orderIdx = activeSummary.state.allTopics.indexOf(topic);
+                    const orderIdx = topicIndexMap.get(topic) ?? -1;
                     const isSchoolCurrent = topic === activeSummary.state.currentTopic;
                     const completed = isTopicCompleted(
                       activeSummary.subject.name,
@@ -473,160 +488,23 @@ export default function SubjectsScreen() {
                     const isAssigning = assigningTopicKey === assignKey;
 
                     return (
-                      <View
+                      <TopicCardItem
                         key={topic}
-                        style={[
-                          styles.topicCard,
-                          completed && styles.topicCardCompletedGreen,
-                          isWeakTopic && styles.topicCardWeakBorder,
-                        ]}
-                      >
-                        <View style={styles.topicMainRow}>
-                          {/* Sol Yeşil Tik Butonu: Dokununca da konuyu tamamlandı işaretler */}
-                          <PressScale
-                            onPress={() => handleToggleTopicCheck(activeSummary.subject.name, topic)}
-                            scaleTo={0.9}
-                          >
-                            <View
-                              style={[
-                                styles.checkButton,
-                                completed ? styles.checkButtonGreen : styles.checkButtonEmpty,
-                              ]}
-                            >
-                              {completed ? (
-                                <Ionicons name="checkmark" size={20} color="#FFFFFF" />
-                              ) : (
-                                <Txt variant="tiny" color={Palette.textDim}>
-                                  {orderIdx + 1}
-                                </Txt>
-                              )}
-                            </View>
-                          </PressScale>
-
-                          {/* Konu Başlığı ve Durum Rozetleri */}
-                          <View style={styles.flex}>
-                            <Txt
-                              variant="bodyStrong"
-                              color={completed ? Palette.text : Palette.textDim}
-                            >
-                              {topic}
-                            </Txt>
-
-                            <View style={styles.badgesWrap}>
-                              {completed ? (
-                                <View style={styles.greenDoneBadge}>
-                                  <Ionicons name="checkmark-circle" size={13} color="#FFFFFF" />
-                                  <Txt variant="tiny" color="#FFFFFF">
-                                    Tamamlandı
-                                  </Txt>
-                                </View>
-                              ) : (
-                                <View style={styles.pendingBadge}>
-                                  <Txt variant="tiny" color={Palette.textFaint}>
-                                    Henüz İşlenmedi
-                                  </Txt>
-                                </View>
-                              )}
-
-                              {isSchoolCurrent ? (
-                                <View style={styles.currentSchoolBadge}>
-                                  <Txt variant="tiny" color={Accent}>
-                                    Okulda Geldiğim Konu
-                                  </Txt>
-                                </View>
-                              ) : null}
-
-                              {isWeakTopic ? (
-                                <View style={styles.weakWarningBadge}>
-                                  <Ionicons name="alert-circle" size={12} color="#FFFFFF" />
-                                  <Txt variant="tiny" color="#FFFFFF">
-                                    {gradeInfo.shortLabel}
-                                  </Txt>
-                                </View>
-                              ) : null}
-                            </View>
-                          </View>
-                        </View>
-
-                        {/* Konu Bazlı Çözülen Toplam Soru ve Doğru/Yanlış Bilgisi */}
-                        <View
-                          style={[
-                            styles.questionFooter,
-                            completed && styles.questionFooterGreen,
-                          ]}
-                        >
-                          <View style={styles.questionTotalBox}>
-                            <Ionicons
-                              name="document-text-outline"
-                              size={15}
-                              color={solvedCount > 0 ? Palette.green : Palette.textFaint}
-                            />
-                            <Txt
-                              variant="smallStrong"
-                              color={solvedCount > 0 ? Palette.text : Palette.textFaint}
-                            >
-                              {`Çözülen Soru: ${solvedCount}`}
-                            </Txt>
-                          </View>
-
-                          {solvedCount > 0 ? (
-                            <View style={styles.accuracyRow}>
-                              <Txt variant="tiny" color={Palette.green}>
-                                {`${correctCount} Doğru`}
-                              </Txt>
-                              <Txt variant="tiny" color={Palette.textFaint}>
-                                ·
-                              </Txt>
-                              <Txt
-                                variant="tiny"
-                                color={wrongCount > 0 ? Palette.pink : Palette.textDim}
-                              >
-                                {`${wrongCount} Yanlış`}
-                              </Txt>
-                              {gradeInfo.accuracyRate !== null ? (
-                                <View style={styles.percentChip}>
-                                  <Txt variant="tiny" color={Palette.text}>
-                                    {`%${gradeInfo.accuracyRate}`}
-                                  </Txt>
-                                </View>
-                              ) : null}
-                            </View>
-                          ) : (
-                            <Txt variant="tiny" color={Palette.textFaint}>
-                              Soru kaydı yok
-                            </Txt>
-                          )}
-                        </View>
-
-                        {/* Eğer bu konuda yanlış sayısı fazlaysa tek tuşla konu çalışması + soru çözümü ata */}
-                        {isWeakTopic ? (
-                          <View style={styles.weakActionWrap}>
-                            <Txt variant="tiny" color={Palette.pink}>
-                              {gradeInfo.reason}
-                            </Txt>
-                            <GhostButton
-                              label={
-                                isAssigned
-                                  ? 'Ödevlerime Eklendi'
-                                  : isAssigning
-                                    ? 'Atanıyor...'
-                                    : 'Konu Çalışması ve Test Ata'
-                              }
-                              icon={isAssigned ? 'checkmark-circle' : 'add-circle-outline'}
-                              color={isAssigned ? Palette.green : Palette.pink}
-                              disabled={isAssigning}
-                              full
-                              onPress={() => {
-                                if (isAssigned) {
-                                  router.push('/student/tasks');
-                                } else {
-                                  handleAssignTopicStudy(activeSummary.subject.name, topic);
-                                }
-                              }}
-                            />
-                          </View>
-                        ) : null}
-                      </View>
+                        topic={topic}
+                        orderIdx={orderIdx}
+                        completed={completed}
+                        isSchoolCurrent={isSchoolCurrent}
+                        isWeakTopic={isWeakTopic}
+                        gradeInfo={gradeInfo}
+                        solvedCount={solvedCount}
+                        correctCount={correctCount}
+                        wrongCount={wrongCount}
+                        isAssigned={isAssigned}
+                        isAssigning={isAssigning}
+                        onToggleCheck={() => handleToggleTopicCheck(activeSummary.subject.name, topic)}
+                        onAssign={() => handleAssignTopicStudy(activeSummary.subject.name, topic)}
+                        onGoToTasks={() => router.push('/student/tasks')}
+                      />
                     );
                   })}
                 </View>
@@ -638,6 +516,187 @@ export default function SubjectsScreen() {
     </Screen>
   );
 }
+
+type TopicCardItemProps = {
+  topic: string;
+  orderIdx: number;
+  completed: boolean;
+  isSchoolCurrent: boolean;
+  isWeakTopic: boolean;
+  gradeInfo: TopicPerformanceGrade;
+  solvedCount: number;
+  correctCount: number;
+  wrongCount: number;
+  isAssigned: boolean;
+  isAssigning: boolean;
+  onToggleCheck: () => void;
+  onAssign: () => void;
+  onGoToTasks: () => void;
+};
+
+const TopicCardItem = React.memo(function TopicCardItem({
+  topic,
+  orderIdx,
+  completed,
+  isSchoolCurrent,
+  isWeakTopic,
+  gradeInfo,
+  solvedCount,
+  correctCount,
+  wrongCount,
+  isAssigned,
+  isAssigning,
+  onToggleCheck,
+  onAssign,
+  onGoToTasks,
+}: TopicCardItemProps) {
+  return (
+    <View
+      style={[
+        styles.topicCard,
+        completed && styles.topicCardCompletedGreen,
+        isWeakTopic && styles.topicCardWeakBorder,
+      ]}
+    >
+      <View style={styles.topicMainRow}>
+        {/* Sol Yeşil Tik Butonu: Dokununca da konuyu tamamlandı işaretler */}
+        <PressScale onPress={onToggleCheck} scaleTo={0.9}>
+          <View
+            style={[
+              styles.checkButton,
+              completed ? styles.checkButtonGreen : styles.checkButtonEmpty,
+            ]}
+          >
+            {completed ? (
+              <Ionicons name="checkmark" size={20} color="#FFFFFF" />
+            ) : (
+              <Txt variant="tiny" color={Palette.textDim}>
+                {orderIdx + 1}
+              </Txt>
+            )}
+          </View>
+        </PressScale>
+
+        {/* Konu Başlığı ve Durum Rozetleri */}
+        <View style={styles.flex}>
+          <Txt
+            variant="bodyStrong"
+            color={completed ? Palette.text : Palette.textDim}
+          >
+            {topic}
+          </Txt>
+
+          <View style={styles.badgesWrap}>
+            {completed ? (
+              <View style={styles.greenDoneBadge}>
+                <Ionicons name="checkmark-circle" size={13} color="#FFFFFF" />
+                <Txt variant="tiny" color="#FFFFFF">
+                  Tamamlandı
+                </Txt>
+              </View>
+            ) : (
+              <View style={styles.pendingBadge}>
+                <Txt variant="tiny" color={Palette.textFaint}>
+                  Henüz İşlenmedi
+                </Txt>
+              </View>
+            )}
+
+            {isSchoolCurrent ? (
+              <View style={styles.currentSchoolBadge}>
+                <Txt variant="tiny" color={Accent}>
+                  Okulda Geldiğim Konu
+                </Txt>
+              </View>
+            ) : null}
+
+            {isWeakTopic ? (
+              <View style={styles.weakWarningBadge}>
+                <Ionicons name="alert-circle" size={12} color="#FFFFFF" />
+                <Txt variant="tiny" color="#FFFFFF">
+                  {gradeInfo.shortLabel}
+                </Txt>
+              </View>
+            ) : null}
+          </View>
+        </View>
+      </View>
+
+      {/* Konu Bazlı Çözülen Toplam Soru ve Doğru/Yanlış Bilgisi */}
+      <View
+        style={[
+          styles.questionFooter,
+          completed && styles.questionFooterGreen,
+        ]}
+      >
+        <View style={styles.questionTotalBox}>
+          <Ionicons
+            name="document-text-outline"
+            size={15}
+            color={solvedCount > 0 ? Palette.green : Palette.textFaint}
+          />
+          <Txt
+            variant="smallStrong"
+            color={solvedCount > 0 ? Palette.text : Palette.textFaint}
+          >
+            {`Çözülen Soru: ${solvedCount}`}
+          </Txt>
+        </View>
+
+        {solvedCount > 0 ? (
+          <View style={styles.accuracyRow}>
+            <Txt variant="tiny" color={Palette.green}>
+              {`${correctCount} Doğru`}
+            </Txt>
+            <Txt variant="tiny" color={Palette.textFaint}>
+              ·
+            </Txt>
+            <Txt
+              variant="tiny"
+              color={wrongCount > 0 ? Palette.pink : Palette.textDim}
+            >
+              {`${wrongCount} Yanlış`}
+            </Txt>
+            {gradeInfo.accuracyRate !== null ? (
+              <View style={styles.percentChip}>
+                <Txt variant="tiny" color={Palette.text}>
+                  {`%${gradeInfo.accuracyRate}`}
+                </Txt>
+              </View>
+            ) : null}
+          </View>
+        ) : (
+          <Txt variant="tiny" color={Palette.textFaint}>
+            Soru kaydı yok
+          </Txt>
+        )}
+      </View>
+
+      {/* Eğer bu konuda yanlış sayısı fazlaysa tek tuşla konu çalışması + soru çözümü ata */}
+      {isWeakTopic ? (
+        <View style={styles.weakActionWrap}>
+          <Txt variant="tiny" color={Palette.pink}>
+            {gradeInfo.reason}
+          </Txt>
+          <GhostButton
+            label={
+              isAssigned
+                ? 'Ödevlerime Eklendi'
+                : isAssigning
+                  ? 'Atanıyor...'
+                  : 'Konu Çalışması ve Test Ata'
+            }
+            icon={isAssigned ? 'checkmark-circle' : 'add-circle-outline'}
+            color={isAssigned ? Palette.green : Palette.pink}
+            disabled={isAssigning}
+            full
+            onPress={isAssigned ? onGoToTasks : onAssign}
+          />
+        </View>
+      ) : null}
+    </View>
+  );
+});
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
