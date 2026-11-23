@@ -655,15 +655,61 @@ function AddExamModal({
     const clean = val.replace(/[^0-9]/g, '');
     setScores((prev) => {
       const cur = prev[subject] ?? { correct: '', wrong: '', empty: String(totalQuestions) };
-      const next = { ...cur, [field]: clean };
+      const next = { ...cur };
 
-      // Kullanıcı Doğru veya Yanlış girdiğinde testin toplam soru sayısından
-      // otomatik olarak Boş sayısını hesapla ve doldur
-      if (field === 'correct' || field === 'wrong') {
-        const c = Number(next.correct) || 0;
-        const w = Number(next.wrong) || 0;
-        const autoEmpty = Math.max(0, totalQuestions - c - w);
-        next.empty = String(autoEmpty);
+      if (field === 'correct') {
+        if (clean === '') {
+          next.correct = '';
+          const w = Number(cur.wrong) || 0;
+          next.empty = String(Math.max(0, totalQuestions - w));
+        } else {
+          const num = parseInt(clean, 10);
+          // 1. Bir dersteki toplam soru sayısından daha fazla doğru girilemez
+          const clampedCorrect = Math.min(num, totalQuestions);
+          next.correct = String(clampedCorrect);
+
+          // 2. Doğru sayısı arttığında Doğru + Yanlış toplam soru sayısını geçemez
+          const curWrong = Number(cur.wrong) || 0;
+          if (clampedCorrect + curWrong > totalQuestions) {
+            const adjustedWrong = Math.max(0, totalQuestions - clampedCorrect);
+            next.wrong = adjustedWrong > 0 ? String(adjustedWrong) : (cur.wrong ? '0' : '');
+          }
+
+          // 3. Boş sayısı otomatik hesaplanır
+          const finalW = Number(next.wrong) || 0;
+          next.empty = String(Math.max(0, totalQuestions - clampedCorrect - finalW));
+        }
+      } else if (field === 'wrong') {
+        if (clean === '') {
+          next.wrong = '';
+          const c = Number(cur.correct) || 0;
+          next.empty = String(Math.max(0, totalQuestions - c));
+        } else {
+          const num = parseInt(clean, 10);
+          const curCorrect = Number(cur.correct) || 0;
+          // Doğru + Yanlış toplam soru sayısını geçemez
+          const maxAllowedWrong = Math.max(0, totalQuestions - curCorrect);
+          const clampedWrong = Math.min(num, maxAllowedWrong);
+          next.wrong = String(clampedWrong);
+
+          // Boş sayısı otomatik hesaplanır
+          next.empty = String(Math.max(0, totalQuestions - curCorrect - clampedWrong));
+        }
+      } else {
+        if (clean === '') {
+          next.empty = '';
+        } else {
+          const num = parseInt(clean, 10);
+          const curCorrect = Number(cur.correct) || 0;
+          const maxAllowedEmpty = Math.max(0, totalQuestions - curCorrect);
+          const clampedEmpty = Math.min(num, maxAllowedEmpty);
+          next.empty = String(clampedEmpty);
+
+          const curWrong = Number(cur.wrong) || 0;
+          if (curCorrect + curWrong + clampedEmpty > totalQuestions) {
+            next.wrong = String(Math.max(0, totalQuestions - curCorrect - clampedEmpty));
+          }
+        }
       }
 
       return {
@@ -753,6 +799,32 @@ function AddExamModal({
     if (!title.trim()) {
       Alert.alert('Eksik Bilgi', 'Lütfen deneme sınavı için bir başlık girin.');
       return;
+    }
+
+    // Her ders için soru sayısı ve doğru+yanlış kontrollerini yap
+    const allSubjectsToValidate = isLgs
+      ? [...lgsSozelComputed, ...lgsSayisalComputed]
+      : yksSubtype === 'tyt'
+      ? tytComputed
+      : yksSubtype === 'ayt'
+      ? aytComputed
+      : [...tytComputed, ...aytComputed];
+
+    for (const sub of allSubjectsToValidate) {
+      if (sub.correct > sub.totalQuestions) {
+        Alert.alert(
+          'Hatalı Veri',
+          `${sub.subject} dersinde doğru sayısı (${sub.correct}), toplam soru sayısını (${sub.totalQuestions}) geçemez.`
+        );
+        return;
+      }
+      if (sub.correct + sub.wrong > sub.totalQuestions) {
+        Alert.alert(
+          'Hatalı Veri',
+          `${sub.subject} dersinde doğru (${sub.correct}) ve yanlış (${sub.wrong}) sayısı toplamı, toplam soru sayısını (${sub.totalQuestions}) geçemez.`
+        );
+        return;
+      }
     }
 
     setSaving(true);
@@ -1234,8 +1306,7 @@ function SubjectInputRow({
         placeholder="0"
         placeholderTextColor={Palette.textFaint}
         value={empty}
-        onChangeText={(val) => onChange(subject, 'empty', val, totalQuestions)}
-        selectTextOnFocus
+        editable={false}
       />
       <View style={styles.netBox}>
         <Txt variant="smallStrong" color={accentColor}>
