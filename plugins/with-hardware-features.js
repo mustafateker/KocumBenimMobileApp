@@ -1,13 +1,14 @@
-const { withAndroidManifest } = require("expo/config-plugins");
+const { withAndroidManifest, withGradleProperties } = require("expo/config-plugins");
 
 /**
- * Expo prebuild sirasinda AndroidManifest.xml icine donanim ozelliklerini
- * (portrait ekrani ve kamera) optional (required="false") olarak ekler.
- * Bu sayede Google Play Console, uygulamanin tablet, katlanabilir ekran,
- * Chromebook veya Android XR cihazlarinda engellenmesini onler.
+ * Expo prebuild sirasinda:
+ * 1. AndroidManifest.xml icine donanim ozelliklerini (portrait ekrani ve kamera)
+ *    optional (required="false") olarak ekler. Bu sayede Google Play Console,
+ *    uygulamanin tablet, katlanabilir ekran veya Chromebook cihazlarinda engellenmesini onler.
+ * 2. gradle.properties icine R8 optimized resource shrinking ayarini ekler.
  */
 module.exports = function withHardwareFeatures(config) {
-  return withAndroidManifest(config, (cfg) => {
+  config = withAndroidManifest(config, (cfg) => {
     const manifest = cfg.modResults.manifest;
     if (!manifest["uses-feature"]) {
       manifest["uses-feature"] = [];
@@ -39,4 +40,21 @@ module.exports = function withHardwareFeatures(config) {
 
     return cfg;
   });
+
+  config = withGradleProperties(config, (cfg) => {
+    const propKey = "android.r8.optimizedResourceShrinking";
+    const existing = cfg.modResults.find((p) => p.type === "property" && p.key === propKey);
+    if (existing) {
+      existing.value = "true";
+    } else {
+      cfg.modResults.push({
+        type: "property",
+        key: propKey,
+        value: "true",
+      });
+    }
+    return cfg;
+  });
+
+  return config;
 };

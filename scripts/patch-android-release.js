@@ -28,7 +28,9 @@ const patched = gradle
   .replace(/versionCode \d+/, `versionCode ${process.env.VERSION_CODE}`)
   .replace("signingConfigs {", `signingConfigs {${releaseSigning}`)
   // release buildType debug imzasını kullanıyor, release ile değiştir
-  .replace(/(release \{\s*\/\/ Caution![\s\S]*?)signingConfig signingConfigs\.debug/, "$1signingConfig signingConfigs.release");
+  .replace(/(release \{\s*\/\/ Caution![\s\S]*?)signingConfig signingConfigs\.debug/, "$1signingConfig signingConfigs.release")
+  // R8 optimizasyonlarini etkinlestir (Google Play Console onerisi)
+  .replace('getDefaultProguardFile("proguard-android.txt")', 'getDefaultProguardFile("proguard-android-optimize.txt")');
 
 if (patched === gradle || !patched.includes("signingConfigs.release")) {
   throw new Error("build.gradle yaması uygulanamadı, şablon değişmiş olabilir");
