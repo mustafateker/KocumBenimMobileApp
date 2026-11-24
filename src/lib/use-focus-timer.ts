@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'done';
+export type TimerFinishReason = 'done' | 'save' | 'cancel';
 
 type Options = {
   /** Sure dolunca cagrilir. actualSec, gercekte odaklanilan saniye. */
@@ -42,7 +43,7 @@ export function useFocusTimer({ onComplete }: Options) {
 
   /** Oturumu kapatir ve gercekte odaklanilan saniyeyi dondurur. */
   const finish = useCallback(
-    (reason: 'done' | 'cancel') => {
+    (reason: TimerFinishReason) => {
       const actual = Math.floor(currentElapsed());
       const planned = plannedRef.current;
       const startedAt = startedAtRef.current;
@@ -57,10 +58,9 @@ export function useFocusTimer({ onComplete }: Options) {
       progress.value = 0;
       setStatus('idle');
 
-      // Yalnizca sure dolunca (reason 'done') kaydedilir. Elle durdurmak
-      // (reason 'cancel') "Odak süren durduruldu, süre kaydedilmedi" ekranina
-      // dusurur — yarim kalan oturumlar XP kazandirmaz.
-      if (reason === 'done' && startedAt && actual >= 30) {
+      // Sure doldugunda ('done') veya kullanici erken bitirip kaydettiginde ('save')
+      // en az 30 saniye odaklanilmissa oturum sunucuya/kullaniciya kaydedilir.
+      if ((reason === 'done' || reason === 'save') && startedAt && actual >= 30) {
         onComplete({ plannedSec: planned, actualSec: actual, startedAt });
       }
       return actual;
@@ -128,8 +128,11 @@ export function useFocusTimer({ onComplete }: Options) {
     setStatus('running');
   }, [status]);
 
-  /** Erken bitis: o ana kadarki sure yine de kaydedilir; gecen saniye doner. */
+  /** Erken bitis: o ana kadarki sureyi kaydetmeden sonlandirir. */
   const stop = useCallback(() => finish('cancel'), [finish]);
+
+  /** Erken bitis ama su ana kadarki odaklanilan sureyi kaydet ve XP kazan. */
+  const completeEarly = useCallback(() => finish('save'), [finish]);
 
   return {
     status,
@@ -141,6 +144,7 @@ export function useFocusTimer({ onComplete }: Options) {
     pause,
     resume,
     stop,
+    completeEarly,
     setPlannedSec,
   };
 }

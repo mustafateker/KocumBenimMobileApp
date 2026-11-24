@@ -176,25 +176,44 @@ export async function getTasks(range: TaskRange = 'day', date?: string): Promise
 }
 
 export async function completeTask(taskId: number, correct: number, wrong: number): Promise<Task> {
-  const localCompleted = await completeStoredAiTask(taskId, correct, wrong);
-  if (localCompleted) {
-    if (localCompleted.subject && localCompleted.topic) {
-      await markTopicStudiedAndCompleted(localCompleted.subject, localCompleted.topic, localCompleted.studentId);
+  let completed: Task | null = null;
+  let backendSucceeded = false;
+
+  // 1. Önce canlı sunucuda tamamlamayı dene (sunucu XP, streak ve veri tabanını günceller)
+  try {
+    completed = await api.patch<Task>(`/tasks/${taskId}/complete`, { correct, wrong });
+    backendSucceeded = true;
+  } catch (err) {
+    // Sunucu çağrısı başarısız olduysa (yerel oluşturulmuş AI görevi veya ağ hatası)
+    const local = await completeStoredAiTask(taskId, correct, wrong);
+    if (local) {
+      completed = local;
+    } else {
+      throw err;
     }
-    if (localCompleted.category === 'focus' && localCompleted.durationMinutes) {
-      const sec = localCompleted.durationMinutes * 60;
-      logFocusSession({
-        plannedSec: sec,
-        actualSec: sec,
-        startedAt: new Date(Date.now() - sec * 1000).toISOString(),
-      }).catch(() => {});
-    }
-    return localCompleted;
   }
-  const completed = await api.patch<Task>(`/tasks/${taskId}/complete`, { correct, wrong });
+
+  // 2. Eğer aynı görev yerel AI görevleri listesinde de kayıtlıysa, yerel depoyu da senkronize et
+  if (backendSucceeded) {
+    await completeStoredAiTask(taskId, correct, wrong).catch(() => {});
+  }
+
+  // 3. Konu çalışması ise müfredat ilerlemesini tamamlandı olarak işaretle
   if (completed?.subject && completed?.topic) {
     await markTopicStudiedAndCompleted(completed.subject, completed.topic, completed.studentId);
   }
+
+  // 4. Eğer odak görevi ise ve sunucuya odak oturumu gitmediyse
+  if (completed?.category === 'focus' && completed?.durationMinutes) {
+    const sec = completed.durationMinutes * 60;
+    logFocusSession({
+      plannedSec: sec,
+      actualSec: sec,
+      startedAt: new Date(Date.now() - sec * 1000).toISOString(),
+      taskId: completed.id,
+    }).catch(() => {});
+  }
+
   return completed;
 }
 

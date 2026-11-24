@@ -12,7 +12,7 @@ import { AppDialog } from '@/components/app-dialog';
 import { PressScale } from '@/components/button';
 import { FocusRing } from '@/components/focus-ring';
 import { Txt } from '@/components/ui';
-import { completeStoredAiTask, logFocusSession } from '@/lib/api';
+import { completeTask, logFocusSession } from '@/lib/api';
 import { ApiError } from '@/lib/api-client';
 import { clockFormat } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
@@ -53,7 +53,7 @@ export default function Focus() {
           taskId: parsedTaskId,
         });
         if (parsedTaskId) {
-          await completeStoredAiTask(parsedTaskId, 0, 0).catch(() => {});
+          await completeTask(parsedTaskId, 0, 0).catch(() => {});
         }
         setResult(reward);
         if (Platform.OS !== 'web') {
@@ -170,15 +170,23 @@ export default function Focus() {
 
       <AppDialog
         visible={endDialogOpen}
-        icon="stop-circle-outline"
-        title="Odak süreni bitirmek istiyor musun?"
-        message="Şimdi bitirirsen bu oturum kaydedilmeyecek ve XP kazanamayacaksın."
+        icon={timer.elapsedSec >= 30 ? 'checkmark-circle-outline' : 'stop-circle-outline'}
+        title={timer.elapsedSec >= 30 ? 'Odak oturumunu kaydet ve bitir' : 'Odak süreni bitirmek istiyor musun?'}
+        message={
+          timer.elapsedSec >= 30
+            ? `Şu ana kadar ${Math.floor(timer.elapsedSec / 60) > 0 ? `${Math.floor(timer.elapsedSec / 60)} dakika ` : ''}${timer.elapsedSec % 60} saniye odaklandın. Oturumu kaydedip XP kazanmak istiyor musun?`
+            : '30 saniyeden kısa odak seansları kaydedilmez ve XP kazandırmaz. Çıkmak istiyor musun?'
+        }
         cancelLabel="Devam Et"
-        confirmLabel="Odağı Bitir"
+        confirmLabel={timer.elapsedSec >= 30 ? 'Kaydet ve Bitir' : 'Odağı Bitir'}
         onCancel={() => setEndDialogOpen(false)}
         onConfirm={() => {
           setEndDialogOpen(false);
-          endNow();
+          if (timer.elapsedSec >= 30) {
+            timer.completeEarly();
+          } else {
+            endNow();
+          }
         }}
       />
     </View>

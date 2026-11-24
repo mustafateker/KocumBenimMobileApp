@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
@@ -19,7 +19,7 @@ import {
   Rules,
 } from '@/lib/gamification';
 import { getExamTrack } from '@/lib/mock-exams';
-import { useStudent } from '@/lib/session';
+import { useSession, useStudent } from '@/lib/session';
 import type { Student, StudentSummary } from '@/lib/types';
 import {
   Accent,
@@ -75,20 +75,45 @@ const DREAM_ITEMS: DreamMeta[] = [
 export default function Profile() {
   const router = useRouter();
   const student = useStudent();
+  const { refresh } = useSession();
   const { showError } = useErrorDialog();
 
   const { journey } = useLocalSearchParams<{ journey?: string }>();
   const [summary, setSummary] = useState<StudentSummary | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [internalJourneyOpen, setInternalJourneyOpen] = useState<boolean | null>(null);
   const journeyOpen = internalJourneyOpen ?? (journey === '1');
 
+  const loadData = useCallback(async () => {
+    try {
+      await Promise.all([
+        getSummary().then(setSummary),
+        refresh(),
+      ]);
+    } catch (err) {
+      showError(err, { title: 'Profil yüklenemedi', code: 'SUMMARY_LOAD' });
+    }
+  }, [refresh, showError]);
+
   useFocusEffect(
     useCallback(() => {
-      getSummary()
-        .then(setSummary)
-        .catch((err) => showError(err, { title: 'Profil yüklenemedi', code: 'SUMMARY_LOAD' }));
-    }, [showError])
+      loadData();
+    }, [loadData])
   );
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        getSummary().then(setSummary),
+        refresh(),
+      ]);
+    } catch {
+      // sessizce devam
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refresh]);
 
   const isLgs = getExamTrack(student.grade) === 'lgs';
 
@@ -119,7 +144,12 @@ export default function Profile() {
   const isShieldActive = gamificationState?.decayStatus === 'shield_active' || (gamificationState?.shieldDaysLeft ?? 0) > 0;
 
   return (
-    <Screen tint={Accent}>
+    <Screen
+      tint={Accent}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Accent} colors={[Accent]} />
+      }
+    >
       <ScreenHeader
         title="Profilim"
         subtitle="Öğrenci kimliğin, hedeflerin ve başarın"
