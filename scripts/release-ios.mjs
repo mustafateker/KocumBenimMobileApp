@@ -1,6 +1,7 @@
 import { setProvisioningProfileForPbxproj } from '@expo/config-plugins/build/ios/ProvisioningProfile.js';
-import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
@@ -11,6 +12,7 @@ const iosKoku = resolve(kok, 'ios');
 const workspaceYolu = resolve(iosKoku, 'KocumBenim.xcworkspace');
 const pbxprojYolu = resolve(iosKoku, 'KocumBenim.xcodeproj/project.pbxproj');
 const infoPlistYolu = resolve(iosKoku, 'KocumBenim/Info.plist');
+const entitlementsYolu = resolve(iosKoku, 'KocumBenim/KocumBenim.entitlements');
 const buildKlasoru = resolve(kok, 'build/ios');
 const archiveYolu = resolve(buildKlasoru, 'KocumBenim.xcarchive');
 const exportKlasoru = resolve(buildKlasoru, 'export');
@@ -26,6 +28,14 @@ const KEY_ID = 'A746S8QJ2Y';
 const ISSUER_ID = 'c52e6cf6-318d-452a-9a47-82f5b2d39467';
 const PROFILE_NAME = 'com.triworkster.kocumbenim AppStore';
 
+function yaz(mesaj) {
+  process.stdout.write(`${mesaj}\n`);
+}
+
+function hataYaz(mesaj) {
+  process.stderr.write(`${mesaj}\n`);
+}
+
 function calistir(komut, args, secenekler = {}) {
   const sonuc = spawnSync(komut, args, {
     cwd: kok,
@@ -40,38 +50,84 @@ function calistir(komut, args, secenekler = {}) {
   }
 }
 
+function profilIcerigiOku(yol) {
+  if (!existsSync(yol)) return '';
+  try {
+    return execFileSync('security', ['cms', '-D', '-i', yol], { encoding: 'utf8' });
+  } catch {
+    return '';
+  }
+}
+
 const args = process.argv.slice(2);
 const kip = args[0] ?? 'testflight';
 if (!['build', 'testflight'].includes(kip)) {
-  console.error('Kullanim: npm run release:ios veya npm run build:ios');
+  hataYaz('Kullanim: npm run release:ios veya npm run build:ios');
   process.exit(1);
 }
 
-console.log('\n=== Kocum Benim iOS TestFlight Release Akisi ===\n');
+yaz('\n=== Kocum Benim iOS TestFlight Release Akisi ===\n');
 
 // 1. On gereksinim kontrolleri
-console.log('1/5 On kosullar dogrulaniyor...');
+yaz('1/5 On kosullar dogrulaniyor...');
 if (!existsSync(apiKeyYolu)) {
   throw new Error(`App Store Connect AuthKey bulunamadi: ${apiKeyYolu}`);
 }
 
-// Profil yoksa fastlane sigh ile otomatik indir
-if (!existsSync(profilYolu)) {
-  console.log('App Store Provisioning Profile eksik, fastlane ile indiriliyor...');
-  calistir('fastlane', ['ios', 'get_profile'], {
-    env: {
-      APP_STORE_CONNECT_API_KEY_PATH: apiKeyYolu,
-      APP_STORE_CONNECT_KEY_ID: KEY_ID,
-      APP_STORE_CONNECT_ISSUER_ID: ISSUER_ID,
-    },
-  });
+// Profil yoksa veya Apple Sign-In yetkisi profilde henuz yoksa fastlane sigh ile indir/yenile
+let decodedProfile = profilIcerigiOku(profilYolu);
+if (!existsSync(profilYolu) || !decodedProfile.includes('com.apple.developer.applesignin')) {
+  yaz('App Store Provisioning Profile indiriliyor / guncelleniyor...');
+  try {
+    calistir('fastlane', ['ios', 'get_profile'], {
+      env: {
+        APP_STORE_CONNECT_API_KEY_PATH: apiKeyYolu,
+        APP_STORE_CONNECT_KEY_ID: KEY_ID,
+        APP_STORE_CONNECT_ISSUER_ID: ISSUER_ID,
+        FORCE_PROFILE: existsSync(profilYolu) ? '1' : '0',
+      },
+    });
+    decodedProfile = profilIcerigiOku(profilYolu);
+  } catch (err) {
+    if (!existsSync(profilYolu)) throw err;
+  }
+}
+
+// Xcode'un yerel profil havuzuna da kopyala
+if (existsSync(profilYolu)) {
+  const uuidMatch = decodedProfile.match(/<key>UUID<\/key>\s*<string>([^<]+)<\/string>/);
+  const xcodeProfilesDir = resolve(homedir(), 'Library/MobileDevice/Provisioning Profiles');
+  mkdirSync(xcodeProfilesDir, { recursive: true });
+  if (uuidMatch?.[1]) {
+    copyFileSync(profilYolu, resolve(xcodeProfilesDir, `${uuidMatch[1]}.mobileprovision`));
+  }
+}
+
+// Entitlements dosyasini aktif provisioning profile ile uyumlu tut
+if (existsSync(entitlementsYolu) && decodedProfile) {
+  const supportsAppleSignIn = decodedProfile.includes('com.apple.developer.applesignin');
+  const supportsAps = decodedProfile.includes('<key>aps-environment</key>');
+  const dictEntries = [];
+  if (supportsAps) {
+    dictEntries.push('    <key>aps-environment</key>\n    <string>production</string>');
+  }
+  if (supportsAppleSignIn) {
+    dictEntries.push('    <key>com.apple.developer.applesignin</key>\n    <array>\n      <string>Default</string>\n    </array>');
+  }
+  const entContent = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>${dictEntries.length > 0 ? '\n' + dictEntries.join('\n') + '\n  ' : ''}</dict>
+</plist>
+`;
+  writeFileSync(entitlementsYolu, entContent);
 }
 
 const paket = JSON.parse(readFileSync(paketYolu, 'utf8'));
 const app = JSON.parse(readFileSync(appYolu, 'utf8'));
 
 if (app.expo?.ios?.bundleIdentifier !== BUNDLE_ID) {
-  console.log(`Bundle ID guncelleniyor: ${app.expo?.ios?.bundleIdentifier} -> ${BUNDLE_ID}`);
+  yaz(`Bundle ID guncelleniyor: ${app.expo?.ios?.bundleIdentifier} -> ${BUNDLE_ID}`);
   if (!app.expo) app.expo = {};
   if (!app.expo.ios) app.expo.ios = {};
   app.expo.ios.bundleIdentifier = BUNDLE_ID;
@@ -81,10 +137,10 @@ if (app.expo?.ios?.bundleIdentifier !== BUNDLE_ID) {
 const surum = app.expo?.version ?? paket.version ?? '1.0.0';
 // Dakika cinsinden zaman damgasi: Apple TestFlight'ta her yukleme kesinlikle benzersiz ve artan kod alir
 const buildKodu = String(Math.floor(Date.now() / 60000));
-console.log(`Surum: ${surum} | Derleme Kodu (Build Number): ${buildKodu}`);
+yaz(`Surum: ${surum} | Derleme Kodu (Build Number): ${buildKodu}`);
 
 // 2. Surum bilgilerini Info.plist ve project.pbxproj ile senkronize et
-console.log('2/5 Surum ve imzalama ayarlari yapilandiriliyor...');
+yaz('2/5 Surum ve imzalama ayarlari yapilandiriliyor...');
 if (existsSync(infoPlistYolu)) {
   const plistIcerik = readFileSync(infoPlistYolu, 'utf8')
     .replace(/(<key>CFBundleShortVersionString<\/key>\s*<string>)[^<]+(<\/string>)/, `$1${surum}$2`)
@@ -144,7 +200,7 @@ writeFileSync(
 );
 
 // 4. Native iOS Archive ve IPA uret
-console.log('3/5 Native iOS Archive uretiliyor (xcodebuild archive)...');
+yaz('3/5 Native iOS Archive uretiliyor (xcodebuild archive)...');
 calistir('xcodebuild', [
   '-workspace',
   workspaceYolu,
@@ -160,7 +216,7 @@ calistir('xcodebuild', [
   'archive',
 ]);
 
-console.log('4/5 Imzali IPA paketi cikariliyor (xcodebuild -exportArchive)...');
+yaz('4/5 Imzali IPA paketi cikariliyor (xcodebuild -exportArchive)...');
 calistir('xcodebuild', [
   '-exportArchive',
   '-archivePath',
@@ -176,11 +232,11 @@ if (!existsSync(ipaYolu) || statSync(ipaYolu).size === 0) {
 }
 
 const boyutMB = (statSync(ipaYolu).size / (1024 * 1024)).toFixed(2);
-console.log(`\nImzali IPA basariyla olusturuldu: ${ipaYolu} (${boyutMB} MB)`);
+yaz(`\nImzali IPA basariyla olusturuldu: ${ipaYolu} (${boyutMB} MB)`);
 
 // 5. TestFlight Yuklemesi
 if (kip === 'testflight') {
-  console.log('\n5/5 IPA App Store Connect (TestFlight) kanalina yukleniyor...');
+  yaz('\n5/5 IPA App Store Connect (TestFlight) kanalina yukleniyor...');
   calistir('fastlane', ['ios', 'upload_testflight'], {
     env: {
       IOS_IPA_PATH: ipaYolu,
@@ -191,7 +247,7 @@ if (kip === 'testflight') {
   });
 
   const etiket = `v${surum}-ios-build.${buildKodu}`;
-  console.log(`\nTestFlight yuklemesi tamamlandi! Etiket: ${etiket}`);
+  yaz(`\nTestFlight yuklemesi tamamlandi! Etiket: ${etiket}`);
 } else {
-  console.log('\nDerleme modu tamamlandi. Yükleme yapilmadi (--build-only).');
+  yaz('\nDerleme modu tamamlandi. Yükleme yapilmadi (--build-only).');
 }

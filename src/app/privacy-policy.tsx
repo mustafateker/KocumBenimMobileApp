@@ -14,12 +14,13 @@ const SECTIONS: LegalSection[] = [
     heading: '2. Topladığımız Veriler',
     body:
       'Hesap bilgileri: e-posta adresi, ad, soyad, takma ad, sınıf seviyesi ve parola (şifrelenmiş ' +
-      'olarak saklanır). Hedef profili: kariyer hedefin, hedef lise/üniversite/bölüm, çalışmak ' +
-      'istediğin matematik konuları, günlük çalışma süren ve motivasyon kaynakların (İlk Kurulum ' +
-      'sırasında verdiğin cevaplar). Opsiyonel veli e-postası. Kullanım verileri: tamamladığın odak ' +
-      'oturumları, günlük görevlerin, seri (streak) ve XP puanların, en verimli çalışma saatlerin. ' +
-      'İçerik: "Hızlı Soru Sor" özelliğiyle çektiğin soru fotoğrafları ve üzerlerine eklediğin çizim/' +
-      'notlar. Cihaz ve bildirim bilgisi: bildirim gönderebilmek için cihaz push token\'ı ve temel ' +
+      'olarak saklanır) veya Apple ile Giriş Yap / Google ile Giriş Yap kullandığında ilgili sağlayıcının ' +
+      'paylaştığı kimlik doğrulama belirteci, ad ve e-posta bilgisi. Hedef profili: kariyer hedefin, ' +
+      'hedef lise/üniversite/bölüm, çalışmak istediğin ders konuları, günlük çalışma süren ve motivasyon ' +
+      'kaynakların (İlk Kurulum sırasında verdiğin cevaplar). Opsiyonel veli e-postası. Kullanım verileri: ' +
+      'tamamladığın odak oturumları, günlük görevlerin, seri (streak) ve XP puanların, en verimli çalışma ' +
+      'saatlerin. İçerik: "Hızlı Soru Sor" özelliğiyle çektiğin soru fotoğrafları ve üzerlerine eklediğin ' +
+      'çizim/notlar. Cihaz ve bildirim bilgisi: bildirim gönderebilmek için cihaz push token\'ı ve temel ' +
       'cihaz modeli bilgisi.',
   },
   {
@@ -72,10 +73,14 @@ const SECTIONS: LegalSection[] = [
       'için Aydınlatma Metni sayfasına bakabilirsin.',
   },
   {
-    heading: '9. Çerezler ve İzleme',
+    heading: '9. Üçüncü Taraf Hizmetler, Reklam ve Abonelik',
     body:
-      'Uygulama, reklam veya pazarlama amaçlı izleme araçları ya da üçüncü taraf analitik/reklam ' +
-      'SDK\'ları kullanmaz. Bildirim göndermek için yalnızca cihazının push token\'ı saklanır.',
+      'Ücretsiz planda Uygulamanın sürdürülebilirliğini sağlamak amacıyla Google AdMob aracılığıyla ' +
+      'yalnızca kişiselleştirilmemiş (non-personalized) ve öğrenci yaş grubuna uygun reklamlar ' +
+      'gösterilir; uygulamalar arası reklam takibi (cross-app tracking) yapılmaz. Koçum Pro ' +
+      'abonelik işlemleri Apple App Store veya Google Play üzerinden yürütülür ve abonelik durumu ' +
+      'doğrulaması için RevenueCat altyapısı kullanılır; kredi kartı veya ödeme bilgileriniz ' +
+      'sunucularımızda saklanmaz. Bildirim göndermek için yalnızca cihazının push token\'ı tutulur.',
   },
   {
     heading: '10. Politika Değişiklikleri',

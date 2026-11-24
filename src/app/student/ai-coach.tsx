@@ -92,25 +92,7 @@ export default function AiCoachScreen() {
             id: 'init-greeting',
             role: 'raccoon',
             text: ctx.greeting,
-            timestamp: '18:08',
-          },
-          {
-            id: 'demo-user-1',
-            role: 'student',
-            text: 'Eksiklerime ve sınıfıma göre öncelikle hangi konulara çalışmam lazım?',
-            timestamp: '18:09',
-          },
-          {
-            id: 'demo-ai-1',
-            role: 'raccoon',
-            text: `5. sınıf müfredatında düzenli ilerlemek için bugün şu konulara odaklanabilirsin:
-
-- Matematik: Doğal Sayılar ve İşlemler, Çok Basamaklı Sayılar
-- Türkçe: Sözcükte Anlam, Eş ve Zıt Anlamlı Kelimeler
-- Fen Bilimleri: Gökyüzündeki Komşumuz: Güneş ve Ay
-
-Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
-            timestamp: '18:09',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ];
       });
@@ -134,10 +116,9 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
   useFocusEffect(
     useCallback(() => {
       loadContext();
-      markAiCoachUsed();
       return () => {
-        // Kullanıcı Koçum ekranını kullandıktan sonra başka bir ekrana ilk geçtiğinde
-        // Google Play değerlendirme popup'ını tetikler.
+        // Kullanıcı Koçum ekranında etkileşime geçtikten sonra başka bir ekrana ilk geçtiğinde
+        // değerlendirme popup'ını tetikler.
         triggerPlayReviewOnLeaveAiCoach();
       };
     }, [loadContext])
@@ -164,6 +145,7 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
         return;
       }
       setRemainingAi(consumed.remaining);
+      void markAiCoachUsed();
 
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const userMsg: AiChatMessage = {
@@ -554,16 +536,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: Space.sm,
   },
-  raccoonBadge: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: Palette.surfaceHi,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   metricCol: {
     alignItems: 'center',
     gap: 2,
@@ -605,27 +577,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: Space.sm,
     marginBottom: Space.md,
-  },
-  raccoonAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: Palette.surface,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 2,
-  },
-  raccoonAvatarSmall: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: Palette.surface,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   raccoonContent: {
     flex: 1,

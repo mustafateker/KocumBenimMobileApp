@@ -31,7 +31,11 @@ export function LegalScreen({
 
   return (
     <Screen tint={Palette.textDim}>
-      <ScreenHeader title={title} subtitle={subtitle} onBack={() => router.back()} />
+      <ScreenHeader
+        title={title}
+        subtitle={subtitle}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      />
 
       <Txt variant="small" color={Palette.textFaint}>
         Son güncelleme: {updatedAt}

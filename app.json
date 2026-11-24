@@ -75,7 +75,8 @@
         {
           "android": {
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-keep class com.swmansion.reanimated.** { *; }\n-keep class com.swmansion.worklets.** { *; }\n-keep class com.facebook.react.turbomodule.** { *; }\n-keep class com.reactnativegooglesignin.** { *; }\n-keep class com.google.android.gms.auth.** { *; }\n-keep class com.google.android.gms.common.** { *; }\n-keep class com.revenuecat.purchases.** { *; }\n-keep class com.android.billingclient.** { *; }\n-keep class io.invertase.googlemobileads.** { *; }\n-keep class com.google.android.gms.ads.** { *; }\n-dontwarn com.google.errorprone.annotations.**"
           },
           "ios": {
             "usePrecompiledModules": false
@@ -93,10 +94,16 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-4455914992803909~7764190271",
-          "iosAppId": "ca-app-pub-3940256099942544~1458783705",
-          "userTrackingUsageDescription": "Sana daha uygun ve kişiselleştirilmiş içerik ile reklamlar sunabilmek için izninize ihtiyaç duyuyoruz."
+          "iosAppId": "ca-app-pub-4455914992803909~6345051417"
         }
-      ]
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.437940693097-avtqiuecbkmvg75je3k1cohm5bo1s1ss"
+        }
+      ],
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -104,16 +111,17 @@
     },
     "ios": {
       "bundleIdentifier": "com.triworkster.kocumbenim",
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "CFBundleDisplayName": "Koçum Benim",
-        "GADApplicationIdentifier": "ca-app-pub-3940256099942544~1458783705",
+        "GADApplicationIdentifier": "ca-app-pub-4455914992803909~6345051417",
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "Takıldığın soru ve ödevlerin fotoğrafını çekip koçuna gönderebilmen için kameraya erişim izni gereklidir.",
         "NSPhotoLibraryUsageDescription": "Takıldığın soruları galerinden seçip sisteme yükleyebilmen için fotoğraf arşivine erişim izni gereklidir.",
         "NSPhotoLibraryAddUsageDescription": "Çözülen soruları ve çalışma notlarını cihazına kaydedebilmen için fotoğraf arşivine kayıt izni gereklidir.",
-        "NSUserTrackingUsageDescription": "Sana daha uygun ve kişiselleştirilmiş içerik ile reklamlar sunabilmek için izninize ihtiyaç duyuyoruz.",
         "SKAdNetworkItems": [
           {
             "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork"
@@ -186,7 +194,6 @@
   },
   "react-native-google-mobile-ads": {
     "android_app_id": "ca-app-pub-4455914992803909~7764190271",
-    "ios_app_id": "ca-app-pub-3940256099942544~1458783705",
-    "user_tracking_usage_description": "Sana daha uygun ve kişiselleştirilmiş içerik ile reklamlar sunabilmek için izninize ihtiyaç duyuyoruz."
+    "ios_app_id": "ca-app-pub-4455914992803909~6345051417"
   }
 }

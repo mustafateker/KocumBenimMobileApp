@@ -78,12 +78,33 @@ const EMPTY_FORM: FormState = {
 };
 
 /**
- * Kocun panelden actigi hesapta ad soyad hazir gelir; ilk adimda tekrar yazdirmayalim.
- * Kendi kaydini yapan ogrencide `name` e-postanin on kismi oldugu icin onerilmez.
+ * Kocun panelden actigi veya Apple / Google ile giris yapilan hesapta ad soyad
+ * hazir gelebilir; ilk adimda tekrar yazdirmayalim (Apple Guideline 4.0).
+ * Kendi e-postasiyla kayit yapan ogrencide `name` e-postanin on kismi oldugu icin onerilmez.
  */
-function prefillName(student: { name: string; teacherId: number | null }): Pick<FormState, 'firstName' | 'lastName'> {
-  if (student.teacherId == null) return { firstName: '', lastName: '' };
-  const parts = student.name.trim().split(/\s+/).filter(Boolean);
+function prefillName(student: {
+  name: string;
+  surname?: string | null;
+  email?: string | null;
+  teacherId: number | null;
+}): Pick<FormState, 'firstName' | 'lastName'> {
+  const rawName = (student.name ?? '').trim();
+  const rawSurname = (student.surname ?? '').trim();
+  const emailPrefix = (student.email ?? '').split('@')[0]?.trim().toLowerCase() ?? '';
+
+  if (rawSurname) {
+    return { firstName: rawName, lastName: rawSurname };
+  }
+
+  const isEmailPrefixOnly =
+    student.teacherId == null &&
+    (!rawName || rawName.toLowerCase() === emailPrefix || rawName.toLowerCase() === 'öğrenci');
+
+  if (isEmailPrefixOnly) {
+    return { firstName: '', lastName: '' };
+  }
+
+  const parts = rawName.split(/\s+/).filter(Boolean);
   if (parts.length < 2) return { firstName: parts[0] ?? '', lastName: '' };
   return { firstName: parts.slice(0, -1).join(' '), lastName: parts[parts.length - 1] };
 }

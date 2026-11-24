@@ -1,6 +1,7 @@
 internal import Expo
 import React
 import ReactAppDependencyProvider
+import UIKit
 
 @main
 class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
@@ -23,6 +24,20 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
+  // MARK: - UISceneSession Lifecycle
+  public func application(
+    _ application: UIApplication,
+    configurationForConnecting connectingSceneSession: UISceneSession,
+    options: UIScene.ConnectionOptions
+  ) -> UISceneConfiguration {
+    let configuration = UISceneConfiguration(
+      name: "Default Configuration",
+      sessionRole: connectingSceneSession.role
+    )
+    configuration.delegateClass = SceneDelegate.self
+    return configuration
+  }
+
   // Linking API
   public override func application(
     _ app: UIApplication,
@@ -41,6 +56,9 @@ class AppDelegate: ExpoAppDelegate, ExpoReactNativeFactoryProvider {
     let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
   }
+}
+
+class SceneDelegate: ExpoAppSceneDelegate {
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {

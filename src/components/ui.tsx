@@ -43,6 +43,7 @@ export {
 
 export function Card({
   style,
+  accent: _accent,
   children,
   ...rest
 }: ViewProps & { accent?: string }) {
@@ -226,7 +227,6 @@ export function SectionLabel({ children, color = Palette.textFaint }: { children
 }
 
 const styles = StyleSheet.create({
-  center: { textAlign: 'center' },
   card: {
     backgroundColor: Palette.surface,
     borderRadius: Radius.lg,

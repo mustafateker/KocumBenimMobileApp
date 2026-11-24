@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 import { preloadInterstitialAd } from './ads';
 import { useSession } from './session';
@@ -50,6 +51,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       const Purchases = require('react-native-purchases').default;
       if (!purchasesConfigured) {
+        // SDK loglarinin konsola yazilmasini ve Metro hata katmanini tetiklemesini engelle
+        Purchases.setLogHandler(() => {});
+
         Purchases.configure({ apiKey });
         purchasesConfigured = true;
       }
@@ -138,27 +142,46 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } catch {}
   }, [sdkReady]);
 
-  // 4. Paywall acma fonksiyonu (RevenueCat UI)
+  // 4. Paywall acma fonksiyonu (RevenueCat Dashboard uzerinde tasarlanan Paywall)
   const presentPaywall = useCallback(async (): Promise<boolean> => {
-    if (Platform.OS === 'web' || !sdkReady) return false;
+    if (Platform.OS === 'web') return false;
+    if (isPro) return true;
+
+    if (!sdkReady) {
+      Alert.alert(
+        'Abonelik Servisi Hazırlanıyor',
+        'Mağaza bağlantısı kuruluyor. Lütfen birkaç saniye sonra tekrar deneyin.'
+      );
+      return false;
+    }
 
     try {
       const RevenueCatUI = require('react-native-purchases-ui').default;
       const { PAYWALL_RESULT } = require('react-native-purchases-ui');
       const Purchases = require('react-native-purchases').default;
 
-      const result = await RevenueCatUI.presentPaywall();
+      const result = await RevenueCatUI.presentPaywall({ displayCloseButton: true });
       if (result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED) {
         const info = await Purchases.getCustomerInfo();
         const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
         setIsPro(hasPro);
         return hasPro;
       }
+      if (result === PAYWALL_RESULT.ERROR) {
+        Alert.alert(
+          'Paketler Yüklenemedi',
+          'Abonelik paketleri şu anda mağazadan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.'
+        );
+      }
       return false;
     } catch {
+      Alert.alert(
+        'Paketler Yüklenemedi',
+        'Abonelik paketleri şu anda mağazadan alınamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.'
+      );
       return false;
     }
-  }, [sdkReady]);
+  }, [isPro, sdkReady]);
 
   // 5. Satin alimlari geri yukleme fonksiyonu
   const restorePurchases = useCallback(async (): Promise<boolean> => {
@@ -186,7 +209,11 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     [isPro, loading, presentPaywall, restorePurchases, refreshSubscription]
   );
 
-  return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
+  return (
+    <SubscriptionContext.Provider value={value}>
+      {children}
+    </SubscriptionContext.Provider>
+  );
 }
 
 export function useSubscription(): SubscriptionContextValue {

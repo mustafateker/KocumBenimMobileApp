@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
@@ -8,16 +9,33 @@ import {
   loadStoredTokens,
   setTokens as persistTokens,
 } from './api-client';
-import { getMe, login as apiLogin, logout as apiLogout, studentSignup } from './api';
+import {
+  AppleLoginInput,
+  getMe,
+  login as apiLogin,
+  loginWithApple as apiLoginWithApple,
+  loginWithGoogle as apiLoginWithGoogle,
+  logout as apiLogout,
+  studentSignup,
+} from './api';
 import { registerForPushNotifications } from './push-notifications';
 import type { Student } from './types';
 
+export type AuthProviderType = 'email' | 'google' | 'apple' | null;
+const AUTH_PROVIDER_KEY = 'kocumbenim.auth.provider';
+
 type SessionValue = {
   user: Student | null;
+  /** Kullanicinin hangi yontemle oturum actigi (Apple hesap silme iptali icin). */
+  authProvider: AuthProviderType;
   /** Ilk acilista kayitli oturum okunana kadar true. */
   loading: boolean;
   /** Basarisizsa ApiError firlatir; hatayi gosterme isi cagirana aittir. */
   signIn: (email: string, password: string, remember?: boolean) => Promise<void>;
+  /** Google idToken ile giris yapar veya ogrenci hesabi acar. */
+  signInWithGoogle: (idToken: string) => Promise<void>;
+  /** Apple kimlik bilgileri ile giris yapar veya ogrenci hesabi acar. */
+  signInWithApple: (input: AppleLoginInput) => Promise<void>;
   /** Basarisizsa ApiError firlatir (CONFLICT: e-posta zaten kayitli). */
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -36,6 +54,7 @@ const SessionContext = createContext<SessionValue | null>(null);
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Student | null>(null);
+  const [authProvider, setAuthProvider] = useState<AuthProviderType>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,14 +62,22 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        await loadStoredTokens();
+        const [, storedProvider] = await Promise.all([
+          loadStoredTokens(),
+          AsyncStorage.getItem(AUTH_PROVIDER_KEY).catch(() => null),
+        ]);
         if (!hasAccessToken()) return;
         const me = await getMe();
         if (me.role !== 'student') {
           await clearTokens();
           return;
         }
-        if (!cancelled) setUser(me);
+        if (!cancelled) {
+          setUser(me);
+          if (storedProvider === 'email' || storedProvider === 'google' || storedProvider === 'apple') {
+            setAuthProvider(storedProvider);
+          }
+        }
       } catch {
         // Token gecersiz/suresi dolmus ve refresh basarisizsa oturumsuz baslamak dogru davranis.
         await clearTokens();
@@ -85,19 +112,59 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
 
     await persistTokens(tokens, remember);
+    await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'email').catch(() => {});
+    setAuthProvider('email');
+    setUser(signedInUser);
+  }, []);
+
+  const signInWithGoogle = useCallback(async (idToken: string) => {
+    const { user: signedInUser, tokens } = await apiLoginWithGoogle(idToken);
+    if (signedInUser.role !== 'student') {
+      await clearTokens();
+      throw new ApiError(
+        403,
+        'FORBIDDEN_ROLE',
+        'Bu mobil uygulama yalnızca öğrenci hesapları içindir.'
+      );
+    }
+    await persistTokens(tokens, true);
+    await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'google').catch(() => {});
+    setAuthProvider('google');
+    setUser(signedInUser);
+  }, []);
+
+  const signInWithApple = useCallback(async (input: AppleLoginInput) => {
+    const { user: signedInUser, tokens } = await apiLoginWithApple(input);
+    if (signedInUser.role !== 'student') {
+      await clearTokens();
+      throw new ApiError(
+        403,
+        'FORBIDDEN_ROLE',
+        'Bu mobil uygulama yalnızca öğrenci hesapları içindir.'
+      );
+    }
+    await persistTokens(tokens, true);
+    await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'apple').catch(() => {});
+    setAuthProvider('apple');
     setUser(signedInUser);
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
     const { user: newUser, tokens } = await studentSignup(email.trim().toLowerCase(), password);
     await persistTokens(tokens, true);
+    await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'email').catch(() => {});
+    setAuthProvider('email');
     setUser(newUser);
   }, []);
 
   const signOut = useCallback(async () => {
     const refreshToken = getRefreshToken();
     setUser(null);
-    await clearTokens();
+    setAuthProvider(null);
+    await Promise.all([
+      clearTokens(),
+      AsyncStorage.removeItem(AUTH_PROVIDER_KEY).catch(() => {}),
+    ]);
     if (refreshToken) {
       apiLogout(refreshToken).catch(() => {
         // Cikis her halukarda yerelde tamamlanir; sunucu tarafi en iyi cabayla iptal edilir.
@@ -116,8 +183,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const value = useMemo(
-    () => ({ user, loading, signIn, signUp, signOut, refresh, setUser }),
-    [user, loading, signIn, signUp, signOut, refresh]
+    () => ({ user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh, setUser }),
+    [user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh]
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

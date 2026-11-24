@@ -107,19 +107,9 @@ export async function registerForPushNotifications(): Promise<void> {
       return;
     }
 
-    // expo-notifications native cihaz tokeni Android'de FCM, iOS'ta APNs tokenidir.
-    // Backend dogrudan FCM kullandigi icin ham APNs tokenini Firebase'e kaydetme.
-    if (Platform.OS !== 'android') {
-      logHandledError(
-        'PUSH_UNSUPPORTED_PLATFORM',
-        'Dogrudan FCM token kaydi su anda yalnizca Android icin yapilandirildi.'
-      );
-      return;
-    }
-
     const tokenResponse = await Notifications.getDevicePushTokenAsync();
     if (typeof tokenResponse.data !== 'string') {
-      throw new Error('FCM cihaz tokeni beklenen string biciminde degil.');
+      throw new Error('Cihaz tokeni beklenen string biçiminde değil.');
     }
     await registerPushToken(tokenResponse.data);
   } catch (err) {

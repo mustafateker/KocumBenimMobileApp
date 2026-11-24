@@ -7,11 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NeonButton, PressScale } from '@/components/button';
 import { Mascot } from '@/components/mascot';
 import { ScreenBackground } from '@/components/screen';
+import { SocialAuthButtons } from '@/components/social-auth-buttons';
 import { TextField, Txt } from '@/components/ui';
 import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
 import { useSession } from '@/lib/session';
+import { promptAppleSignIn, promptGoogleSignIn } from '@/lib/social-auth';
 import { EMAIL_RE } from '@/lib/validation';
 import { OnboardingPalette, Space } from '@/theme/tokens';
 
@@ -25,7 +27,7 @@ export default function SignUp() {
 function SignUpForm() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signUp } = useSession();
+  const { signUp, signInWithGoogle, signInWithApple } = useSession();
   const { showMessage, showError } = useErrorDialog();
 
   const [email, setEmail] = useState('');
@@ -33,6 +35,45 @@ function SignUpForm() {
   const [confirm, setConfirm] = useState('');
   const [invalidField, setInvalidField] = useState<'email' | 'password' | 'confirm' | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+
+  const handleGoogleSignUp = useCallback(async () => {
+    if (submitting || socialLoading) return;
+    setSocialLoading('google');
+    try {
+      const result = await promptGoogleSignIn();
+      if (!result) return;
+      await signInWithGoogle(result.idToken);
+      router.replace('/');
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'FORBIDDEN_ROLE') {
+        showMessage('Öğrenci Hesabı Gerekli', err.message);
+      } else {
+        showError(err, { title: 'Google ile kayıt olunamadı', code: 'GOOGLE_SIGNUP' });
+      }
+    } finally {
+      setSocialLoading(null);
+    }
+  }, [submitting, socialLoading, signInWithGoogle, router, showMessage, showError]);
+
+  const handleAppleSignUp = useCallback(async () => {
+    if (submitting || socialLoading) return;
+    setSocialLoading('apple');
+    try {
+      const result = await promptAppleSignIn();
+      if (!result) return;
+      await signInWithApple(result);
+      router.replace('/');
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'FORBIDDEN_ROLE') {
+        showMessage('Öğrenci Hesabı Gerekli', err.message);
+      } else {
+        showError(err, { title: 'Apple ile kayıt olunamadı', code: 'APPLE_SIGNUP' });
+      }
+    } finally {
+      setSocialLoading(null);
+    }
+  }, [submitting, socialLoading, signInWithApple, router, showMessage, showError]);
 
   const submit = useCallback(async () => {
     if (submitting) return;
@@ -153,6 +194,14 @@ function SignUpForm() {
             disabled={submitting}
             onPress={submit}
             style={styles.submit}
+          />
+
+          <SocialAuthButtons
+            mode="signup"
+            loadingProvider={socialLoading}
+            disabled={submitting || socialLoading != null}
+            onApplePress={handleAppleSignUp}
+            onGooglePress={handleGoogleSignUp}
           />
 
           <View style={styles.legalNotice}>

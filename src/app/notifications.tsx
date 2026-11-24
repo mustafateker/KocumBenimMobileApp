@@ -3,7 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { PressScale } from '@/components/button';
+import { IconButton, PressScale } from '@/components/button';
 import { Screen, ScreenHeader } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Txt } from '@/components/ui';
 import { getNotifications, markNotificationRead } from '@/lib/api';
@@ -80,12 +80,37 @@ export default function Notifications() {
     [markOneRead, router]
   );
 
+  const handleSendTestNotification = useCallback(async () => {
+    try {
+      const Notifications = await import('expo-notifications');
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Koçum Benim',
+          body: 'Tebrikler! iOS bildirim sistemi başarıyla çalışıyor.',
+          sound: true,
+          badge: 1,
+        },
+        trigger: null,
+      });
+    } catch (err) {
+      logHandledError('TEST_NOTIFICATION_FAILED', err);
+    }
+  }, []);
+
   return (
     <Screen tint={Accent}>
       <ScreenHeader
         title="Bildirimler"
         subtitle="Görevlerin ve uygulama duyuruların"
         onBack={() => (router.canGoBack() ? router.back() : router.replace('/student'))}
+        right={
+          __DEV__ ? (
+            <IconButton
+              icon="paper-plane-outline"
+              onPress={handleSendTestNotification}
+            />
+          ) : null
+        }
       />
 
       {notifications.length === 0 ? (

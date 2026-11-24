@@ -18,7 +18,9 @@ import { relativeTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { persistCapturedPhoto } from '@/lib/photo-store';
 import { useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import type { Question, QuestionStatus } from '@/lib/types';
+import { syncMonthlyQuestionsFromList } from '@/lib/usage-limits';
 import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const STATUS_META: Record<QuestionStatus | string, { label: string; color: string; icon: React.ComponentProps<typeof Ionicons>['name'] }> = {
@@ -230,7 +232,7 @@ function QuestionList() {
   useStudent();
   const { demo } = useLocalSearchParams<{ demo?: string }>();
   const insets = useSafeAreaInsets();
-  const [questions, setQuestions] = useState<Question[]>(DEMO_QUESTIONS);
+  const [questions, setQuestions] = useState<Question[]>(() => (demo === '1' ? DEMO_QUESTIONS : []));
   const [filterSubject, setFilterSubject] = useState<string>('all');
   const [activeSolution, setActiveSolution] = useState<{
     imageUri?: string | null;
@@ -244,7 +246,9 @@ function QuestionList() {
       if (demo === '1') return;
       getQuestions()
         .then((res) => {
-          if (res && res.length > 0) setQuestions(res);
+          const list = Array.isArray(res) ? res : [];
+          setQuestions(list);
+          void syncMonthlyQuestionsFromList(list);
         })
         .catch((err) => showError(err, { title: 'Sorular yüklenemedi', code: 'QUESTIONS_LOAD' }));
     }, [demo, showError])
@@ -408,6 +412,8 @@ function QuestionCard({
   onViewImage: (uri: string) => void;
   onViewSolution: (data: { imageUri?: string | null; replyText?: string | null }) => void;
 }) {
+  const student = useStudent();
+  const { isPro } = useSubscription();
   const meta = (question.status && STATUS_META[question.status]) || DEFAULT_STATUS_META;
   const [busy, setBusy] = useState(false);
   const [replyImgLoading, setReplyImgLoading] = useState(true);
@@ -438,7 +444,9 @@ function QuestionCard({
         imageUrl: question.imageUrl,
         note: question.note ?? undefined,
         subject: question.subject ?? 'Matematik',
+        grade: student.grade ?? undefined,
         forceRefresh,
+        isPro,
       });
       setAiHint(hint);
       setHintVisible(true);
@@ -447,7 +455,7 @@ function QuestionCard({
     } finally {
       setHintLoading(false);
     }
-  }, [aiHint, question.id, question.imageUrl, question.note, question.subject]);
+  }, [aiHint, isPro, question.id, question.imageUrl, question.note, question.subject, student.grade]);
 
   let rawReply = (question.teacherReply || '').trim();
   let embeddedSolutionImage: string | null = null;
@@ -907,19 +915,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  replyImageContainer: {
-    gap: Space.xs,
-    padding: Space.sm,
-    borderRadius: Radius.md,
-    backgroundColor: Palette.greenSoft,
-    borderWidth: 1,
-    borderColor: '#D1FAE5',
-  },
-  replyImageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.xs,
   },
   replyImageWrapper: {
     height: 180,

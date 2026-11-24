@@ -168,5 +168,4 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'transparent',
   },
-  featuredFocusedSlot: {},
 });

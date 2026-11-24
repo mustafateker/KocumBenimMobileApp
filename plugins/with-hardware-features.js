@@ -1,4 +1,4 @@
-const { withAndroidManifest, withGradleProperties } = require("expo/config-plugins");
+const { withAndroidManifest, withGradleProperties, withInfoPlist } = require("expo/config-plugins");
 
 /**
  * Expo prebuild sirasinda:
@@ -6,8 +6,15 @@ const { withAndroidManifest, withGradleProperties } = require("expo/config-plugi
  *    optional (required="false") olarak ekler. Bu sayede Google Play Console,
  *    uygulamanin tablet, katlanabilir ekran veya Chromebook cihazlarinda engellenmesini onler.
  * 2. gradle.properties icine R8 optimized resource shrinking ayarini ekler.
+ * 3. iOS Info.plist icinde NSUserTrackingUsageDescription bulunmamasini garanti eder
+ *    (uygulama yalnizca kisisellestirilmemis reklam gosterir ve ATT izni istemez).
  */
 module.exports = function withHardwareFeatures(config) {
+  config = withInfoPlist(config, (cfg) => {
+    delete cfg.modResults.NSUserTrackingUsageDescription;
+    return cfg;
+  });
+
   config = withAndroidManifest(config, (cfg) => {
     const manifest = cfg.modResults.manifest;
     if (!manifest["uses-feature"]) {

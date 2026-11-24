@@ -21,7 +21,9 @@ platform :ios do
     sigh(
       api_key: asc_api_key,
       app_identifier: "com.triworkster.kocumbenim",
-      force: false
+      output_path: File.expand_path("../.release-secrets", __dir__),
+      filename: "AppStore_com.triworkster.kocumbenim.mobileprovision",
+      force: ENV["FORCE_PROFILE"] == "1"
     )
   end
 

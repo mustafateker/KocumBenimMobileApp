@@ -44,11 +44,17 @@ const SECTIONS: LegalSection[] = [
       'işleyişi için (örneğin koçuna iletmek amacıyla) kullanmamıza izin vermiş olursun.',
   },
   {
-    heading: '6. Ücretlendirme',
+    heading: '6. Ücretlendirme ve Koçum Pro Abonelik Koşulları',
     body:
-      'Uygulama şu anda ücretsiz olarak sunulmaktadır. İleride yeni ücretli özellikler eklenirse, ' +
-      'bu şartlar güncellenir ve hangi özelliklerin ücretli olduğu Uygulama içinde açıkça belirtilir; ' +
-      'onayın olmadan mevcut ücretsiz özelliklerden ücret alınmaz.',
+      'Uygulamanın temel çalışma ve görev takibi özellikleri ücretsiz olarak sunulur. Sınırsız ' +
+      'yapay zeka koçluğu, aylık 60 adet eğitmene görsel soru sorma hakkı, detaylı deneme/konu ' +
+      'analizleri ve reklamsız deneyim sunan "Koçum Pro" ise aylık veya yıllık otomatik yenilenen ' +
+      'abonelik seçenekleriyle satın alınabilir. Ödeme, satın alma onayında Apple App Store veya ' +
+      'Google Play hesabına yansıtılır. Abonelik, mevcut dönemin bitiminden en az 24 saat önce ' +
+      'otomatik yenileme kapatılmadığı sürece seçilen plan tutarı üzerinden otomatik olarak ' +
+      'yenilenir ve yenileme ücreti mevcut dönemin son 24 saati içinde hesabından tahsil edilir. ' +
+      'Satın alma işleminden sonra aboneliğini cihazının App Store veya Google Play Hesap ' +
+      'Ayarları üzerinden dilediğin zaman yönetebilir ve otomatik yenilemeyi iptal edebilirsin.',
   },
   {
     heading: '7. Hizmetin Değiştirilmesi ve Sonlandırılması',

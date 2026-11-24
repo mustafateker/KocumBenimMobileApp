@@ -739,16 +739,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: Space.md,
   },
-  raccoonBubble: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Palette.surfaceHi,
-    borderWidth: Border.thin,
-    borderColor: Palette.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   aiTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',

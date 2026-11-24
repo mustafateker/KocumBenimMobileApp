@@ -117,7 +117,7 @@ export function PlayReviewPrompt() {
               Koçum Senin İçin Çalışıyor!
             </Txt>
             <Txt variant="small" color={Palette.textDim} center>
-              {`Yapay zeka koçun Koçum ile çalışma planını ve konu analizlerini hazırladık. ${storeName}'de vereceğin 5 yıldız ve güzel bir yorum, senin gibi binlerce öğrencinin hedeflerine ulaşmasına büyük güç katıyor. Bize 10 saniyeni ayırıp destek olur musun?`}
+              {`Yapay zeka koçun Koçum ile çalışma planını ve konu analizlerini hazırladık. Deneyimini puanlayıp görüşlerini paylaşman, senin gibi binlerce öğrencinin hedeflerine ulaşmasına güç katıyor.`}
             </Txt>
           </View>
 
@@ -174,7 +174,7 @@ export function PlayReviewPrompt() {
           {/* Aksiyon Butonları */}
           <View style={styles.actionsCol}>
             <NeonButton
-              label={`${storeName}'de Değerlendir ve Gönder`}
+              label={isIos ? 'Değerlendirmeyi Gönder' : `${storeName}'de Değerlendir ve Gönder`}
               icon="star"
               color={Accent}
               size="lg"

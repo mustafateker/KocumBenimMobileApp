@@ -39,6 +39,26 @@ export function login(email: string, password: string, remember: boolean) {
   return api.post<AuthResponse>('/auth/login', { email, password, remember }, { auth: false });
 }
 
+export function loginWithGoogle(idToken: string) {
+  return api.post<AuthResponse>('/auth/google', { idToken }, { auth: false });
+}
+
+export type AppleLoginInput = {
+  identityToken: string;
+  authorizationCode?: string | null;
+  fullName?: {
+    givenName?: string | null;
+    familyName?: string | null;
+    middleName?: string | null;
+    nickname?: string | null;
+  } | null;
+  email?: string | null;
+};
+
+export function loginWithApple(input: AppleLoginInput) {
+  return api.post<AuthResponse>('/auth/apple', input, { auth: false });
+}
+
 export function logout(refreshToken: string | null) {
   return api.post<void>('/auth/logout', { refreshToken });
 }
@@ -54,8 +74,9 @@ export function changePassword(currentPassword: string, newPassword: string) {
   }));
 }
 
-export function deleteAccount() {
-  return api.delete<void>('/me');
+export function deleteAccount(appleAuthCode?: string | null) {
+  const query = appleAuthCode ? `?apple_auth_code=${encodeURIComponent(appleAuthCode)}` : '';
+  return api.delete<void>(`/me${query}`);
 }
 
 export function getMe() {

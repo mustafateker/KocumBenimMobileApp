@@ -12,7 +12,36 @@
           "package_name": "com.triworkster.kocumbenimmobileapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "437940693097-643cqlfgagr8j37jcbrpuoerlhs078qn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.triworkster.kocumbenimmobileapp",
+            "certificate_hash": "2289e34c9fc3ab266fbd1f3cf10595c6d68c413b"
+          }
+        },
+        {
+          "client_id": "437940693097-9dcq51hli9dnthj9lflu58jatqcn1qk0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.triworkster.kocumbenimmobileapp",
+            "certificate_hash": "8dbba84a56f42868caf84402c8e325abf6b7f921"
+          }
+        },
+        {
+          "client_id": "437940693097-ukajslrc0lor2o90r4rc8pegrjjps63b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.triworkster.kocumbenimmobileapp",
+            "certificate_hash": "d07ddf9f92e1b619339229adc93f4c0d9777f517"
+          }
+        },
+        {
+          "client_id": "437940693097-nrq7b3hsr3q93iorc2k5paadag3mfre9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCrHB8O14qKuSK1wWHNP0Jmi8ILO8p1JAI"
@@ -20,7 +49,20 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "437940693097-nrq7b3hsr3q93iorc2k5paadag3mfre9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "437940693097-avtqiuecbkmvg75je3k1cohm5bo1s1ss.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.triworkster.kocumbenim",
+                "app_store_id": "6838309204"
+              }
+            }
+          ]
         }
       }
     }

@@ -8,30 +8,30 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		15014F46A1D6D0C6BF08D733 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		9E8B132AEF0D30493AB58C06 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2D14242BF6AEFDDD35D32A7D /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		D63246A476E41E5FCE733F9F /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */; };
+		D3EAF8635A294A67840C8A7D /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B873240DCB0249D190C89B9E /* GoogleService-Info.plist */; };
+		DFB8E13965BD3B3D1FFDA907 /* libPods-KocumBenim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E6E3B5057BAC1C9B91E0C4E2 /* libPods-KocumBenim.a */; };
+		E3CA24AC2D609FFC3C9BA2A7 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32E1DFF09EF521756DB2BBEB /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
-		F11748422D0307B40044C1DA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1DA /* SceneDelegate.swift */; };
-		FA6B305D099738345E9FFFBC /* libPods-KocumBenim.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		13B07F961A680F5B00A75B9A /* KocumBenim.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KocumBenim.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = KocumBenim/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = KocumBenim/Info.plist; sourceTree = "<group>"; };
-		7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-KocumBenim/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.debug.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.debug.xcconfig"; sourceTree = "<group>"; };
+		2D14242BF6AEFDDD35D32A7D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = KocumBenim/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		32E1DFF09EF521756DB2BBEB /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-KocumBenim/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		56369A0BB04B50757D7D5D16 /* Pods-KocumBenim.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.debug.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.debug.xcconfig"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = KocumBenim/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KocumBenim.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6E2F05A3447B37FE3FCF2CD /* Pods-KocumBenim.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.release.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.release.xcconfig"; sourceTree = "<group>"; };
+		B873240DCB0249D190C89B9E /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "KocumBenim/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = KocumBenim/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		E6E3B5057BAC1C9B91E0C4E2 /* libPods-KocumBenim.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-KocumBenim.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = KocumBenim/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748412D0307B40044C1DA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = KocumBenim/SceneDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* KocumBenim-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "KocumBenim-Bridging-Header.h"; path = "KocumBenim/KocumBenim-Bridging-Header.h"; sourceTree = "<group>"; };
-		F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-KocumBenim.release.xcconfig"; path = "Target Support Files/Pods-KocumBenim/Pods-KocumBenim.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FA6B305D099738345E9FFFBC /* libPods-KocumBenim.a in Frameworks */,
+				DFB8E13965BD3B3D1FFDA907 /* libPods-KocumBenim.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,34 +50,50 @@
 			isa = PBXGroup;
 			children = (
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
-				F11748412D0307B40044C1DA /* SceneDelegate.swift */,
 				F11748442D0722820044C1D9 /* KocumBenim-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				D0A8814DB2A157134CF6DF96 /* PrivacyInfo.xcprivacy */,
+				B873240DCB0249D190C89B9E /* GoogleService-Info.plist */,
+				2D14242BF6AEFDDD35D32A7D /* PrivacyInfo.xcprivacy */,
 			);
 			name = KocumBenim;
 			sourceTree = "<group>";
 		};
-		14436A5F49FDFBA158F53D7B /* Pods */ = {
+		1E0A1CD6EDBD76A0B9D5152A /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */,
-				F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */,
+				56369A0BB04B50757D7D5D16 /* Pods-KocumBenim.debug.xcconfig */,
+				B6E2F05A3447B37FE3FCF2CD /* Pods-KocumBenim.release.xcconfig */,
 			);
 			name = Pods;
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		2CE0533618C312599E72E954 /* KocumBenim */ = {
+			isa = PBXGroup;
+			children = (
+				32E1DFF09EF521756DB2BBEB /* ExpoModulesProvider.swift */,
+			);
+			name = KocumBenim;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				B1A03E69614ED55C7B389204 /* libPods-KocumBenim.a */,
+				E6E3B5057BAC1C9B91E0C4E2 /* libPods-KocumBenim.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2E3B49777D477313B605199E /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				2CE0533618C312599E72E954 /* KocumBenim */,
+			);
+			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -94,8 +110,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				14436A5F49FDFBA158F53D7B /* Pods */,
-				B65CF08131CEDC43334A3CE4 /* ExpoModulesProviders */,
+				1E0A1CD6EDBD76A0B9D5152A /* Pods */,
+				2E3B49777D477313B605199E /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -108,22 +124,6 @@
 				13B07F961A680F5B00A75B9A /* KocumBenim.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A07901294EE8204F9C17165D /* KocumBenim */ = {
-			isa = PBXGroup;
-			children = (
-				7F6B8C12F7B67D680D32658A /* ExpoModulesProvider.swift */,
-			);
-			name = KocumBenim;
-			sourceTree = "<group>";
-		};
-		B65CF08131CEDC43334A3CE4 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				A07901294EE8204F9C17165D /* KocumBenim */,
-			);
-			name = ExpoModulesProviders;
 			sourceTree = "<group>";
 		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
@@ -143,14 +143,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "KocumBenim" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				0E74575541E45D3E1B733EA5 /* [Expo] Configure project */,
+				6492355EBE19AAAD1A98CDA0 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				A3B0235C5EB40745B9BB4C1B /* [CP] Embed Pods Frameworks */,
-				F2CE24CF2392FC744F10739B /* [CP-User] [RNGoogleMobileAds] Configuration */,
+				AC8A7F8735A22E0138144351 /* [CP] Embed Pods Frameworks */,
+				CB267F2E49AA72B662C55B69 /* [CP-User] [RNGoogleMobileAds] Configuration */,
 			);
 			buildRules = (
 			);
@@ -170,9 +170,7 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = 3RRAH7Q65B;
 						LastSwiftMigration = 1250;
-						ProvisioningStyle = Manual;
 					};
 				};
 			};
@@ -202,7 +200,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				15014F46A1D6D0C6BF08D733 /* PrivacyInfo.xcprivacy in Resources */,
+				D3EAF8635A294A67840C8A7D /* GoogleService-Info.plist in Resources */,
+				9E8B132AEF0D30493AB58C06 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,7 +247,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		0E74575541E45D3E1B733EA5 /* [Expo] Configure project */ = {
+		6492355EBE19AAAD1A98CDA0 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -279,14 +278,21 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-KocumBenim/Pods-KocumBenim-resources.sh",
+				"${PODS_CONFIGURATION_BUILD_DIR}/AppAuth/AppAuthCore_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXApplication/ExpoApplication_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/EXConstants.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/EXConstants/ExpoConstants_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoNotifications/ExpoNotifications_privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/ExpoSystemUI/ExpoSystemUI_privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GTMAppAuth/GTMAppAuth_Privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GTMSessionFetcher/GTMSessionFetcher_Core_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/Google-Mobile-Ads-SDK/GoogleMobileAdsResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleSignIn/GoogleSignIn.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleUserMessagingPlatform/UserMessagingPlatformResources.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/GoogleUtilities/GoogleUtilities_Privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/PromisesObjC/FBLPromises_Privacy.bundle",
+				"${PODS_CONFIGURATION_BUILD_DIR}/PromisesSwift/Promises_Privacy.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/PurchasesHybridCommon/PurchasesHybridCommon.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNCAsyncStorage/RNCAsyncStorage_resources.bundle",
 				"${PODS_CONFIGURATION_BUILD_DIR}/RNSVG/RNSVGFilters.bundle",
@@ -299,14 +305,21 @@
 			);
 			name = "[CP] Copy Pods Resources";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/AppAuthCore_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoApplication_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/EXConstants.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoConstants_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoFileSystem_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoNotifications_privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/ExpoSystemUI_privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GTMAppAuth_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GTMSessionFetcher_Core_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleMobileAdsResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleSignIn.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/UserMessagingPlatformResources.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/GoogleUtilities_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/FBLPromises_Privacy.bundle",
+				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/Promises_Privacy.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/PurchasesHybridCommon.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNCAsyncStorage_resources.bundle",
 				"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/RNSVGFilters.bundle",
@@ -322,7 +335,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KocumBenim/Pods-KocumBenim-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A3B0235C5EB40745B9BB4C1B /* [CP] Embed Pods Frameworks */ = {
+		AC8A7F8735A22E0138144351 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -346,7 +359,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-KocumBenim/Pods-KocumBenim-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		F2CE24CF2392FC744F10739B /* [CP-User] [RNGoogleMobileAds] Configuration */ = {
+		CB267F2E49AA72B662C55B69 /* [CP-User] [RNGoogleMobileAds] Configuration */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -368,8 +381,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				F11748422D0307B40044C1DA /* SceneDelegate.swift in Sources */,
-				D63246A476E41E5FCE733F9F /* ExpoModulesProvider.swift in Sources */,
+				E3CA24AC2D609FFC3C9BA2A7 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,13 +390,12 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 900ECA2A1E45811ACBF2C738 /* Pods-KocumBenim.debug.xcconfig */;
+			baseConfigurationReference = 56369A0BB04B50757D7D5D16 /* Pods-KocumBenim.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = KocumBenim/KocumBenim.entitlements;
-				CURRENT_PROJECT_VERSION = 29924506;
-				DEVELOPMENT_TEAM = 3RRAH7Q65B;
+				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
@@ -397,7 +408,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -416,15 +427,12 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F123F5E04C68F59CE88B0091 /* Pods-KocumBenim.release.xcconfig */;
+			baseConfigurationReference = B6E2F05A3447B37FE3FCF2CD /* Pods-KocumBenim.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = KocumBenim/KocumBenim.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 29924506;
-				DEVELOPMENT_TEAM = 3RRAH7Q65B;
+				CURRENT_PROJECT_VERSION = 1;
 				INFOPLIST_FILE = KocumBenim/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -432,7 +440,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -441,7 +449,6 @@
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.triworkster.kocumbenim;
 				PRODUCT_NAME = KocumBenim;
-				PROVISIONING_PROFILE_SPECIFIER = "com.triworkster.kocumbenim AppStore";
 				SWIFT_OBJC_BRIDGING_HEADER = "KocumBenim/KocumBenim-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

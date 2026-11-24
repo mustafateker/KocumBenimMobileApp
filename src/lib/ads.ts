@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -18,15 +19,20 @@ let adsInitPromise: Promise<void> | null = null;
 
 async function initMobileAdsSdk(): Promise<void> {
   try {
-    const mobileAds = require('react-native-google-mobile-ads').default;
+    const mobileAdsModule = require('react-native-google-mobile-ads');
+    const mobileAds = mobileAdsModule.default;
+    const MaxAdContentRating = mobileAdsModule.MaxAdContentRating;
+    if (MaxAdContentRating) {
+      await mobileAds()
+        .setRequestConfiguration({
+          maxAdContentRating: MaxAdContentRating.PG,
+          tagForUnderAgeOfConsent: true,
+        })
+        .catch(() => {});
+    }
     await mobileAds().initialize();
-    if (__DEV__) {
-      console.log('[AdMob] SDK basariyla ilklendirildi.');
-    }
-  } catch (err) {
-    if (__DEV__) {
-      console.warn('[AdMob] SDK ilklendirme hatasi:', err);
-    }
+  } catch {
+    // Reklam SDK ilklendirme hatasi uygulama akisini engellemez
   }
 }
 
@@ -107,25 +113,16 @@ function setupInterstitialAd() {
     unsubscribeLoaded = interstitialAdInstance.addAdEventListener(AdEventType.LOADED, () => {
       isLoaded = true;
       isLoading = false;
-      if (__DEV__) {
-        console.log('[AdMob] Gecis reklami basariyla yuklendi ve gosterime hazir.');
-      }
     });
 
-    unsubscribeError = interstitialAdInstance.addAdEventListener(AdEventType.ERROR, (error: any) => {
+    unsubscribeError = interstitialAdInstance.addAdEventListener(AdEventType.ERROR, () => {
       isLoaded = false;
       isLoading = false;
-      if (__DEV__) {
-        console.warn('[AdMob] Gecis reklami yuklenemedi:', error?.message || error);
-      }
     });
 
     unsubscribeClosed = interstitialAdInstance.addAdEventListener(AdEventType.CLOSED, () => {
       isLoaded = false;
       isLoading = false;
-      if (__DEV__) {
-        console.log('[AdMob] Gecis reklami kapatildi.');
-      }
       // Sonraki seans icin arka planda yeniden yukle
       setTimeout(() => {
         preloadInterstitialAd(false);
@@ -176,9 +173,6 @@ export async function resetAdCooldownForTesting(): Promise<void> {
   lastShownAtMemory = 0;
   try {
     await AsyncStorage.removeItem(STORAGE_KEY_LAST_SHOWN);
-    if (__DEV__) {
-      console.log('[AdMob] Cooldown sayaci sifirlandi.');
-    }
   } catch {}
 }
 
@@ -198,10 +192,6 @@ export async function showInterstitialIfEligible(
   // Cooldown kontrolu (30 dakika)
   const inCooldown = await isAdCooldownActive();
   if (inCooldown) {
-    if (__DEV__) {
-      const remaining = await getRemainingCooldownSeconds();
-      console.log(`[AdMob] Cooldown aktif (${remaining} sn kaldi), reklam gosterilmedi.`);
-    }
     return false;
   }
 
@@ -209,9 +199,6 @@ export async function showInterstitialIfEligible(
 
   const ad = setupInterstitialAd();
   if (!ad || !isLoaded) {
-    if (__DEV__) {
-      console.log('[AdMob] Reklam henuz inmemis (isLoaded: false). Arka planda indirme baslatildi.');
-    }
     // Reklam hazir degil, sonraki firsat icin arkada yukle
     preloadInterstitialAd(false);
     return false;

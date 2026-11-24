@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Switch, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Switch, View } from 'react-native';
 
 import { AppDialog } from '@/components/app-dialog';
 import { GhostButton, NeonButton, PressScale } from '@/components/button';
@@ -13,6 +13,7 @@ import { useShowExamCountdown } from '@/lib/countdown-settings';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 import { useSession, useStudent } from '@/lib/session';
+import { requestAppleRevocationCode } from '@/lib/social-auth';
 import { useSubscription } from '@/lib/subscription';
 import type { Preferences } from '@/lib/types';
 import { EMAIL_RE } from '@/lib/validation';
@@ -29,7 +30,7 @@ const DEFAULT_PREFS: Preferences = {
 export default function Settings() {
   const student = useStudent();
   const router = useRouter();
-  const { signOut, setUser } = useSession();
+  const { signOut, setUser, authProvider } = useSession();
   const { showMessage, showError } = useErrorDialog();
   const { isPro, presentPaywall, restorePurchases } = useSubscription();
 
@@ -38,7 +39,20 @@ export default function Settings() {
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [restoring, setRestoring] = useState(false);
+
+  const handleManageOrUpgradeSubscription = useCallback(() => {
+    if (isPro) {
+      const manageUrl =
+        Platform.OS === 'ios'
+          ? 'https://apps.apple.com/account/subscriptions'
+          : 'https://play.google.com/store/account/subscriptions?package=com.triworkster.kocumbenimmobileapp';
+      Linking.openURL(manageUrl).catch(() => {});
+      return;
+    }
+    void presentPaywall();
+  }, [isPro, presentPaywall]);
 
   const handleRestore = useCallback(async () => {
     if (restoring) return;
@@ -130,19 +144,32 @@ export default function Settings() {
     }
   }, [savingParentEmail, parentEmailInput, setUser, showMessage, showError]);
 
-  const confirmDelete = useCallback(() => setDeleteDialogOpen(true), []);
+  const confirmDelete = useCallback(() => {
+    if (deleting) return;
+    setDeleteDialogOpen(true);
+  }, [deleting]);
 
   const deleteNow = useCallback(async () => {
+    if (deleting) return;
     setDeleteDialogOpen(false);
+    setDeleting(true);
     try {
-      await deleteAccount();
+      // Yalnizca Apple ile giris yapmis kullanicilar icin ek iptal yetki kodu al (Apple Guideline 5.1.1(v)).
+      // Sunucuda zaten appleRefreshToken kayitliysa bu kod olmadan da iptal tamamlanir.
+      const isAppleUser =
+        Platform.OS === 'ios' &&
+        (authProvider === 'apple' || student.email?.endsWith('@privaterelay.appleid.com'));
+      const appleAuthCode = isAppleUser ? await requestAppleRevocationCode() : null;
+      await deleteAccount(appleAuthCode);
     } catch (err) {
+      setDeleting(false);
       showError(err, { title: 'Hesap silinemedi', code: 'ACCOUNT_DELETE' });
       return;
     }
+    setDeleting(false);
     await signOut();
     router.replace('/login');
-  }, [signOut, router, showError]);
+  }, [deleting, authProvider, student.email, signOut, router, showError]);
 
   return (
     <Screen>
@@ -222,7 +249,7 @@ export default function Settings() {
             label="Mevcut Plan"
             trailing={isPro ? 'Koçum Pro' : 'Ücretsiz'}
           />
-          <PressScale onPress={() => void presentPaywall()}>
+          <PressScale onPress={handleManageOrUpgradeSubscription}>
             <SettingRow
               icon="diamond-outline"
               label={isPro ? 'Aboneliği Yönet' : "Koçum Pro'ya Geç"}
@@ -327,9 +354,11 @@ export default function Settings() {
           <PressScale onPress={() => router.push('/data-disclosure')}>
             <SettingRow icon="reader-outline" label="Aydınlatma Metni" chevron />
           </PressScale>
-          <PressScale onPress={() => router.push('/diagnostics')}>
-            <SettingRow icon="bug-outline" label="Hata Kayıtları" chevron />
-          </PressScale>
+          {__DEV__ ? (
+            <PressScale onPress={() => router.push('/diagnostics')}>
+              <SettingRow icon="bug-outline" label="Hata Kayıtları" chevron />
+            </PressScale>
+          ) : null}
           <SettingRow icon="information-circle-outline" label="Sürüm" trailing="1.0.0" />
         </Card>
       </View>
@@ -347,7 +376,14 @@ export default function Settings() {
             router.replace('/login');
           }}
         />
-        <GhostButton label="Hesabı Sil" icon="trash-outline" color={Palette.text} full onPress={confirmDelete} />
+        <GhostButton
+          label={deleting ? 'Hesap Siliniyor…' : 'Hesabı Sil'}
+          icon="trash-outline"
+          color={Palette.text}
+          disabled={deleting}
+          full
+          onPress={confirmDelete}
+        />
       </View>
 
       <AppDialog
