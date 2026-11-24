@@ -7,23 +7,22 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# react-native-reanimated & worklets
+# react-native-reanimated
+-keep class com.swmansion.reanimated.** { *; }
+-keep class com.facebook.react.turbomodule.** { *; }
+
+# Add any project specific keep options here:
+
+# @generated begin expo-build-properties - expo prebuild (DO NOT MODIFY)
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.swmansion.worklets.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
-
-# Google Sign-In & Play Services Auth
 -keep class com.reactnativegooglesignin.** { *; }
 -keep class com.google.android.gms.auth.** { *; }
 -keep class com.google.android.gms.common.** { *; }
-
-# RevenueCat Purchases & Play Billing
 -keep class com.revenuecat.purchases.** { *; }
 -keep class com.android.billingclient.** { *; }
-
-# Google Mobile Ads (AdMob)
 -keep class io.invertase.googlemobileads.** { *; }
 -keep class com.google.android.gms.ads.** { *; }
 -dontwarn com.google.errorprone.annotations.**
-
-# Add any project specific keep options here:
+# @generated end expo-build-properties

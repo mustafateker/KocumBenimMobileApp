@@ -37,3 +37,13 @@ if (patched === gradle || !patched.includes("signingConfigs.release")) {
 }
 
 fs.writeFileSync(file, patched);
+
+// R8 (minifyReleaseWithR8) varsayilan 2 GB heap ile OutOfMemoryError veriyor.
+// prebuild --clean gradle.properties'i sifirladigi icin bellegi burada yukseltiyoruz.
+const propsFile = "android/gradle.properties";
+const JVM_ARGS = "org.gradle.jvmargs=-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8";
+let props = fs.readFileSync(propsFile, "utf8");
+props = /^org\.gradle\.jvmargs=.*$/m.test(props)
+  ? props.replace(/^org\.gradle\.jvmargs=.*$/m, JVM_ARGS)
+  : `${props.trimEnd()}\n${JVM_ARGS}\n`;
+fs.writeFileSync(propsFile, props);
