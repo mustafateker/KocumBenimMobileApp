@@ -85,7 +85,8 @@
         {
           "icon": "./assets/images/notification-large-icon.png"
         }
-      ]
+      ],
+      "./plugins/with-hardware-features"
     ],
     "experiments": {
       "typedRoutes": true,
