@@ -115,7 +115,7 @@ export async function syncRoutineReminders(
         identifier: ROUTINE_CURRICULUM_ID,
         content: {
           title: 'Konu İlerlemeni Tamamla',
-          body: 'Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden geldiğin konuya kadar işaretle.',
+          body: 'Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden en az 2. konuya kadar işaretle.',
           data: { type: 'curriculum_reminder' },
           sound: true,
         },

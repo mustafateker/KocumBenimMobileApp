@@ -12,10 +12,10 @@ import { RaccoonIcon } from '@/components/raccoon-icon';
 import { Screen } from '@/components/screen';
 import { TodayStudyCard } from '@/components/today-study-card';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
-import { getAiCoachContext, getSummary, getTasks, getUpcomingLessons, requestAiCoachTask } from '@/lib/api';
+import { getAiCoachContext, getCurriculumProgress, getSummary, getTasks, getUpcomingLessons, requestAiCoachTask } from '@/lib/api';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
-import { hasIncompleteCurriculumTopics, loadLocalCurriculumProgress } from '@/lib/maarif-curriculum';
+import { hasIncompleteCurriculumTopics, loadExtraCompletedTopics } from '@/lib/maarif-curriculum';
 import { getExamTrack } from '@/lib/mock-exams';
 import { useSyncRoutineReminders } from '@/lib/routine-reminders';
 import { useSession, useStudent } from '@/lib/session';
@@ -94,8 +94,11 @@ export default function Home() {
       showError(err, { title: 'Ders bilgisi yüklenemedi', code: 'HOME_LESSON_LOAD' });
     }
     try {
-      const prog = await loadLocalCurriculumProgress(student?.id);
-      setShowCurriculumPrompt(hasIncompleteCurriculumTopics(student?.grade, prog));
+      const [prog, extra] = await Promise.all([
+        getCurriculumProgress(student),
+        loadExtraCompletedTopics(student?.id),
+      ]);
+      setShowCurriculumPrompt(hasIncompleteCurriculumTopics(student?.grade, prog, extra));
     } catch {
       setShowCurriculumPrompt(false);
     }
@@ -315,7 +318,7 @@ export default function Home() {
                   Konu İlerlemeni Tamamla
                 </Txt>
                 <Txt variant="tiny" color={Palette.textDim} style={styles.curriculumPromptText}>
-                  Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden geldiğin konuya kadar işaretle.
+                  Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden en az 2. konuya kadar işaretle.
                 </Txt>
               </View>
             </View>

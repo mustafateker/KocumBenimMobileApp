@@ -414,22 +414,102 @@ export async function markTopicStudiedAndCompleted(
 }
 
 /**
- * Öğrencinin sınıf müfredatındaki tüm dersler için okulda gelinen konunun
- * işaretlenip işaretlenmediğini kontrol eder.
- * Henüz tüm dersler işaretlenmediyse true döner.
+ * Öğrencinin belirli bir ders için en az 2. konuya kadar işaretleme yapıp yapmadığını belirler.
+ *
+ * Bir dersin en az 2. konuya kadar işaretlenmiş sayılması için:
+ * 1. Okulda gelinen konu (schoolCurrentTopic) seçilmişse ve index >= 1 ise (en az 2. konu veya sonrası)
+ *    -> O konuya kadar olan tüm konular tamamlandı sayılır.
+ * 2. Veya Derslerim sayfasında tik atılarak tamamlanan ek konular (extraCompletedTopics)
+ *    ve okul konusu toplamında en az 2 konu işaretlenmişse
+ * 3. Veya doğrudan 2. konu (allTopics[1]) işaretlenmişse
+ * 4. Derste toplamda sadece 1 konu varsa ve o işaretlendiyse
+ */
+export function isSubjectCompletedToAtLeastSecondTopic(
+  gradeRaw: string | number | null | undefined,
+  subjectName: string,
+  schoolCurrentTopic?: string | null,
+  extraCompletedTopics?: string[]
+): boolean {
+  const flat = getFlatTopicsForSubject(gradeRaw, subjectName);
+  const allTopics = flat.map((f) => f.topic);
+  if (allTopics.length === 0) return true;
+
+  const requiredCount = Math.min(2, allTopics.length);
+
+  let schoolCurrentIndex = -1;
+  if (schoolCurrentTopic && schoolCurrentTopic.trim().length > 0) {
+    const targetFolded = foldTurkish(schoolCurrentTopic.trim());
+    schoolCurrentIndex = allTopics.findIndex((t) => foldTurkish(t) === targetFolded);
+    if (schoolCurrentIndex === -1) {
+      schoolCurrentIndex = allTopics.findIndex(
+        (t) => foldTurkish(t).includes(targetFolded) || targetFolded.includes(foldTurkish(t))
+      );
+    }
+  }
+
+  // Okulda seçilen konu 0-indexed olarak >= 1 ise (yani en az 2. konuya kadar gelinmişse)
+  if (schoolCurrentIndex >= requiredCount - 1) {
+    return true;
+  }
+
+  const extraSet = new Set<string>();
+  if (Array.isArray(extraCompletedTopics)) {
+    for (const t of extraCompletedTopics) {
+      extraSet.add(foldTurkish(t));
+    }
+  }
+
+  let completedCount = 0;
+  for (let idx = 0; idx < allTopics.length; idx++) {
+    const topic = allTopics[idx];
+    const isCompleted =
+      (schoolCurrentIndex !== -1 && idx <= schoolCurrentIndex) ||
+      extraSet.has(foldTurkish(topic));
+
+    if (isCompleted) {
+      completedCount += 1;
+    }
+  }
+
+  const isSecondTopicCompleted =
+    allTopics.length >= 2
+      ? ((schoolCurrentIndex !== -1 && schoolCurrentIndex >= 1) || extraSet.has(foldTurkish(allTopics[1])))
+      : completedCount >= 1;
+
+  return completedCount >= requiredCount || isSecondTopicCompleted;
+}
+
+/**
+ * Öğrencinin sınıf müfredatındaki tüm dersler için Derslerim sayfasında
+ * her dersten en az 2. konuya kadar işaretleme yapıp yapmadığını kontrol eder.
+ *
+ * Her dersten en az 2. konuya kadar işaretlendiyse false (uyarıyı gösterme),
+ * en az bir derste bile 2. konuya gelinmediyse true (uyarıyı göster) döner.
  */
 export function hasIncompleteCurriculumTopics(
   gradeRaw: string | number | null | undefined,
-  progress: CurriculumProgressMap
+  progress: CurriculumProgressMap,
+  extraCompleted?: ExtraCompletedTopicsMap
 ): boolean {
   const subjects = getCurriculumSubjectsForGrade(gradeRaw);
   if (!subjects || subjects.length === 0) return false;
+
   for (const s of subjects) {
-    const current = progress[s.name];
-    if (!current || typeof current !== 'string' || current.trim().length === 0) {
+    const schoolTopic = progress[s.name];
+    const extraTopics = extraCompleted ? extraCompleted[s.name] : undefined;
+
+    const isAtLeastSecond = isSubjectCompletedToAtLeastSecondTopic(
+      gradeRaw,
+      s.name,
+      schoolTopic,
+      extraTopics
+    );
+
+    if (!isAtLeastSecond) {
       return true;
     }
   }
+
   return false;
 }
 
