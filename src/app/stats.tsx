@@ -16,8 +16,8 @@ import {
   Timer,
   TrendingUp,
 } from 'lucide-react-native';
-import React, { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { BackHandler, StyleSheet, View } from 'react-native';
 
 import { PressScale } from '@/components/button';
 import { WeekBars } from '@/components/charts';
@@ -29,6 +29,8 @@ import { useErrorDialog } from '@/lib/error-dialog';
 import { Rules } from '@/lib/gamification';
 import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 import { useSession } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
+import { showInterstitialIfEligible } from '@/lib/ads';
 import { categoryIcon } from '@/lib/task-categories';
 import type { Student, StudentStats, StudentSummary, Task, TopicBreakdown, TopicReport } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
@@ -71,12 +73,44 @@ export default function Stats() {
 function StatsContent({ student }: { student: Student }) {
   const isLgs = getExamTrack(student.grade) === 'lgs';
   const { showError } = useErrorDialog();
+  const { isPro } = useSubscription();
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<ReportTab>('overview');
   const [stats, setStats] = useState<StudentStats>(EMPTY_STATS);
   const [summary, setSummary] = useState<StudentSummary | null>(null);
   const [completed, setCompleted] = useState<Task[]>([]);
+
+  const adCheckedRef = useRef(false);
+
+  // Ucretsiz kullanicilara 30 dk aralikla gecis reklami goster
+  // Ekran acilis animasyonu (slide_from_right) bittikten sonra calisir, boylece UIKit gecis cakismasi yasanmaz
+  useEffect(() => {
+    if (adCheckedRef.current) return;
+    adCheckedRef.current = true;
+
+    const timer = setTimeout(() => {
+      showInterstitialIfEligible('stats_open', isPro).catch(() => {});
+    }, 600);
+
+    return () => clearTimeout(timer);
+  }, [isPro]);
+
+  const handleBack = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/student');
+    }
+  }, [router]);
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleBack();
+      return true;
+    });
+    return () => sub.remove();
+  }, [handleBack]);
 
   useFocusEffect(
     useCallback(() => {
@@ -224,7 +258,7 @@ function StatsContent({ student }: { student: Student }) {
       <ScreenHeader
         title="Raporlar & İstatistikler"
         subtitle="Çalışma ve başarı analizlerin"
-        onBack={() => router.back()}
+        onBack={handleBack}
       />
 
       {/* Sekme Secici */}

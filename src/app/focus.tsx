@@ -17,6 +17,8 @@ import { ApiError } from '@/lib/api-client';
 import { clockFormat } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
+import { showInterstitialIfEligible } from '@/lib/ads';
 import { useFocusTimer } from '@/lib/use-focus-timer';
 import { Accent, Border, DetailAccent, OnColor, Palette, Radius, Space, Type, pillRadius, softOf } from '@/theme/tokens';
 
@@ -32,6 +34,7 @@ export default function Focus() {
   const router = useRouter();
   useStudent();
   const { refresh } = useSession();
+  const { isPro } = useSubscription();
   const { showError } = useErrorDialog();
 
   const { seconds, taskId } = useLocalSearchParams<{ seconds?: string; taskId?: string }>();
@@ -43,6 +46,19 @@ export default function Focus() {
   const startedRef = useRef(false);
 
   useKeepAwake();
+
+  const handleExitWithAd = useCallback(async () => {
+    try {
+      await showInterstitialIfEligible('pomodoro_exit', isPro);
+    } catch {}
+    setTimeout(() => {
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/student');
+      }
+    }, 150);
+  }, [isPro, router]);
 
   const handleComplete = useCallback(
     async (info: { plannedSec: number; actualSec: number; startedAt: string }) => {
@@ -98,13 +114,13 @@ export default function Focus() {
         minutes={result.minutes}
         xp={result.xp}
         taskCompleted={taskCompleted}
-        onDone={() => router.back()}
+        onDone={handleExitWithAd}
       />
     );
   }
 
   if (discarded) {
-    return <DiscardedScreen onDone={() => router.back()} />;
+    return <DiscardedScreen onDone={handleExitWithAd} />;
   }
 
   const paused = timer.status === 'paused';

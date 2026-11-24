@@ -4,6 +4,7 @@ import { fetch as expoFetch } from 'expo/fetch';
 import { localTodayStr } from './ai-coach-engine';
 import { parseGradeNumber } from './maarif-curriculum';
 import type { Student } from './types';
+import { consumeAiQuota } from './usage-limits';
 
 export { localTodayStr };
 
@@ -382,18 +383,21 @@ export async function deleteMockExam(id: string): Promise<void> {
 
 export async function generateAiExamAnalysis(
   exams: MockExam[],
-  student: Student
+  student?: Student | null,
+  isPro = false
 ): Promise<AiExamAnalysis> {
-  const track = getExamTrack(student.grade);
+  const track = getExamTrack(student?.grade);
   const isLgs = track === 'lgs';
-  const grade = student.grade ?? (isLgs ? '8. Sınıf' : '12. Sınıf');
+  const grade = student?.grade ?? (isLgs ? '8. Sınıf' : '12. Sınıf');
+  const studentName = student?.name || student?.nickname || 'Öğrenci';
+  const firstName = (studentName.trim().split(' ')[0] || 'Öğrenci').trim();
   const targetName =
-    (isLgs ? student.targetHighSchool : student.targetUniversity || student.targetDepartment) ||
-    student.goal ||
+    (isLgs ? student?.targetHighSchool : student?.targetUniversity || student?.targetDepartment) ||
+    student?.goal ||
     (isLgs ? 'Hedef Fen Lisesi' : 'Hedef Üniversite');
 
   if (exams.length === 0) {
-    const progress = student.curriculumProgress || {};
+    const progress = student?.curriculumProgress || {};
     const defaultLgsTopics: AiShortcutTopic[] = [
       {
         subject: 'Matematik',
@@ -424,7 +428,7 @@ export async function generateAiExamAnalysis(
     ];
 
     return {
-      summary: `${student.name.split(' ')[0]}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. İlk denemeni eklediğinde genel durum analizin ve gerçek sınavda en çok soru çıkan ağırlıklı konular burada hesaplanacak.`,
+      summary: `${firstName}, henüz kayıtlı bir ${isLgs ? 'LGS' : 'YKS'} denemen bulunmuyor. İlk denemeni eklediğinde genel durum analizin ve gerçek sınavda en çok soru çıkan ağırlıklı konular burada hesaplanacak.`,
       targetProbability: 'Henüz Veri Yok',
       shortcutTopics: isLgs ? defaultLgsTopics : defaultYksTopics,
       strategyTip: isLgs
@@ -458,12 +462,13 @@ export async function generateAiExamAnalysis(
     }
   }
 
+  // 1. Koçum Pro (Premium) Kullanıcılar: Sınırsız Gemini Yapay Zeka Koç Analizi
   const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
-  if (geminiKey) {
+  if (isPro && geminiKey) {
     try {
       const prompt = `ÖĞRENCİ BİLGİSİ:
 - Sınav Sistemi: ${isLgs ? 'MEB LGS (Liselere Geçiş Sistemi, 8. Sınıf)' : 'ÖSYM YKS (Yükseköğretim Kurumları Sınavı, TYT/AYT)'}
-- İsim: ${student.name}
+- İsim: ${studentName}
 - Sınıf: ${grade}
 - Hedef: ${targetName}
 - Kayıtlı Deneme Sayısı: ${totalExams}
@@ -497,12 +502,11 @@ JSON ŞEMASI:
   ],
   "strategyTip": "Gerçek sınav taktiği (turlama, süre kontrolü)"
 }`;
-
       const candidateModels = [
         'gemini-3.5-flash-lite',
         'gemini-flash-lite-latest',
         'gemini-3.1-flash-lite',
-        'gemini-3.8-flash',
+        'gemini-3.5-flash',
       ];
 
       for (const model of candidateModels) {
@@ -527,8 +531,10 @@ JSON ŞEMASI:
             const data = await res.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
             if (text) {
-              const parsed = JSON.parse(text);
+              const clean = text.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim();
+              const parsed = JSON.parse(clean);
               if (parsed.summary && parsed.shortcutTopics) {
+                await consumeAiQuota(true);
                 return parsed;
               }
             }
@@ -542,12 +548,13 @@ JSON ŞEMASI:
     }
   }
 
-  // Heuristic Fallback
+  // 2. Ücretsiz (Free) Kullanıcılar & Çevrimdışı/Yedek Hesaplama:
+  // Ücretsiz kullanıcının tek günlük AI kotası harcanmaz; anlık, hatasız istatistiksel hesaplama sunulur.
   const maxPossibleNet = isLgs ? 90 : 120;
   const estimatedProb = Math.min(96, Math.max(45, Math.round((latest.totalNet / maxPossibleNet) * 100) + 12));
 
   return {
-    summary: `${student.name.split(' ')[0]}, son denemende ${latest.totalNet} net yaptın. ${targetName} hedefine ulaşmak için özellikle ${lowestSubj} netlerini yukarı çekmen kritik öneme sahip.`,
+    summary: `${firstName}, son denemende ${latest.totalNet} net yaptın. ${targetName} hedefine ulaşmak için özellikle ${lowestSubj} netlerini yukarı çekmen kritik öneme sahip.`,
     targetProbability: `%${estimatedProb} Başarı İhtimali`,
     shortcutTopics: isLgs
       ? [

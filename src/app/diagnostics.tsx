@@ -33,7 +33,7 @@ export default function Diagnostics() {
       <ScreenHeader
         title="Hata Kayıtları"
         subtitle="Son 25 hata — destekle paylaşmak için"
-        onBack={() => router.back()}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/student'))}
       />
 
       {entries.length === 0 ? (

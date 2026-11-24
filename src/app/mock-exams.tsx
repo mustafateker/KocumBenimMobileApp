@@ -58,6 +58,7 @@ import {
   type YksField,
 } from '@/lib/mock-exams';
 import { useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import {
   Accent,
   Border,
@@ -72,6 +73,7 @@ import {
 export default function MockExamsScreen() {
   const router = useRouter();
   const student = useStudent();
+  const { isPro, presentPaywall } = useSubscription();
   const insets = useSafeAreaInsets();
 
   // Öğrencinin kayıtlı sınıfına göre sınav sistemi (5-8: LGS, 9-12/Mezun: YKS)
@@ -118,12 +120,12 @@ export default function MockExamsScreen() {
 
     setAnalyzing(true);
     try {
-      const aiRes = await generateAiExamAnalysis(list, student);
+      const aiRes = await generateAiExamAnalysis(list, student, isPro);
       setAnalysis(aiRes);
     } finally {
       setAnalyzing(false);
     }
-  }, [student]);
+  }, [isPro, student]);
 
   useFocusEffect(
     useCallback(() => {
@@ -187,7 +189,7 @@ export default function MockExamsScreen() {
     return (
       <View style={[styles.root, { paddingTop: insets.top + Space.md }]}>
         <View style={styles.header}>
-          <PressScale onPress={() => router.back()} scaleTo={0.9}>
+          <PressScale onPress={() => (router.canGoBack() ? router.back() : router.replace('/student'))} scaleTo={0.9}>
             <View style={styles.backButton}>
               <Ionicons name="chevron-back" size={22} color={Palette.text} />
             </View>
@@ -232,7 +234,7 @@ export default function MockExamsScreen() {
     <View style={[styles.root, { paddingTop: insets.top + Space.md }]}>
       {/* Header - Sınıfa Göre Özel Başlık */}
       <View style={styles.header}>
-        <PressScale onPress={() => router.back()} scaleTo={0.9}>
+        <PressScale onPress={() => (router.canGoBack() ? router.back() : router.replace('/student'))} scaleTo={0.9}>
           <View style={styles.backButton}>
             <Ionicons name="chevron-back" size={22} color={Palette.text} />
           </View>
@@ -337,6 +339,18 @@ export default function MockExamsScreen() {
               <Txt variant="body" color={Palette.text} style={styles.aiSummaryText}>
                 {analyzing ? 'Netleriniz ve hedefiniz yapay zeka tarafından analiz ediliyor...' : analysis?.summary}
               </Txt>
+
+              {!isPro ? (
+                <PressScale onPress={() => void presentPaywall()} scaleTo={0.98} style={styles.aiProBanner}>
+                  <View style={styles.aiProBannerContent}>
+                    <Sparkles size={13} color={DetailAccent} strokeWidth={2.4} />
+                    <Txt variant="tiny" color={DetailAccent} style={{ flex: 1, fontWeight: '700' }}>
+                      Koçum Pro ile derinlemesine yapay zeka analizini aç
+                    </Txt>
+                    <ChevronRight size={13} color={DetailAccent} strokeWidth={2.4} />
+                  </View>
+                </PressScale>
+              ) : null}
 
               <View style={styles.aiFooterRow}>
                 <View style={styles.dotRow}>
@@ -1485,6 +1499,19 @@ const styles = StyleSheet.create({
   },
   aiSummaryText: {
     lineHeight: 22,
+  },
+  aiProBanner: {
+    backgroundColor: 'rgba(251, 174, 117, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 174, 117, 0.35)',
+    borderRadius: Radius.md,
+    paddingHorizontal: Space.sm,
+    paddingVertical: Space.xs,
+  },
+  aiProBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
   },
   aiFooterRow: {
     flexDirection: 'row',

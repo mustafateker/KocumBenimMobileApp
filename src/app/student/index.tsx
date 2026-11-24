@@ -19,6 +19,7 @@ import { hasIncompleteCurriculumTopics, loadExtraCompletedTopics } from '@/lib/m
 import { getExamTrack } from '@/lib/mock-exams';
 import { useSyncRoutineReminders } from '@/lib/routine-reminders';
 import { useSession, useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import { categoryColor, categoryIcon, taskGoalLabel } from '@/lib/task-categories';
 import type { AiCoachContext, AiDailyRecommendation, PrivateLesson, StudentSummary, Task } from '@/lib/types';
 import { Accent, Border, DetailAccent, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
@@ -55,6 +56,7 @@ export default function Home() {
   const student = useStudent();
   const { refresh } = useSession();
   const { showError } = useErrorDialog();
+  const { isPro, presentPaywall } = useSubscription();
 
   const [duration, setDuration] = useState(DURATIONS[0].seconds);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -404,69 +406,99 @@ export default function Home() {
           </PressScale>
         </View>
 
-        <Card accent={DetailAccent} style={styles.aiSummaryCard}>
-          <View style={styles.aiSummaryTop}>
-            <RaccoonIcon size={44} />
-            <View style={styles.flex}>
-              <View style={styles.aiTitleRow}>
-                <Txt variant="bodyStrong">Bugünün Koçluk Analizi</Txt>
-                <View style={styles.targetPill}>
-                  <Txt variant="tiny" color={Accent}>
-                    Hedef: {targetMinutes} dk
+        {!isPro ? (
+          <PressScale onPress={() => void presentPaywall()} scaleTo={0.98}>
+            <Card accent={DetailAccent} style={styles.proLockedCard}>
+              <View style={styles.proLockedTop}>
+                <View style={styles.proLockBadge}>
+                  <Ionicons name="lock-closed" size={20} color={Accent} />
+                </View>
+                <View style={styles.flex}>
+                  <View style={styles.aiTitleRow}>
+                    <Txt variant="bodyStrong">Bugünün Koçluk Analizi</Txt>
+                    <View style={styles.proChip}>
+                      <Txt variant="tiny" color={Palette.bg} style={styles.proChipText}>
+                        PRO
+                      </Txt>
+                    </View>
+                  </View>
+                  <Txt variant="tiny" color={Palette.textDim} style={styles.proLockedDesc}>
+                    {"Yapay zeka koçunun günlük çalışma verilerini ve eksik konularını analiz ederek sana özel çıkardığı hedefler ve koçluk önerileri Koçum Pro'ya özeldir."}
                   </Txt>
                 </View>
               </View>
-              <Txt variant="tiny" color={Palette.textDim}>
-                {aiContext?.dailySummary ??
-                  `${gradeLabel} çalışma verilerine ve soru çözümlerine göre bugünkü kişisel önerilerin:`}
-              </Txt>
+              <View style={styles.proLockedAction}>
+                <Txt variant="smallStrong" color={Accent}>
+                  {"Koçum Pro'ya Geç ve Analizi Aç →"}
+                </Txt>
+              </View>
+            </Card>
+          </PressScale>
+        ) : (
+          <Card accent={DetailAccent} style={styles.aiSummaryCard}>
+            <View style={styles.aiSummaryTop}>
+              <RaccoonIcon size={44} />
+              <View style={styles.flex}>
+                <View style={styles.aiTitleRow}>
+                  <Txt variant="bodyStrong">Bugünün Koçluk Analizi</Txt>
+                  <View style={styles.targetPill}>
+                    <Txt variant="tiny" color={Accent}>
+                      Hedef: {targetMinutes} dk
+                    </Txt>
+                  </View>
+                </View>
+                <Txt variant="tiny" color={Palette.textDim}>
+                  {aiContext?.dailySummary ??
+                    `${gradeLabel} çalışma verilerine ve soru çözümlerine göre bugünkü kişisel önerilerin:`}
+                </Txt>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.recList}>
-            {dailyRecommendations.map((rec) => {
-              const isAssigned = Boolean(assignedRecIds[rec.id]);
-              const isBusy = assigningRecId === rec.id;
-              const iconName: React.ComponentProps<typeof Ionicons>['name'] =
-                rec.category === 'topic'
-                  ? 'book-outline'
-                  : rec.category === 'duration'
-                    ? 'timer-outline'
-                    : 'checkmark-circle-outline';
+            <View style={styles.recList}>
+              {dailyRecommendations.map((rec) => {
+                const isAssigned = Boolean(assignedRecIds[rec.id]);
+                const isBusy = assigningRecId === rec.id;
+                const iconName: React.ComponentProps<typeof Ionicons>['name'] =
+                  rec.category === 'topic'
+                    ? 'book-outline'
+                    : rec.category === 'duration'
+                      ? 'timer-outline'
+                      : 'checkmark-circle-outline';
 
-              return (
-                <View key={rec.id} style={styles.recItem}>
-                  <View style={styles.recHeader}>
-                    <View style={styles.recBadgeWrap}>
-                      <Ionicons name={iconName} size={13} color={Accent} />
-                      <Txt variant="tiny" color={Accent}>
-                        {rec.badge}
-                      </Txt>
-                    </View>
-                    <PressScale
-                      onPress={() => handleRecommendationAction(rec)}
-                      disabled={isBusy}
-                      scaleTo={0.96}
-                    >
-                      <View style={[styles.recActionBtn, isAssigned && styles.recActionBtnDone]}>
-                        <Txt variant="tiny" color={isAssigned ? Accent : OnColorText}>
-                          {isBusy ? 'Atanıyor...' : isAssigned ? 'Ödevlerime Git →' : rec.actionLabel}
+                return (
+                  <View key={rec.id} style={styles.recItem}>
+                    <View style={styles.recHeader}>
+                      <View style={styles.recBadgeWrap}>
+                        <Ionicons name={iconName} size={13} color={Accent} />
+                        <Txt variant="tiny" color={Accent}>
+                          {rec.badge}
                         </Txt>
                       </View>
-                    </PressScale>
-                  </View>
+                      <PressScale
+                        onPress={() => handleRecommendationAction(rec)}
+                        disabled={isBusy}
+                        scaleTo={0.96}
+                      >
+                        <View style={[styles.recActionBtn, isAssigned && styles.recActionBtnDone]}>
+                          <Txt variant="tiny" color={isAssigned ? Accent : OnColorText}>
+                            {isBusy ? 'Atanıyor...' : isAssigned ? 'Ödevlerime Git →' : rec.actionLabel}
+                          </Txt>
+                        </View>
+                      </PressScale>
+                    </View>
 
-                  <Txt variant="smallStrong" color={Palette.text}>
-                    {rec.title}
-                  </Txt>
-                  <Txt variant="tiny" color={Palette.textDim}>
-                    {rec.description}
-                  </Txt>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
+                    <Txt variant="smallStrong" color={Palette.text}>
+                      {rec.title}
+                    </Txt>
+                    <Txt variant="tiny" color={Palette.textDim}>
+                      {rec.description}
+                    </Txt>
+                  </View>
+                );
+              })}
+            </View>
+          </Card>
+        )}
       </View>
 
       {/* Gunluk odevler */}
@@ -510,11 +542,28 @@ export default function Home() {
       </PressScale>
 
       {/* Hizli soru sor */}
-      <PressScale onPress={() => router.push('/student/questions')}>
+      <PressScale
+        onPress={() => {
+          if (!isPro) {
+            void presentPaywall();
+            return;
+          }
+          router.push('/student/questions');
+        }}
+      >
         <Card accent={Accent} style={styles.quickCard}>
           <IconBubble name="camera" color={DetailAccent} size={48} />
           <View style={styles.flex}>
-            <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
+            <View style={styles.rowCenterGap}>
+              <Txt variant="bodyStrong">Hızlı Soru Sor</Txt>
+              {!isPro && (
+                <View style={styles.proChipMini}>
+                  <Txt variant="tiny" color={Palette.bg} style={styles.proChipText}>
+                    PRO
+                  </Txt>
+                </View>
+              )}
+            </View>
             <Txt variant="tiny" color={Palette.textDim}>
               Sorunu çek, üstüne çiz, hocana gönder
             </Txt>
@@ -846,5 +895,61 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     marginTop: 2,
+  },
+  rowCenterGap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.xs,
+  },
+  proLockedCard: {
+    gap: Space.md,
+    borderWidth: Border.thick,
+    borderColor: Accent + '60',
+    backgroundColor: Palette.surfaceHi,
+    padding: Space.lg,
+  },
+  proLockedTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Space.md,
+  },
+  proLockBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Accent + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: Border.thin,
+    borderColor: Accent + '40',
+  },
+  proChip: {
+    backgroundColor: Accent,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: pillRadius(18),
+  },
+  proChipMini: {
+    backgroundColor: Accent,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: pillRadius(14),
+  },
+  proChipText: {
+    fontWeight: '800',
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  proLockedDesc: {
+    lineHeight: 18,
+    marginTop: 4,
+  },
+  proLockedAction: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    borderTopWidth: Border.thin,
+    borderTopColor: Palette.border,
+    paddingTop: Space.sm,
   },
 });

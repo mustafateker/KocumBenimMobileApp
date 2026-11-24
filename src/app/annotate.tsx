@@ -25,7 +25,9 @@ import { logHandledError } from '@/lib/crash-reporter';
 import { getSubjectNamesForGrade } from '@/lib/maarif-curriculum';
 import { discardPhoto, localImageUri } from '@/lib/photo-store';
 import { useSession, useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import type { CanvasItem } from '@/lib/types';
+import { canAskQuestion, recordQuestionSent } from '@/lib/usage-limits';
 import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 /** Kalem paleti — fotograf uzerinde okunakli kalsin diye doygun renkler. */
@@ -37,6 +39,7 @@ export default function Annotate() {
   const router = useRouter();
   const student = useStudent();
   const { refresh } = useSession();
+  const { isPro, presentPaywall } = useSubscription();
   const insets = useSafeAreaInsets();
 
   const { uri = '' } = useLocalSearchParams<{ uri?: string }>();
@@ -162,6 +165,18 @@ export default function Annotate() {
 
   const send = useCallback(async () => {
     if (saving || !uri) return;
+    if (!isPro) {
+      await presentPaywall();
+      return;
+    }
+    const check = await canAskQuestion(isPro);
+    if (!check.allowed) {
+      setUploadError({
+        message: 'Aylık soru gönderme limitinizi doldurdunuz (60/60). Yeni fatura döneminde limitiniz yenilenecektir.',
+        code: 'QUESTION_QUOTA_EXCEEDED',
+      });
+      return;
+    }
     setSaving(true);
     try {
       await createQuestion({
@@ -170,6 +185,7 @@ export default function Annotate() {
         note: note.trim(),
         subject: selectedSubject,
       });
+      await recordQuestionSent().catch(() => {});
       await refresh();
       // Sunucuda duruyor; yerel kopyayi tutmaya gerek yok.
       discardPhoto(uri);
@@ -189,13 +205,13 @@ export default function Annotate() {
       setUploadError({ message: entry.message, code: entry.code });
       setSaving(false);
     }
-  }, [saving, uri, frame.w, frame.h, items, note, refresh, router, selectedSubject]);
+  }, [saving, uri, isPro, presentPaywall, frame.w, frame.h, items, note, selectedSubject, refresh, router]);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       {/* Ust bar */}
       <View style={styles.topBar}>
-        <IconButton icon="close" onPress={() => router.back()} />
+        <IconButton icon="close" onPress={() => (router.canGoBack() ? router.back() : router.replace('/student'))} />
         <View style={styles.flex} />
         <PressScale onPress={send} disabled={saving} hapticStyle={Haptics.ImpactFeedbackStyle.Medium}>
           <View style={[styles.saveButton, saving && styles.saveButtonDisabled]}>

@@ -13,6 +13,7 @@ import {
 import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppDialog } from '@/components/app-dialog';
 import { PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { RaccoonIcon } from '@/components/raccoon-icon';
@@ -21,7 +22,9 @@ import { Card, Txt } from '@/components/ui';
 import { getAiCoachContext, sendAiCoachMessage } from '@/lib/api';
 import { markAiCoachUsed, triggerPlayReviewOnLeaveAiCoach } from '@/lib/play-review';
 import { useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import type { AiChatMessage, AiCoachContext } from '@/lib/types';
+import { canUseAi, consumeAiQuota, getRemainingAiQuota } from '@/lib/usage-limits';
 import { Accent, Border, DetailAccent, Font, OnColor, Palette, Radius, Space, pillRadius } from '@/theme/tokens';
 
 const QUICK_QUESTIONS = [
@@ -57,11 +60,25 @@ export default function AiCoachScreen() {
   const student = useStudent();
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<AiChatMessage>>(null);
+  const { isPro, presentPaywall } = useSubscription();
 
   const [context, setContext] = useState<AiCoachContext | null>(null);
   const [messages, setMessages] = useState<AiChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [quotaDialogOpen, setQuotaDialogOpen] = useState(false);
+  const [remainingAi, setRemainingAi] = useState<number>(isPro ? Infinity : 1);
+
+  const updateQuota = useCallback(async () => {
+    const rem = await getRemainingAiQuota(isPro);
+    setRemainingAi(rem);
+  }, [isPro]);
+
+  useFocusEffect(
+    useCallback(() => {
+      updateQuota();
+    }, [updateQuota])
+  );
 
   const loadContext = useCallback(async () => {
     try {
@@ -131,9 +148,22 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
       const trimmed = (textToSend ?? input).trim();
       if (!trimmed || sending) return;
 
+      const allowed = await canUseAi(isPro);
+      if (!allowed) {
+        setQuotaDialogOpen(true);
+        return;
+      }
+
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => { });
       }
+
+      const consumed = await consumeAiQuota(isPro);
+      if (!consumed.success) {
+        setQuotaDialogOpen(true);
+        return;
+      }
+      setRemainingAi(consumed.remaining);
 
       const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const userMsg: AiChatMessage = {
@@ -246,6 +276,7 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
       student.grade,
       student.name,
       student.nickname,
+      isPro,
     ]
   );
 
@@ -266,6 +297,26 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
             left={<MenuButton />}
             right={<NotificationBell />}
           />
+
+          <View style={styles.quotaRow}>
+            <PressScale
+              onPress={() => {
+                if (!isPro) void presentPaywall();
+              }}
+              scaleTo={0.97}
+            >
+              <View style={isPro ? styles.quotaProBadge : styles.quotaFreeBadge}>
+                <Ionicons
+                  name={isPro ? 'sparkles' : 'hourglass-outline'}
+                  size={12}
+                  color={isPro ? Accent : Palette.gold}
+                />
+                <Txt variant="tiny" color={isPro ? Accent : Palette.gold} style={styles.quotaBadgeText}>
+                  {isPro ? 'Koçum Pro · Sınırsız AI' : `Günlük Kalan AI: ${remainingAi} / 1 (Yükselt)`}
+                </Txt>
+              </View>
+            </PressScale>
+          </View>
 
           {/* Kişisel Koçluk Durum Kartı */}
           <Card accent={DetailAccent} style={styles.summaryCard}>
@@ -382,6 +433,20 @@ Bu konulardan görev atamamı istersen 'Bugün bana ödev ata' yazman yeterli.`,
           </View>
         </KeyboardStickyView>
       </View>
+
+      <AppDialog
+        visible={quotaDialogOpen}
+        icon="sparkles"
+        title="Günlük Yapay Zeka Limiti Doldu"
+        message="Ücretsiz planda günlük 1 yapay zeka kullanım hakkı bulunmaktadır. Sınırsız Koçum AI sohbeti ve rehberliği için Koçum Pro'ya geçebilirsin."
+        confirmLabel="Koçum Pro'ya Geç"
+        cancelLabel="Kapat"
+        onConfirm={() => {
+          setQuotaDialogOpen(false);
+          void presentPaywall();
+        }}
+        onCancel={() => setQuotaDialogOpen(false)}
+      />
     </ScreenBackground>
   );
 }
@@ -677,5 +742,36 @@ const styles = StyleSheet.create({
   },
   sendBtnDisabled: {
     backgroundColor: Palette.surfaceHi,
+  },
+  quotaRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Space.xs,
+  },
+  quotaProBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Space.md,
+    paddingVertical: 4,
+    borderRadius: pillRadius(20),
+    backgroundColor: Accent + '18',
+    borderWidth: Border.thin,
+    borderColor: Accent + '40',
+  },
+  quotaFreeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: Space.md,
+    paddingVertical: 4,
+    borderRadius: pillRadius(20),
+    backgroundColor: Palette.gold + '18',
+    borderWidth: Border.thin,
+    borderColor: Palette.gold + '40',
+  },
+  quotaBadgeText: {
+    fontWeight: '700',
+    fontSize: 11,
   },
 });

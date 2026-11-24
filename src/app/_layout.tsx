@@ -22,6 +22,7 @@ import { installCrashReporter } from '@/lib/crash-reporter';
 import { ErrorDialogProvider } from '@/lib/error-dialog';
 import { NotificationCenterProvider } from '@/lib/notification-center';
 import { SessionProvider } from '@/lib/session';
+import { SubscriptionProvider } from '@/lib/subscription';
 import { Accent, Brand, Palette } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -79,7 +80,8 @@ export default function RootLayout() {
         <SafeAreaProvider>
           <ErrorDialogProvider>
             <SessionProvider>
-              <NotificationCenterProvider>
+              <SubscriptionProvider>
+                <NotificationCenterProvider>
                 <ThemeProvider value={NavTheme}>
                   <StatusBar style="dark" />
                   <Stack
@@ -120,7 +122,8 @@ export default function RootLayout() {
                   </Stack>
                 </ThemeProvider>
               </NotificationCenterProvider>
-            </SessionProvider>
+            </SubscriptionProvider>
+          </SessionProvider>
           </ErrorDialogProvider>
         </SafeAreaProvider>
       </KeyboardProvider>

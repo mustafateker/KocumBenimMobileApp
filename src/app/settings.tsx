@@ -13,6 +13,7 @@ import { useShowExamCountdown } from '@/lib/countdown-settings';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { getExamTrack, isExamYearStudent } from '@/lib/mock-exams';
 import { useSession, useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import type { Preferences } from '@/lib/types';
 import { EMAIL_RE } from '@/lib/validation';
 import { Accent, DetailAccent, Palette, Space } from '@/theme/tokens';
@@ -30,12 +31,31 @@ export default function Settings() {
   const router = useRouter();
   const { signOut, setUser } = useSession();
   const { showMessage, showError } = useErrorDialog();
+  const { isPro, presentPaywall, restorePurchases } = useSubscription();
 
   const isLgs = getExamTrack(student.grade) === 'lgs';
   const { enabled: examCountdownEnabled, setEnabled: setExamCountdownEnabled } = useShowExamCountdown();
 
   const [prefs, setPrefs] = useState<Preferences>(DEFAULT_PREFS);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  const handleRestore = useCallback(async () => {
+    if (restoring) return;
+    setRestoring(true);
+    try {
+      const success = await restorePurchases();
+      if (success) {
+        showMessage('Satın Alımlar Geri Yüklendi', 'Koçum Pro üyeliğiniz başarıyla etkinleştirildi.');
+      } else {
+        showMessage('Abonelik Bulunamadı', 'Bu hesapla ilişkili aktif bir Koçum Pro aboneliği bulunamadı.');
+      }
+    } catch (err) {
+      showError(err, { title: 'Geri yükleme başarısız', code: 'RESTORE_PURCHASES' });
+    } finally {
+      setRestoring(false);
+    }
+  }, [restoring, restorePurchases, showMessage, showError]);
 
   useEffect(() => {
     getPreferences()
@@ -126,7 +146,11 @@ export default function Settings() {
 
   return (
     <Screen>
-      <ScreenHeader title="Ayarlar" subtitle="Hesabını ve tercihlerini yönet" onBack={() => router.back()} />
+      <ScreenHeader
+        title="Ayarlar"
+        subtitle="Hesabını ve tercihlerini yönet"
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/student'))}
+      />
 
       {/* Hesap */}
       <View style={styles.section}>
@@ -186,6 +210,34 @@ export default function Settings() {
               />
             </View>
           ) : null}
+        </Card>
+      </View>
+
+      {/* Abonelik ve Plan */}
+      <View style={styles.section}>
+        <SectionLabel>Abonelik ve Plan</SectionLabel>
+        <Card style={styles.list}>
+          <SettingRow
+            icon={isPro ? 'sparkles' : 'ribbon-outline'}
+            label="Mevcut Plan"
+            trailing={isPro ? 'Koçum Pro' : 'Ücretsiz'}
+          />
+          <PressScale onPress={() => void presentPaywall()}>
+            <SettingRow
+              icon="diamond-outline"
+              label={isPro ? 'Aboneliği Yönet' : "Koçum Pro'ya Geç"}
+              trailing={isPro ? 'Aktif' : 'Yükselt'}
+              chevron
+            />
+          </PressScale>
+          <PressScale onPress={handleRestore} disabled={restoring}>
+            <SettingRow
+              icon="refresh-outline"
+              label="Satın Alımları Geri Yükle"
+              trailing={restoring ? 'Kontrol ediliyor...' : undefined}
+              chevron
+            />
+          </PressScale>
         </Card>
       </View>
 

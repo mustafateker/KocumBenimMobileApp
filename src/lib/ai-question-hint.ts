@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fetch as expoFetch } from 'expo/fetch';
 
 import { apiMediaUrl, getAccessToken } from '@/lib/api-client';
+import { canUseAi, consumeAiQuota } from '@/lib/usage-limits';
 
 const DAILY_HINT_LIMIT = 10;
 const CIRCUIT_BREAKER_COOLDOWN_MS = 30 * 60 * 1000; // 30 dakika kota aşımı kilidi
@@ -123,14 +124,21 @@ export async function generateQuestionHint(options: {
   topic?: string;
   grade?: string;
   forceRefresh?: boolean;
+  isPro?: boolean;
 }): Promise<string> {
-  const { questionId, imageUrl, note, subject = 'Ders', topic, grade = '8. Sınıf', forceRefresh = false } = options;
+  const { questionId, imageUrl, note, subject = 'Ders', topic, grade = '8. Sınıf', forceRefresh = false, isPro = false } = options;
 
   if (!forceRefresh) {
     const cached = await getCachedQuestionHint(questionId);
     if (cached) return cached;
   } else {
     await clearCachedQuestionHint(questionId);
+  }
+
+  // Ortak günlük AI kotası kontrolü (Free: 1/gün, Pro: sınırsız)
+  const canUse = await canUseAi(isPro);
+  if (!canUse) {
+    return 'Bugünkü yapay zeka kullanım hakkın doldu. Sınırsız soru ipuçları ve detaylı analizler için Koçum Pro\'ya geçebilirsin.';
   }
 
   // 1. Devre Kesici (Circuit Breaker) Kontrolü - Kota veya 429 aşılmışsa API çağrısı yapma
@@ -241,6 +249,7 @@ Lütfen görseldeki soruyu inceleyerek rehberlik et.`;
               // Sadece basarili gercek ipuclarinda gunluk kotayi azalt
               if (!clean.includes('tespit edilemedi')) {
                 await incrementDailyUsage();
+                await consumeAiQuota(isPro);
               }
               await AsyncStorage.setItem(`kocumbenim.aiHint.${questionId}`, clean);
               return clean;

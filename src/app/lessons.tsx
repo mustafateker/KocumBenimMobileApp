@@ -48,7 +48,11 @@ export default function Lessons() {
 
   return (
     <Screen tint={Accent}>
-      <ScreenHeader title="Özel Derslerim" subtitle="Hocanın planladığı birebir dersler" onBack={() => router.back()} />
+      <ScreenHeader
+        title="Özel Derslerim"
+        subtitle="Hocanın planladığı birebir dersler"
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/student'))}
+      />
 
       {isEmpty ? (
         <EmptyState

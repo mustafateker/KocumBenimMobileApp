@@ -20,6 +20,7 @@ import {
 } from '@/lib/gamification';
 import { getExamTrack } from '@/lib/mock-exams';
 import { useSession, useStudent } from '@/lib/session';
+import { useSubscription } from '@/lib/subscription';
 import type { Student, StudentSummary } from '@/lib/types';
 import {
   Accent,
@@ -77,6 +78,7 @@ export default function Profile() {
   const student = useStudent();
   const { refresh } = useSession();
   const { showError } = useErrorDialog();
+  const { isPro, presentPaywall } = useSubscription();
 
   const { journey } = useLocalSearchParams<{ journey?: string }>();
   const [summary, setSummary] = useState<StudentSummary | null>(null);
@@ -218,6 +220,24 @@ export default function Profile() {
                   </Typography.Tiny>
                 </View>
               ) : null}
+
+              {isPro ? (
+                <View style={styles.proPillBadge}>
+                  <Ionicons name="sparkles" size={11} color={Palette.bg} />
+                  <Typography.Tiny color={Palette.bg} weight="bold">
+                    PRO
+                  </Typography.Tiny>
+                </View>
+              ) : (
+                <PressScale onPress={() => void presentPaywall()} scaleTo={0.96}>
+                  <View style={styles.proUpgradeBadge}>
+                    <Ionicons name="diamond-outline" size={11} color={Accent} />
+                    <Typography.Tiny color={Accent} weight="bold">
+                      {"Pro'ya Geç"}
+                    </Typography.Tiny>
+                  </View>
+                </PressScale>
+              )}
             </View>
           </View>
         </View>
@@ -261,6 +281,28 @@ export default function Profile() {
           </View>
         </PressScale>
       </Card>
+
+      {/* Koçum Pro Tanıtım Kartı */}
+      {!isPro ? (
+        <PressScale onPress={() => void presentPaywall()} scaleTo={0.98}>
+          <Card accent={Accent} style={styles.proBannerCard}>
+            <View style={styles.proBannerRow}>
+              <View style={styles.proBannerIconWrap}>
+                <Ionicons name="sparkles" size={20} color={Accent} />
+              </View>
+              <View style={styles.flex}>
+                <Typography.BodyStrong color={Palette.text}>
+                  Koçum Pro Avantajları
+                </Typography.BodyStrong>
+                <Typography.Tiny color={Palette.textDim}>
+                  Sınırsız yapay zeka koçluğu, reklamsız deneyim ve aylık 60 adet görsel soru çözümü.
+                </Typography.Tiny>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={Palette.textFaint} />
+            </View>
+          </Card>
+        </PressScale>
+      ) : null}
 
       {/* Bento Grid: Haftalık Performans */}
       <View style={styles.section}>
@@ -1055,5 +1097,48 @@ const styles = StyleSheet.create({
   ruleText: {
     flex: 1,
     lineHeight: 16,
+  },
+  proPillBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    backgroundColor: Accent,
+  },
+  proUpgradeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.pill,
+    backgroundColor: Accent + '18',
+    borderWidth: Border.thin,
+    borderColor: Accent + '40',
+  },
+  flex: {
+    flex: 1,
+  },
+  proBannerCard: {
+    padding: Space.md,
+    borderRadius: Radius.lg,
+    backgroundColor: Palette.surfaceHi,
+    borderWidth: Border.thick,
+    borderColor: Accent + '50',
+  },
+  proBannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+  },
+  proBannerIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Accent + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -82,7 +82,11 @@ export default function Notifications() {
 
   return (
     <Screen tint={Accent}>
-      <ScreenHeader title="Bildirimler" subtitle="Görevlerin ve uygulama duyuruların" onBack={() => router.back()} />
+      <ScreenHeader
+        title="Bildirimler"
+        subtitle="Görevlerin ve uygulama duyuruların"
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/student'))}
+      />
 
       {notifications.length === 0 ? (
         <EmptyState
