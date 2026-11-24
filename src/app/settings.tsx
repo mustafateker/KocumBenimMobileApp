@@ -359,7 +359,7 @@ export default function Settings() {
               <SettingRow icon="bug-outline" label="Hata Kayıtları" chevron />
             </PressScale>
           ) : null}
-          <SettingRow icon="information-circle-outline" label="Sürüm" trailing="1.0.0" />
+          <SettingRow icon="information-circle-outline" label="Sürüm" trailing="1.1.0" />
         </Card>
       </View>
 
