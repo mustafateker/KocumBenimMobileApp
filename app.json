@@ -111,6 +111,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.triworkster.kocumbenim",
+      "appleTeamId": "3RRAH7Q65B",
       "usesAppleSignIn": true,
       "googleServicesFile": "./GoogleService-Info.plist",
       "buildNumber": "1",
