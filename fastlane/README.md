@@ -15,6 +15,14 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios check_caps
+
+```sh
+[bundle exec] fastlane ios check_caps
+```
+
+Bundle ID yetkilerini kontrol eder ve gerekirse Push yetkisi ekler
+
 ### ios get_profile
 
 ```sh

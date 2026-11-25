@@ -16,6 +16,24 @@ platform :ios do
     )
   end
 
+  desc "Bundle ID yetkilerini kontrol eder ve gerekirse Push yetkisi ekler"
+  lane :check_caps do
+    asc_api_key
+    bundle = Spaceship::ConnectAPI::BundleId.find("com.triworkster.kocumbenim")
+    UI.message("Bundle ID bulundu: #{bundle.name} (#{bundle.identifier})")
+    caps = bundle.get_capabilities
+    has_push = false
+    caps.each do |c|
+      UI.message("Mevcut Capability: #{c.capability_type}")
+      has_push = true if c.capability_type == "PUSH_NOTIFICATIONS"
+    end
+    unless has_push
+      UI.message("Push Notifications yetkisi ekleniyor...")
+      bundle.create_capability("PUSH_NOTIFICATIONS")
+      UI.success("Push Notifications yetkisi basariyla eklendi!")
+    end
+  end
+
   desc "App Store Provisioning Profilini indirir veya yeniler"
   lane :get_profile do
     sigh(

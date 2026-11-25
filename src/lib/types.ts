@@ -31,6 +31,7 @@ export type Student = {
   xp: number;
   streak: number;
   lastActiveDate: string | null;
+  lastStreakDate?: string | null;
 
   level?: number;
   levelTitle?: string;

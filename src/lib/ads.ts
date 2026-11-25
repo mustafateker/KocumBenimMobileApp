@@ -3,9 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
 const STORAGE_KEY_LAST_SHOWN = 'kocumbenim.ads.lastShownAt';
-export const AD_COOLDOWN_MS = 30 * 60 * 1000; // 30 dakika
+export const AD_COOLDOWN_MS = 30 * 60 * 1000; // 30 dakika bekleme suresi (kullanici deneyimini korumak icin)
 
-export type AdPlacement = 'pomodoro_exit' | 'stats_open';
+export type AdPlacement = 'pomodoro_start' | 'pomodoro_exit' | 'stats_open' | 'questions_open';
 
 let lastShownAtMemory: number | null = null;
 let isLoaded = false;
@@ -92,6 +92,23 @@ function getAdUnitId(): string {
       ? process.env.EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID
       : process.env.EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID;
     return (releaseId && releaseId.trim().length > 0) ? releaseId.trim() : TestIds.INTERSTITIAL;
+  } catch {
+    return '';
+  }
+}
+
+export function getBannerAdUnitId(): string {
+  if (Platform.OS === 'web') return '';
+  try {
+    const { TestIds } = require('react-native-google-mobile-ads');
+    if (__DEV__) {
+      return TestIds.ADAPTIVE_BANNER;
+    }
+    const isIos = Platform.OS === 'ios';
+    const releaseId = isIos
+      ? process.env.EXPO_PUBLIC_ADMOB_IOS_BANNER_ID
+      : process.env.EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID;
+    return (releaseId && releaseId.trim().length > 0) ? releaseId.trim() : TestIds.ADAPTIVE_BANNER;
   } catch {
     return '';
   }

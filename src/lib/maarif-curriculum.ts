@@ -544,11 +544,25 @@ export function isSubjectCompletedToAtLeastSecondTopic(
 }
 
 /**
- * Öğrencinin sınıf müfredatındaki tüm dersler için Derslerim sayfasında
+ * Bir dersin seçmeli ders olup olmadığını belirler.
+ * Seçmeli dersler öğrencinin alanına / okul tercihine bağlı olduğundan
+ * zorunlu konu tamamlama kontrollerinden muaf tutulur.
+ */
+export function isElectiveSubject(subjectName: string): boolean {
+  if (!subjectName) return false;
+  const lower = foldTurkish(subjectName);
+  return lower.includes('secmeli') || lower.includes('elective');
+}
+
+/**
+ * Öğrencinin sınıf müfredatındaki zorunlu dersler için Derslerim sayfasında
  * her dersten en az 2. konuya kadar işaretleme yapıp yapmadığını kontrol eder.
  *
- * Her dersten en az 2. konuya kadar işaretlendiyse false (uyarıyı gösterme),
- * en az bir derste bile 2. konuya gelinmediyse true (uyarıyı göster) döner.
+ * Seçmeli dersler (isElectiveSubject) kontrol dışı bırakılır; çünkü öğrenci
+ * bu dersleri almıyor olabilir.
+ *
+ * Her zorunlu dersten en az 2. konuya kadar işaretlendiyse false (uyarıyı gösterme),
+ * en az bir zorunlu derste bile 2. konuya gelinmediyse true (uyarıyı göster) döner.
  */
 export function hasIncompleteCurriculumTopics(
   gradeRaw: string | number | null | undefined,
@@ -559,6 +573,11 @@ export function hasIncompleteCurriculumTopics(
   if (!subjects || subjects.length === 0) return false;
 
   for (const s of subjects) {
+    // Seçmeli dersler zorunlu tutulmaz, kullanıcı dersi almıyor olabilir.
+    if (isElectiveSubject(s.name)) {
+      continue;
+    }
+
     const schoolTopic = progress[s.name];
     const extraTopics = extraCompleted ? extraCompleted[s.name] : undefined;
 

@@ -284,9 +284,13 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   fieldOnboarding: {
+    height: 56,
+    borderRadius: 18,
     borderColor: OnboardingPalette.border,
     backgroundColor: OnboardingPalette.surface,
     color: OnboardingPalette.text,
+    fontFamily: Font.medium,
+    fontSize: 15,
   },
   fieldError: {
     borderColor: Palette.pink,

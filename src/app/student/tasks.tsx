@@ -2,6 +2,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { AdBanner } from '@/components/ad-banner';
 import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { Screen, ScreenHeader } from '@/components/screen';
@@ -89,6 +90,8 @@ export default function Tasks() {
           ))}
         </View>
       )}
+
+      <AdBanner style={{ marginTop: Space.md, marginBottom: Space.xl }} />
     </Screen>
   );
 }

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
-import { GhostButton, NeonButton, PressScale } from '@/components/button';
-import { IconBubble, ProgressBar, TextField, Txt } from '@/components/ui';
+import { PressScale } from '@/components/button';
+import { ProgressBar, Txt } from '@/components/ui';
+import { OnboardingCardShadow } from '@/features/onboarding/parts';
 import {
   deriveSubjectCurriculumState,
   getCurriculumSubjectsForGrade,
@@ -12,11 +13,8 @@ import {
   type CurriculumSubject,
 } from '@/lib/maarif-curriculum';
 import {
-  Border,
-  DetailAccent,
+  Font,
   OnboardingPalette,
-  Palette,
-  Radius,
   Space,
   pillRadius,
 } from '@/theme/tokens';
@@ -50,17 +48,13 @@ export function getSubjectIcon(subjectName: string): IconName {
 }
 
 /**
- * Tek bir dersin konularını tek sayfada, sade ve anlaşılır şekilde seçtiren bileşen.
- * Öğrenci okulda geldiği konuya dokunduğunda o konu ve önceki tüm konular
- * belirgin yeşil renkle ve yeşil tikle "Tamamlandı" olarak işaretlenir.
+ * Sablon D — Tek bir dersin konularini tek sayfada, sade ve anlasilir sekilde sectiren bilesen.
  */
 export function SingleSubjectTopicPicker({
   grade,
   subject,
   selectedTopic,
   onSelectTopic,
-  stepIndex,
-  totalSteps,
 }: {
   grade: string | number;
   subject: CurriculumSubject;
@@ -70,6 +64,7 @@ export function SingleSubjectTopicPicker({
   totalSteps?: number;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
 
   const state = useMemo(
     () => deriveSubjectCurriculumState(grade, subject.name, selectedTopic),
@@ -83,26 +78,18 @@ export function SingleSubjectTopicPicker({
 
   return (
     <View style={styles.singleContainer}>
-      {/* Seçili Dersin Özet Başlık Kartı */}
-      <View style={styles.subjectHeroCard}>
-        <View style={styles.subjectHeroTop}>
-          <IconBubble name={getSubjectIcon(subject.name)} color={DetailAccent} size={48} />
-          <View style={styles.flex}>
-            {typeof stepIndex === 'number' && typeof totalSteps === 'number' ? (
-              <Txt variant="tiny" color={DetailAccent}>
-                {`DERS ${stepIndex + 1} / ${totalSteps}`}
-              </Txt>
-            ) : null}
-            <Txt variant="section" color={Palette.text}>
-              {subject.name}
-            </Txt>
-            <Txt variant="tiny" color={Palette.textDim}>
-              {`${state.completedCount} / ${state.totalCount} Konu Tamamlandı (%${state.progressPercent})`}
-            </Txt>
+      {/* Ozet Ilerleme Karti: Ustte Matematik · X / Y Konu + sagda #10B981 yesil X Tamam hapi, altinda ince #F47732 ilerleme cubugu */}
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryTopRow}>
+          <View style={styles.subjectIconCircle}>
+            <Ionicons name={getSubjectIcon(subject.name)} size={18} color={OnboardingPalette.accent} />
           </View>
-          <View style={styles.topicCountBadge}>
-            <Ionicons name="checkmark-circle" size={14} color={Palette.green} />
-            <Txt variant="tiny" color={Palette.text} style={{ fontWeight: '600' }}>
+          <Txt variant="bodyStrong" color={OnboardingPalette.text} style={styles.summaryTitle}>
+            {`${subject.name} · ${state.completedCount} / ${state.totalCount} Konu`}
+          </Txt>
+          <View style={styles.doneBadge}>
+            <Ionicons name="checkmark-circle" size={14} color="#FFFFFF" />
+            <Txt variant="tiny" color="#FFFFFF" style={styles.doneBadgeText}>
               {`${state.completedCount} Tamam`}
             </Txt>
           </View>
@@ -110,42 +97,42 @@ export function SingleSubjectTopicPicker({
 
         <ProgressBar
           progress={state.totalCount > 0 ? state.completedCount / state.totalCount : 0}
-          color={DetailAccent}
-          height={7}
-          track={Palette.surfaceHi}
+          color={OnboardingPalette.accent}
+          height={8}
+          track={OnboardingPalette.accentSoft}
         />
 
-        <View style={styles.currentSelectionBox}>
-          <View style={styles.flagIconBox}>
-            <Ionicons name="flag" size={14} color={DetailAccent} />
-          </View>
-          <Txt variant="small" color={Palette.text} style={styles.flex} numberOfLines={2}>
-            {`Okulda Geldiğim Konu: `}
-            <Txt variant="smallStrong" color={DetailAccent}>
+        <View style={styles.currentTopicRow}>
+          <Ionicons name="flag" size={14} color={OnboardingPalette.accent} />
+          <Txt variant="small" color={OnboardingPalette.textDim} style={styles.flex} numberOfLines={2}>
+            {'Okulda Geldiğim Konu: '}
+            <Txt variant="smallStrong" color={OnboardingPalette.accent}>
               {state.currentTopic}
             </Txt>
           </Txt>
         </View>
       </View>
 
-      {/* Arama Kutusu */}
-      <View style={styles.searchWrap}>
+      {/* Beyaz Kapsul Arama Cubugu */}
+      <View style={[styles.searchCapsule, searchFocused && styles.searchCapsuleFocused]}>
         <Ionicons name="search" size={18} color={OnboardingPalette.textFaint} />
-        <TextField
+        <TextInput
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder={`${subject.name} içinde konu ara...`}
-          tone="onboarding"
-          style={styles.searchField}
+          placeholderTextColor={OnboardingPalette.textFaint}
+          onFocus={() => setSearchFocused(true)}
+          onBlur={() => setSearchFocused(false)}
+          style={styles.searchInput}
         />
         {searchQuery.length > 0 ? (
-          <PressScale onPress={() => setSearchQuery('')} scaleTo={0.9}>
+          <PressScale onPress={() => setSearchQuery('')} scaleTo={0.9} hitSlop={8}>
             <Ionicons name="close-circle" size={20} color={OnboardingPalette.textFaint} />
           </PressScale>
         ) : null}
       </View>
 
-      {/* Ünite ve Konu Listesi */}
+      {/* Unite ve Konu Kartlari */}
       {filteredUnits.length === 0 ? (
         <View style={styles.emptySearch}>
           <Txt variant="small" color={OnboardingPalette.textFaint} center>
@@ -156,7 +143,7 @@ export function SingleSubjectTopicPicker({
         <View style={styles.unitsList}>
           {filteredUnits.map((unit) => (
             <View key={unit.name} style={styles.unitBlock}>
-              <Txt variant="tiny" color={OnboardingPalette.textFaint} style={styles.unitTitle}>
+              <Txt variant="tiny" color={OnboardingPalette.textDim} style={styles.unitTitle}>
                 {unit.name.toUpperCase()}
               </Txt>
 
@@ -179,72 +166,61 @@ export function SingleSubjectTopicPicker({
                           isCurrent && styles.topicItemCurrent,
                         ]}
                       >
-                        {/* Sol İkon: Okulda Gelinen Konu İçin Bayrak/Turuncu, Tamamlananlar İçin Yeşil Tik, Diğerleri İçin Sıra Numarası */}
+                        {/* Sol Ikon: Secili son konu icin yumusak turuncu bayrak, tamamlananlar icin yesil tik, digerleri sira numarasi */}
                         <View
                           style={[
-                            styles.checkCircle,
+                            styles.leftCircle,
                             isCurrent
-                              ? styles.checkCircleCurrent
+                              ? styles.leftCircleCurrent
                               : isCompleted
-                                ? styles.checkCircleGreen
-                                : styles.checkCircleEmpty,
+                                ? styles.leftCircleCompleted
+                                : styles.leftCircleEmpty,
                           ]}
                         >
                           {isCurrent ? (
-                            <Ionicons name="flag" size={15} color="#FFFFFF" />
+                            <Ionicons name="flag" size={15} color={OnboardingPalette.accent} />
                           ) : isCompleted ? (
                             <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                           ) : (
-                            <Txt variant="tiny" color={Palette.textDim}>
+                            <Txt variant="tiny" color={OnboardingPalette.textDim}>
                               {topicOrderIdx + 1}
                             </Txt>
                           )}
                         </View>
 
-                        {/* Konu Adı ve Durum Etiketi */}
+                        {/* Konu Adi ve Durum */}
                         <View style={styles.flex}>
                           <Txt
                             variant={isCompleted || isCurrent ? 'bodyStrong' : 'body'}
-                            color={isCompleted || isCurrent ? Palette.text : Palette.textDim}
+                            color={OnboardingPalette.text}
                           >
                             {topic}
                           </Txt>
                           <View style={styles.statusRow}>
                             {isCurrent ? (
-                              <View style={styles.currentBadge}>
-                                <Txt variant="tiny" color="#FFFFFF" style={{ fontWeight: '600' }}>
-                                  Okulda Geldiğim Son Konu
-                                </Txt>
-                              </View>
+                              <Txt variant="tiny" color={OnboardingPalette.accent} style={styles.currentStatusText}>
+                                Okulda Geldiğim Son Konu
+                              </Txt>
                             ) : isCompleted ? (
-                              <Txt variant="tiny" color={Palette.green}>
+                              <Txt variant="tiny" color={OnboardingPalette.success}>
                                 Tamamlandı · İşlendi
                               </Txt>
                             ) : (
-                              <Txt variant="tiny" color={Palette.textFaint}>
+                              <Txt variant="tiny" color={OnboardingPalette.textFaint}>
                                 Dokunarak seç
                               </Txt>
                             )}
                           </View>
                         </View>
 
-                        <Ionicons
-                          name={
-                            isCurrent
-                              ? 'checkmark-circle'
-                              : isCompleted
-                                ? 'checkmark-circle'
-                                : 'ellipse-outline'
-                          }
-                          size={22}
-                          color={
-                            isCurrent
-                              ? DetailAccent
-                              : isCompleted
-                                ? Palette.green
-                                : Palette.border
-                          }
-                        />
+                        {/* Sagda #10B981 yesil tik dairesi veya bos daire */}
+                        {isCurrent || isCompleted ? (
+                          <View style={styles.rightGreenCheck}>
+                            <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                          </View>
+                        ) : (
+                          <View style={styles.rightEmptyCircle} />
+                        )}
                       </View>
                     </PressScale>
                   );
@@ -259,8 +235,8 @@ export function SingleSubjectTopicPicker({
 }
 
 /**
- * İlk kayıt onboarding sihirbazı içinde kullanılan, her sayfada (section'da)
- * tek bir dersin konusunu seçtiren bileşen.
+ * Sablon D — Onboarding icindeki Maarif Mufredat Konu Secici.
+ * Ders sekmeleri yatay ScrollView icinde tam metinli kapsul haplar olarak yer alir.
  */
 export function CurriculumTopicPicker({
   grade,
@@ -282,7 +258,7 @@ export function CurriculumTopicPicker({
 
   return (
     <View style={styles.wizardWrap}>
-      {/* Üst Ders Geçiş Sekmeleri (Sayfa / Section göstergesi) */}
+      {/* Yatay ScrollView icinde tam metinli ders kapsul haplari */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -292,24 +268,30 @@ export function CurriculumTopicPicker({
           const isActive = idx === safeIndex;
           const isDone = Boolean(value[subj.name]);
           return (
-            <PressScale key={subj.name} onPress={() => setSubjectIndex(idx)} scaleTo={0.96}>
-              <View
-                style={[
-                  styles.subjectStepPill,
-                  isActive && styles.subjectStepPillActive,
-                  !isActive && isDone && styles.subjectStepPillDone,
-                ]}
-              >
+            <PressScale
+              key={subj.name}
+              onPress={() => setSubjectIndex(idx)}
+              scaleTo={0.96}
+              style={styles.pillWrapper}
+            >
+              <View style={[styles.subjectTabPill, isActive && styles.subjectTabPillActive]}>
                 <Ionicons
-                  name={isDone ? 'checkmark-circle' : getSubjectIcon(subj.name)}
+                  name={isDone && !isActive ? 'checkmark-circle' : getSubjectIcon(subj.name)}
                   size={15}
-                  color={isActive ? '#FFFFFF' : isDone ? Palette.green : OnboardingPalette.textDim}
+                  color={
+                    isActive
+                      ? '#FFFFFF'
+                      : isDone
+                        ? OnboardingPalette.success
+                        : OnboardingPalette.textDim
+                  }
                 />
                 <Txt
-                  variant="tiny"
-                  color={isActive ? '#FFFFFF' : isDone ? Palette.green : OnboardingPalette.textDim}
+                  variant="smallStrong"
+                  color={isActive ? '#FFFFFF' : OnboardingPalette.text}
+                  style={styles.subjectTabText}
                 >
-                  {`${idx + 1}. ${subj.name}`}
+                  {subj.name}
                 </Txt>
               </View>
             </PressScale>
@@ -317,7 +299,7 @@ export function CurriculumTopicPicker({
         })}
       </ScrollView>
 
-      {/* Aktif Dersin Konu Seçim Bölümü */}
+      {/* Aktif Dersin Konu Secim Bolumu */}
       <SingleSubjectTopicPicker
         grade={grade}
         subject={activeSubject}
@@ -328,32 +310,6 @@ export function CurriculumTopicPicker({
           onChange({ ...value, [activeSubject.name]: topicName });
         }}
       />
-
-      {/* Dersler Arası İleri / Geri Geçiş Butonları */}
-      {subjects.length > 1 ? (
-        <View style={styles.subjectNavRow}>
-          {safeIndex > 0 ? (
-            <GhostButton
-              label={`Önceki Ders (${subjects[safeIndex - 1].name})`}
-              icon="chevron-back"
-              color={OnboardingPalette.textDim}
-              onPress={() => setSubjectIndex((i) => Math.max(0, i - 1))}
-              style={styles.flex}
-              full
-            />
-          ) : null}
-          {safeIndex < subjects.length - 1 ? (
-            <NeonButton
-              label={`Sonraki Ders: ${subjects[safeIndex + 1].name}`}
-              icon="arrow-forward"
-              color={Palette.green}
-              onPress={() => setSubjectIndex((i) => Math.min(subjects.length - 1, i + 1))}
-              style={styles.flex}
-              full
-            />
-          ) : null}
-        </View>
-      ) : null}
     </View>
   );
 }
@@ -364,99 +320,105 @@ const styles = StyleSheet.create({
     gap: Space.md,
   },
   subjectPillsRow: {
-    gap: Space.xs,
-    paddingVertical: 2,
+    gap: Space.sm,
+    paddingVertical: 4,
   },
-  subjectStepPill: {
+  pillWrapper: {
+    flexShrink: 0,
+  },
+  subjectTabPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: pillRadius(36),
-    borderWidth: Border.thick,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: pillRadius(40),
+    borderWidth: 1,
     borderColor: OnboardingPalette.border,
     backgroundColor: OnboardingPalette.surface,
+    ...OnboardingCardShadow,
   },
-  subjectStepPillActive: {
-    borderColor: DetailAccent,
-    backgroundColor: DetailAccent,
+  subjectTabPillActive: {
+    borderColor: OnboardingPalette.accent,
+    backgroundColor: OnboardingPalette.accent,
   },
-  subjectStepPillDone: {
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-    backgroundColor: '#FFFFFF',
-  },
-  subjectNavRow: {
-    flexDirection: 'row',
-    gap: Space.sm,
-    marginTop: Space.xs,
+  subjectTabText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: Font.semibold,
   },
   singleContainer: {
     gap: Space.md,
   },
-  subjectHeroCard: {
+  summaryCard: {
     padding: Space.lg,
-    borderRadius: Radius.xl,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(251, 174, 117, 0.35)',
-    backgroundColor: '#FFFFFF',
-    gap: Space.md,
-    shadowColor: '#2D2B52',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 2,
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
+    gap: 12,
+    ...OnboardingCardShadow,
   },
-  subjectHeroTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Space.md,
-  },
-  topicCountBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: pillRadius(26),
-    backgroundColor: 'rgba(251, 174, 117, 0.14)',
-    borderWidth: Border.thin,
-    borderColor: 'rgba(251, 174, 117, 0.3)',
-  },
-  currentSelectionBox: {
+  summaryTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingHorizontal: Space.md,
-    paddingVertical: 10,
-    borderRadius: Radius.md,
-    backgroundColor: 'rgba(251, 174, 117, 0.10)',
-    borderWidth: 1,
-    borderColor: 'rgba(251, 174, 117, 0.24)',
   },
-  flagIconBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+  subjectIconCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: OnboardingPalette.accentSoft,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  searchWrap: {
+  summaryTitle: {
+    flex: 1,
+    fontFamily: Font.bold,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  doneBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    height: 26,
+    paddingHorizontal: 10,
+    borderRadius: pillRadius(26),
+    backgroundColor: OnboardingPalette.success,
+  },
+  doneBadgeText: {
+    fontFamily: Font.bold,
+  },
+  currentTopicRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 2,
+  },
+  searchCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.sm,
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radius.lg,
-    paddingHorizontal: Space.md,
+    height: 50,
+    paddingHorizontal: Space.lg,
+    borderRadius: pillRadius(50),
+    backgroundColor: OnboardingPalette.surface,
     borderWidth: 1,
-    borderColor: Palette.border,
-    height: 48,
+    borderColor: OnboardingPalette.border,
+    ...OnboardingCardShadow,
   },
-  searchField: {
+  searchCapsuleFocused: {
+    borderWidth: 2,
+    borderColor: OnboardingPalette.borderSelected,
+  },
+  searchInput: {
     flex: 1,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
+    color: OnboardingPalette.text,
+    fontFamily: Font.medium,
+    fontSize: 14,
+    paddingVertical: 0,
   },
   emptySearch: {
     paddingVertical: Space.xl,
@@ -465,67 +427,78 @@ const styles = StyleSheet.create({
     gap: Space.lg,
   },
   unitBlock: {
-    gap: Space.xs,
+    gap: 8,
   },
   unitTitle: {
+    fontFamily: Font.bold,
+    fontSize: 11,
     letterSpacing: 0.8,
-    marginBottom: 4,
+    marginLeft: 4,
   },
   unitTopics: {
-    gap: Space.sm,
+    gap: 10,
   },
   topicItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
     paddingHorizontal: Space.md,
-    paddingVertical: 13,
-    borderRadius: Radius.lg,
+    paddingVertical: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: Palette.border,
-    backgroundColor: '#FFFFFF',
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
+    ...OnboardingCardShadow,
   },
   topicItemCompleted: {
     borderColor: 'rgba(16, 185, 129, 0.25)',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: OnboardingPalette.surface,
   },
   topicItemCurrent: {
-    borderColor: DetailAccent,
+    borderColor: OnboardingPalette.borderSelected,
     borderWidth: 1.5,
-    backgroundColor: '#FFFDF9',
-    shadowColor: '#2D2B52',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    backgroundColor: OnboardingPalette.surfaceSelected,
   },
-  checkCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  leftCircle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkCircleCurrent: {
-    backgroundColor: DetailAccent,
+  leftCircleCurrent: {
+    backgroundColor: OnboardingPalette.accentSoft,
   },
-  checkCircleGreen: {
-    backgroundColor: Palette.green,
+  leftCircleCompleted: {
+    backgroundColor: OnboardingPalette.success,
   },
-  checkCircleEmpty: {
-    backgroundColor: Palette.surfaceHi,
+  leftCircleEmpty: {
+    backgroundColor: OnboardingPalette.bg,
     borderWidth: 1,
-    borderColor: Palette.border,
+    borderColor: OnboardingPalette.border,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
+    marginTop: 2,
   },
-  currentBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: pillRadius(18),
-    backgroundColor: DetailAccent,
+  currentStatusText: {
+    fontFamily: Font.bold,
+  },
+  rightGreenCheck: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: OnboardingPalette.success,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rightEmptyCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.bg,
   },
 });

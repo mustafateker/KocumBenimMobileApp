@@ -137,13 +137,13 @@ async function executeSync(
     }
 
     // 4. Eksik Konu İlerlemesi Bildirimi (Salı 18:00)
-    // Öğrenci müfredatındaki tüm derslerin geldiği konuyu henüz işaretlemediyse hatırlatır.
+    // Öğrenci müfredatındaki zorunlu derslerin geldiği konuyu henüz işaretlemediyse hatırlatır.
     if (options?.hasIncompleteTopics) {
       await Notifications.scheduleNotificationAsync({
         identifier: ROUTINE_CURRICULUM_ID,
         content: {
           title: 'Konu İlerlemeni Tamamla',
-          body: 'Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden en az 2. konuya kadar işaretle.',
+          body: 'Koçunun sana daha doğru ödev atayabilmesi için lütfen zorunlu derslerden en az 2. konuya kadar işaretle.',
           data: { type: 'curriculum_reminder' },
           sound: true,
         },

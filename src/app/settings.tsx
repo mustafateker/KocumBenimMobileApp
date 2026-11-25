@@ -30,7 +30,7 @@ const DEFAULT_PREFS: Preferences = {
 export default function Settings() {
   const student = useStudent();
   const router = useRouter();
-  const { signOut, setUser, authProvider } = useSession();
+  const { user, signOut, setUser, authProvider } = useSession();
   const { showMessage, showError } = useErrorDialog();
   const { isPro, presentPaywall, restorePurchases } = useSubscription();
 
@@ -72,10 +72,11 @@ export default function Settings() {
   }, [restoring, restorePurchases, showMessage, showError]);
 
   useEffect(() => {
+    if (!user) return;
     getPreferences()
       .then(setPrefs)
       .catch((err) => showError(err, { title: 'Tercihler yüklenemedi', code: 'PREFERENCES_LOAD' }));
-  }, [showError]);
+  }, [user, showError]);
 
   const togglePref = useCallback(
     (key: keyof Preferences, value: boolean) => {

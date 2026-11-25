@@ -94,8 +94,9 @@ export default function Focus() {
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
+    showInterstitialIfEligible('pomodoro_start', isPro).catch(() => {});
     start(plannedSec);
-  }, [start, plannedSec]);
+  }, [start, plannedSec, isPro]);
 
   const endNow = useCallback(() => {
     timer.stop();

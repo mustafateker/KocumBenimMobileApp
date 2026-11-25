@@ -2,7 +2,7 @@ import { ImageSourcePropType } from 'react-native';
 
 /**
  * Koçum Benim - Seviye, XP & Erime (Decay) Oyunlaştırma Kuralları
- * LGS / YKS 7.5 Ay (25.000 XP) Modeli
+ * LGS / YKS Tam Hazırlık Maratonu (70.000 - 100.000 XP) Modeli
  * NOT: Sıfır emoji kuralı geçerlidir.
  */
 
@@ -65,24 +65,24 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
   {
     level: 2,
     title: 'İstikrarlı Yolcu',
-    cumulativeXp: 500,
-    levelXp: 500,
+    cumulativeXp: 400,
+    levelXp: 400,
     stage: 'Masaya oturma ritmi',
     characterKey: 'level_2',
   },
   {
     level: 3,
     title: 'Odak Mimarı',
-    cumulativeXp: 1500,
-    levelXp: 1000,
+    cumulativeXp: 1200,
+    levelXp: 800,
     stage: 'Pomodoro disiplini',
     characterKey: 'level_3',
   },
   {
     level: 4,
     title: 'Görev Avcısı',
-    cumulativeXp: 3200,
-    levelXp: 1700,
+    cumulativeXp: 2800,
+    levelXp: 1600,
     stage: 'Günlük ödev ve rutin takibi',
     characterKey: 'level_4',
   },
@@ -90,48 +90,48 @@ export const LEVEL_DEFINITIONS: LevelDefinition[] = [
     level: 5,
     title: 'Disiplin Ustası',
     cumulativeXp: 6000,
-    levelXp: 2800,
+    levelXp: 3200,
     stage: 'Kış dönemi platosunu aşma',
     characterKey: 'level_5',
   },
   {
     level: 6,
     title: 'Soru Stratejisti',
-    cumulativeXp: 9500,
-    levelXp: 3500,
+    cumulativeXp: 11500,
+    levelXp: 5500,
     stage: 'Hata analizi ve eksik kapatma',
     characterKey: 'level_6',
   },
   {
     level: 7,
     title: 'Zirve Adayı',
-    cumulativeXp: 14000,
-    levelXp: 4500,
+    cumulativeXp: 20000,
+    levelXp: 8500,
     stage: 'Hızlanma ve branş denemeleri',
     characterKey: 'level_7',
   },
   {
     level: 8,
     title: 'Maraton Koşucusu',
-    cumulativeXp: 19000,
-    levelXp: 5000,
+    cumulativeXp: 33000,
+    levelXp: 13000,
     stage: 'Mental dayanıklılık & tempo artışı',
     characterKey: 'level_8',
   },
   {
     level: 9,
     title: 'Akademi Lideri',
-    cumulativeXp: 22500,
-    levelXp: 3500,
+    cumulativeXp: 50000,
+    levelXp: 17000,
     stage: 'Final virajına giriş',
     characterKey: 'level_9',
   },
   {
     level: 10,
     title: 'Sınav Şampiyonu',
-    cumulativeXp: 25000,
-    levelXp: 2500,
-    stage: 'Zirveye Ulaşma & Unvanı Koruma Modu',
+    cumulativeXp: 70000,
+    levelXp: 20000,
+    stage: 'Zirveye Tutunma & Derece Öğrencisi',
     characterKey: 'level_10',
   },
 ];
@@ -181,31 +181,31 @@ export function getLevelInfo(xpRaw?: number | null): LevelInfo {
     currentLevelXp = xp - floorXp;
     progressPercent = Math.min(1, Math.max(0.06, currentLevelXp / span));
   } else {
-    // Seviye 10 Yıldız Kademeleri (25.000 / 27.500 / 30.000)
-    if (xp >= 30000) {
+    // Seviye 10 Yıldız Kademeleri (70.000 / 85.000 / 100.000)
+    if (xp >= 100000) {
       stars = 3;
       title = 'Efsane Şampiyon';
       starTitle = 'Efsane Şampiyon (3 Yıldız)';
-      floorXp = 30000;
-      nextLevelXp = 30000;
-      currentLevelXp = xp - 30000;
+      floorXp = 100000;
+      nextLevelXp = 100000;
+      currentLevelXp = xp - 100000;
       progressPercent = 1;
-    } else if (xp >= 27500) {
+    } else if (xp >= 85000) {
       stars = 2;
       title = 'Sınav Şampiyonu';
       starTitle = 'Sınav Şampiyonu (2 Yıldız)';
-      floorXp = 27500;
-      nextLevelXp = 30000;
-      currentLevelXp = xp - 27500;
-      progressPercent = Math.min(1, Math.max(0.06, currentLevelXp / 2500));
+      floorXp = 85000;
+      nextLevelXp = 100000;
+      currentLevelXp = xp - 85000;
+      progressPercent = Math.min(1, Math.max(0.06, currentLevelXp / 15000));
     } else {
       stars = 1;
       title = 'Sınav Şampiyonu';
       starTitle = 'Sınav Şampiyonu (1 Yıldız)';
-      floorXp = 25000;
-      nextLevelXp = 27500;
-      currentLevelXp = xp - 25000;
-      progressPercent = Math.min(1, Math.max(0.06, currentLevelXp / 2500));
+      floorXp = 70000;
+      nextLevelXp = 85000;
+      currentLevelXp = xp - 70000;
+      progressPercent = Math.min(1, Math.max(0.06, currentLevelXp / 15000));
     }
   }
 

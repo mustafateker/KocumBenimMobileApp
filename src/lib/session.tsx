@@ -248,15 +248,45 @@ export function useSession(): SessionValue {
   return ctx;
 }
 
+const FALLBACK_STUDENT: Student = {
+  id: 0,
+  role: 'student',
+  email: '',
+  name: 'Öğrenci',
+  surname: null,
+  nickname: null,
+  grade: '8. Sınıf',
+  parentEmail: null,
+  teacherId: null,
+  goal: null,
+  career: null,
+  targetHighSchool: null,
+  targetUniversity: null,
+  targetDepartment: null,
+  dailyHours: null,
+  disciplineMeaning: [],
+  commitmentDuration: null,
+  motivationSources: [],
+  curriculumProgress: {},
+  onboardingCompletedAt: null,
+  xp: 0,
+  streak: 0,
+  lastActiveDate: null,
+  lastStreakDate: null,
+  createdAt: '',
+  updatedAt: '',
+};
+
 /**
- * Ogrenci ekranlari icin kisayol. Ogrenci disi bir rolde cagrilirsa
- * hata firlatir — yanlis rolun ekrani sessizce bos gostermesindense
- * gelistirme sirasinda patlamasi iyidir.
+ * Ogrenci ekranlari icin kisayol. Cikis yapilirken veya hesap silinirken
+ * stack ekrani (/settings, /onboarding vb.) unmount olana kadar gecen
+ * gecis karesinde `user` null oldugunda render hatasi firlatmamasi icin
+ * guvenli bos yedegi dondurur.
  */
 export function useStudent(): Student {
   const { user } = useSession();
-  if (!user || user.role !== 'student') {
-    throw new Error('Bu ekran yalnizca ogrenci oturumunda kullanilabilir');
+  if (user && user.role === 'student') {
+    return user;
   }
-  return user;
+  return FALLBACK_STUDENT;
 }

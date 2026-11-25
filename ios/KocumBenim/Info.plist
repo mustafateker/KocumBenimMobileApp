@@ -41,7 +41,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>29926679</string>
+	<string>29926873</string>
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-4455914992803909~6345051417</string>
 	<key>GADDelayAppMeasurementInit</key>
@@ -172,6 +172,10 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>

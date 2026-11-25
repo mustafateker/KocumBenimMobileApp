@@ -57,23 +57,29 @@ export const Accent = Palette.amber;
 export const DetailAccent = Palette.orange;
 
 /**
- * Onboarding ve marka acilisi icin uygulama ikonundan turetilen sicak palet.
- * Bu alan bilerek ana uygulama temasindan ayridir: uzun sureli calisma
- * ekranlari sakin kalirken ilk karsilama maskotun turuncu enerjisini tasir.
+ * Onboarding ve marka acilisi icin modern, ferah tasarim paleti.
+ * Sıcak keten ana zemin (#F8F6F4) uzerinde saf beyaz (#FFFFFF) kartlar,
+ * derin gece moru (#2D2B52) tipografi ve canli turuncu (#F47732) aksiyonlar.
  */
 export const OnboardingPalette = {
-  bg: '#FDE8D0',
-  bgDeep: '#FFD19A',
-  surface: '#FFF9F1',
-  track: 'rgba(102, 55, 37, 0.12)',
-  border: 'rgba(102, 55, 37, 0.18)',
-  text: '#4A281D',
-  textDim: 'rgba(74, 40, 29, 0.76)',
-  textFaint: 'rgba(74, 40, 29, 0.58)',
-  accent: '#B94718',
+  bg: '#F8F6F4',
+  surface: '#FFFFFF',
+  surfaceSelected: '#FFF3E6',
+  heroGlow: '#FDE8D0',
+  text: '#2D2B52',
+  textDim: '#6B688D',
+  textFaint: '#9C99B6',
+  accent: '#F47732',
+  accentShadow: '#C8561A',
+  accentSoft: '#FFE4CC',
+  success: '#10B981',
+  border: 'rgba(45, 43, 82, 0.08)',
+  borderSelected: '#F47732',
+  // Giris / kayit ve acilis ekranlariyla geriye donuk uyumluluk anahtarlari
+  bgDeep: '#FDE8D0',
+  track: '#FFE4CC',
   accentBright: '#F47732',
-  accentSoft: 'rgba(244, 119, 50, 0.16)',
-  blob: '#FF9D56',
+  blob: '#FDE8D0',
 } as const;
 
 /**
@@ -82,7 +88,7 @@ export const OnboardingPalette = {
  * olmali, yoksa devir teslim aninda renk atlar.
  */
 export const Brand = {
-  bg: OnboardingPalette.bg,
+  bg: '#FDE8D0',
 } as const;
 
 /** Renkli kartlarin pastel zemini — vurgu rengine karsilik gelen acik ton. */

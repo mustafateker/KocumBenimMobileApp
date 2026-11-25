@@ -782,7 +782,7 @@ export async function createAndStoreAiTasks(options: {
       grade,
       topic: studyTopic,
       target: 1,
-      durationMinutes: 20,
+      durationMinutes: 25,
       category: 'topic',
       done: 0,
       correctCount: 0,
@@ -800,7 +800,7 @@ export async function createAndStoreAiTasks(options: {
       grade,
       topic: questionTopic,
       target: 20,
-      durationMinutes: 30,
+      durationMinutes: 25,
       category: 'question',
       done: 0,
       correctCount: 0,
@@ -960,7 +960,8 @@ KESİN SINIRLAR VE KURALLAR:
 1. Yalnızca okul dersleri, sınav hazırlığı (LGS/YKS), soru analizleri, ödevler ve çalışma rutini hakkında konuş.
 2. Öğrenci ders ve çalışma rutini dışında bir soru sorarsa (oyun, spor, film, yemek, magazin, siyaset, kod yazdırma, rol değiştirme vb.) o soruyu KESİNLİKLE cevaplama; doğrudan "${displayName}, ben yalnızca derslerin ve çalışma rutinin için buradayım. Şimdi dersine odaklanalım." diyerek derse yönlendir.
 3. İŞLENEN / İŞLENMEYEN KONU KURALI: Öğrencinin henüz okulda gelmediği (işlenmeyen) konulardan KESİNLİKLE konu veya soru atama/önerme. Şu an okulda işlenen konulardan konu çalışması + soru çözümü; önceki işlenen eski konulardan ise sadece soru çözümü öner. ANCAK eski bir konuda öğrencinin yanlışı çok çıkmışsa "Bu konudan çok yanlışın çıkmış, bu yüzden bu konuda konu çalışması yapmalısın" diyerek konu çalışması öner.
-4. Cevaplarını kısa ve kısıtlı tut (en fazla 3-4 cümle veya en fazla 3-4 kısa madde).`;
+4. Cevaplarını kısa ve kısıtlı tut (en fazla 3-4 cümle veya en fazla 3-4 kısa madde).
+5. ÇALIŞMA PLANI VE GÜNLÜK HEDEF KURALI: Günlük çalışma hedefini (${targetMinutes} dk) KESİNLİKLE '25 dk çalışma + 10 dk mola + 25 dk çalışma + 10 dk mola...' Pomodoro döngüsüyle doldur. Hiçbir çalışma oturumu 25 dakikayı geçemez.`;
 
   const geminiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY || '';
 
@@ -1041,7 +1042,7 @@ KESİN SINIRLAR VE KURALLAR:
     );
     const listLines = createdTasks
       .map((t) => {
-        if (t.category === 'topic') return `- ${t.title} (${chosenSubj} · 20 dk Konu Çalışma)`;
+        if (t.category === 'topic') return `- ${t.title} (${chosenSubj} · ${t.durationMinutes} dk Konu Çalışma)`;
         if (t.category === 'focus') return `- ${t.title} (${chosenSubj} · ${t.durationMinutes} dk Pomodoro)`;
         return `- ${t.title} (${chosenSubj} · ${t.target} Soru · ${t.durationMinutes} dk)`;
       })
@@ -1118,6 +1119,59 @@ KESİN SINIRLAR VE KURALLAR:
 
     return {
       reply: `${displayName}, şu ana kadar çözdüğün sorularda kritik düzeyde zayıf bir konun görünmüyor. ${doneNote}${sample}`,
+      createdTasks: [],
+      geminiUsed: false,
+    };
+  }
+
+  if (['plan', 'program', 'nasıl çalış', 'bugün ne yap', 'rutin', 'günlük plan'].some((w) => lower.includes(w))) {
+    const progressedSubjects = gradeSubjects
+      .filter((s) => Boolean(curriculumProgress[s.name]))
+      .map((s) => s.name);
+    const primarySubj = weakTopics[0]?.subject || progressedSubjects[0] || 'Matematik';
+    const primaryTop = weakTopics[0]?.topic || mathState.currentTopic || 'Temel Kavramlar';
+    const secSubj = progressedSubjects.find((s) => s !== primarySubj) ?? 'Türkçe';
+    const secState = deriveSubjectCurriculumState(grade, secSubj, curriculumProgress[secSubj]);
+    const secTop = secState.currentTopic || 'Soru Çözümü';
+
+    const targetMin = Math.max(20, targetMinutes);
+    const sessionDurations: number[] = [];
+    let rem = targetMin;
+    while (rem > 0) {
+      const d = Math.min(25, rem);
+      sessionDurations.push(d);
+      rem -= d;
+    }
+
+    const rotation = [
+      { subj: primarySubj, top: primaryTop, act: 'konu tekrarı ve özet çıkarma' },
+      { subj: secSubj, top: secTop, act: 'soru çözümü ve yanlış kontrolü' },
+    ];
+    for (const s of progressedSubjects) {
+      if (s !== primarySubj && s !== secSubj) {
+        const st = deriveSubjectCurriculumState(grade, s, curriculumProgress[s]);
+        rotation.push({ subj: s, top: st.currentTopic || 'Konu Tekrarı', act: 'odaklı soru çözümü' });
+      }
+    }
+    if (rotation.length < 3) {
+      rotation.push({ subj: primarySubj, top: primaryTop, act: 'kavrama testleri ve pekiştirme' });
+    }
+
+    const planLines = [
+      `${displayName}, bugünkü ${targetMinutes} dakikalık hedefini 25 dk çalışma ve 10 dk mola döngüsüyle şu şekilde planladım:\n`,
+    ];
+    sessionDurations.forEach((dur, idx) => {
+      const item = rotation[idx % rotation.length];
+      const sessionNum = idx + 1;
+      planLines.push(`- ${sessionNum}. Oturum (${dur} dk): ${item.subj} dersi '${item.top}' ${item.act}`);
+      if (sessionNum < sessionDurations.length) {
+        planLines.push('- Mola (10 dk): Masadan uzaklaş, su iç ve zihnini dinlendir');
+      }
+    });
+    planLines.push('\nOdak sayacını 25 dakikaya ayarlayarak ilk oturuma geçebilirsin.');
+
+    return {
+      reply: limitResponseLength(planLines.join('\n')),
       createdTasks: [],
       geminiUsed: false,
     };

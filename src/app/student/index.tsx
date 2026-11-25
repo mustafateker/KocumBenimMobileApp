@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
+import { AdBanner } from '@/components/ad-banner';
 import { GhostButton, IconButton, NeonButton, PressScale } from '@/components/button';
 import { SideExamCountdown } from '@/components/side-exam-countdown';
 import { FocusRing } from '@/components/focus-ring';
@@ -67,6 +68,7 @@ export default function Home() {
   const [assigningRecId, setAssigningRecId] = useState<string | null>(null);
   const [assignedRecIds, setAssignedRecIds] = useState<Record<string, boolean>>({});
   const [showCurriculumPrompt, setShowCurriculumPrompt] = useState(false);
+  const [curriculumPromptDismissed, setCurriculumPromptDismissed] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [draft, setDraft] = useState(DURATIONS[0].seconds);
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
@@ -353,7 +355,7 @@ export default function Home() {
       </View>
 
       {/* Eksik Konu İlerleme Uyarısı */}
-      {showCurriculumPrompt && (
+      {showCurriculumPrompt && !curriculumPromptDismissed && (
         <PressScale onPress={() => router.push('/subjects')} scaleTo={0.98}>
           <Card style={styles.curriculumPromptCard}>
             <View style={styles.curriculumPromptHeader}>
@@ -365,9 +367,16 @@ export default function Home() {
                   Konu İlerlemeni Tamamla
                 </Txt>
                 <Txt variant="tiny" color={Palette.textDim} style={styles.curriculumPromptText}>
-                  Koçunun sana daha doğru ödev atayabilmesi için lütfen tüm derslerden en az 2. konuya kadar işaretle.
+                  Koçunun sana daha doğru ödev atayabilmesi için lütfen zorunlu derslerden en az 2. konuya kadar işaretle.
                 </Txt>
               </View>
+              <PressScale
+                onPress={() => setCurriculumPromptDismissed(true)}
+                hitSlop={10}
+                style={styles.curriculumPromptCloseBtn}
+              >
+                <Ionicons name="close" size={18} color={Palette.textDim} />
+              </PressScale>
             </View>
             <View style={styles.curriculumPromptActionRow}>
               <Txt variant="smallStrong" color={Accent}>
@@ -660,6 +669,8 @@ export default function Home() {
           </View>
         </View>
       </Modal>
+
+      <AdBanner style={{ marginTop: Space.lg, marginBottom: Space.xl }} />
     </Screen>
   );
 }
@@ -924,6 +935,10 @@ const styles = StyleSheet.create({
   curriculumPromptText: {
     marginTop: 2,
     lineHeight: 16,
+  },
+  curriculumPromptCloseBtn: {
+    padding: 4,
+    marginLeft: Space.xs,
   },
   curriculumPromptActionRow: {
     flexDirection: 'row',

@@ -90,7 +90,7 @@ export async function registerForPushNotifications(): Promise<void> {
         shouldShowBanner: true,
         shouldShowList: true,
         shouldPlaySound: true,
-        shouldSetBadge: false,
+        shouldSetBadge: true,
       }),
     });
 
@@ -99,7 +99,13 @@ export async function registerForPushNotifications(): Promise<void> {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
+      const { status } = await Notifications.requestPermissionsAsync({
+        ios: {
+          allowAlert: true,
+          allowBadge: true,
+          allowSound: true,
+        },
+      });
       finalStatus = status;
     }
     if (finalStatus !== 'granted') {
@@ -107,11 +113,42 @@ export async function registerForPushNotifications(): Promise<void> {
       return;
     }
 
-    const tokenResponse = await Notifications.getDevicePushTokenAsync();
-    if (typeof tokenResponse.data !== 'string') {
+    const Constants = (await import('expo-constants')).default;
+    const easProjectId =
+      Constants.expoConfig?.extra?.eas?.projectId ?? '1f34a333-ba28-496b-9b22-cc93db101e58';
+
+    let pushToken: string | null = null;
+    if (Platform.OS === 'ios') {
+      try {
+        const tokenResponse = await Notifications.getExpoPushTokenAsync({
+          projectId: easProjectId,
+        });
+        pushToken = tokenResponse.data;
+      } catch (expoErr) {
+        logHandledError('PUSH_EXPO_TOKEN_FAILED', expoErr);
+        const tokenResponse = await Notifications.getDevicePushTokenAsync();
+        if (typeof tokenResponse.data === 'string') {
+          pushToken = tokenResponse.data;
+        }
+      }
+    } else {
+      try {
+        const tokenResponse = await Notifications.getDevicePushTokenAsync();
+        if (typeof tokenResponse.data === 'string') {
+          pushToken = tokenResponse.data;
+        }
+      } catch {
+        const tokenResponse = await Notifications.getExpoPushTokenAsync({
+          projectId: easProjectId,
+        });
+        pushToken = tokenResponse.data;
+      }
+    }
+
+    if (!pushToken || typeof pushToken !== 'string') {
       throw new Error('Cihaz tokeni beklenen string biçiminde değil.');
     }
-    await registerPushToken(tokenResponse.data);
+    await registerPushToken(pushToken);
   } catch (err) {
     // Push kaydi en iyi caba niteligindedir; basarisiz olursa bildirimler
     // ekran-ici listede gorunmeye devam eder. Yine de sebebi kayit altina al.

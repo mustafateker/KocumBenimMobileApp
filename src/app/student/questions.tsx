@@ -6,11 +6,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { IconButton, NeonButton, PressScale } from '@/components/button';
 import { CanvasView } from '@/components/canvas-view';
 import { MenuButton, NotificationBell } from '@/components/header-actions';
 import { ScreenBackground } from '@/components/screen';
 import { Card, EmptyState, IconBubble, Pill, Txt } from '@/components/ui';
+import { showInterstitialIfEligible } from '@/lib/ads';
 import { generateQuestionHint, getCachedQuestionHint } from '@/lib/ai-question-hint';
 import { getQuestions, resolveQuestion } from '@/lib/api';
 import { apiMediaUrl } from '@/lib/api-client';
@@ -36,9 +38,16 @@ const DEFAULT_STATUS_META = {
 };
 
 export default function Questions() {
+  const { isPro } = useSubscription();
   // Soru gonderildikten sonra buraya mode=list ile donulur.
   const { mode: initialMode } = useLocalSearchParams<{ mode?: string }>();
   const [mode, setMode] = useState<'camera' | 'list'>(initialMode === 'list' ? 'list' : 'camera');
+
+  useEffect(() => {
+    if (mode === 'list') {
+      showInterstitialIfEligible('questions_open', isPro).catch(() => {});
+    }
+  }, [mode, isPro]);
 
   return (
     <ScreenBackground tint={Accent}>
@@ -328,6 +337,7 @@ function QuestionList() {
             onViewSolution={(data) => setActiveSolution(data)}
           />
         ))}
+        <AdBanner style={{ marginTop: Space.md, marginBottom: Space.sm }} />
       </ScrollView>
 
       {/* Koçun Çözümü Modalı (Görsel ve varsa açıklama) */}

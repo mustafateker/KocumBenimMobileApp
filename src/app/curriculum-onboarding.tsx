@@ -4,19 +4,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
   KeyboardAwareScrollView,
-  KeyboardStickyView,
   type KeyboardAwareScrollViewRef,
 } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GhostButton, NeonButton, PressScale } from '@/components/button';
-import { PatternBackground } from '@/components/pattern-background';
+import { PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
 import {
   SingleSubjectTopicPicker,
   getSubjectIcon,
 } from '@/features/onboarding/curriculum-picker';
-import { StepHeader, StepProgress } from '@/features/onboarding/parts';
+import {
+  OnboardingCardShadow,
+  OnboardingPrimaryButton,
+  StepHeader,
+  StepProgress,
+} from '@/features/onboarding/parts';
 import { getCurriculumProgress, updateCurriculumProgress } from '@/lib/api';
 import { useErrorDialog } from '@/lib/error-dialog';
 import {
@@ -25,10 +28,8 @@ import {
 } from '@/lib/maarif-curriculum';
 import { useSession, useStudent } from '@/lib/session';
 import {
-  Border,
-  DetailAccent,
+  Font,
   OnboardingPalette,
-  Palette,
   Space,
   pillRadius,
 } from '@/theme/tokens';
@@ -53,6 +54,13 @@ export default function CurriculumOnboardingScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [progress, setProgress] = useState<CurriculumProgressMap>({});
   const [saving, setSaving] = useState(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const safeIndex = Math.min(stepIndex, Math.max(0, subjects.length - 1));
   const currentSubject = subjects[safeIndex];
@@ -89,9 +97,10 @@ export default function CurriculumOnboardingScreen() {
         router.replace('/subjects');
       }
     } catch (err) {
+      if (isMountedRef.current) {
+        setSaving(false);
+      }
       showError(err, { title: 'Konu ilerlemesi kaydedilemedi', code: 'CURRICULUM_SAVE' });
-    } finally {
-      setSaving(false);
     }
   }, [saving, progress, student, setUser, router, showError]);
 
@@ -119,22 +128,15 @@ export default function CurriculumOnboardingScreen() {
 
   return (
     <View style={styles.root}>
-      <PatternBackground
-        color={OnboardingPalette.accent}
-        backgroundColor={OnboardingPalette.bg}
-        blobColor={OnboardingPalette.blob}
-      />
-
       <View style={[styles.progressWrap, { paddingTop: insets.top + Space.sm }]}>
         <StepProgress
           index={safeIndex}
           total={subjects.length}
-          color={DetailAccent}
-          icon={currentSubject ? getSubjectIcon(currentSubject.name) : 'book'}
-          cheer={currentSubject ? `${currentSubject.name} (${safeIndex + 1}/${subjects.length})` : grade}
+          onBack={handleBack}
+          showBack
         />
 
-        {/* Dersler Arası Hızlı Sekme Çubuğu */}
+        {/* Dersler Arasi Tam Metinli Kapsul Sekme Cubugu */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -151,22 +153,24 @@ export default function CurriculumOnboardingScreen() {
                   scrollRef.current?.scrollTo({ y: 0, animated: true });
                 }}
                 scaleTo={0.96}
+                style={styles.pillWrap}
               >
-                <View
-                  style={[
-                    styles.subjectPill,
-                    active && styles.subjectPillActive,
-                    !active && completed && styles.subjectPillCompleted,
-                  ]}
-                >
+                <View style={[styles.subjectPill, active && styles.subjectPillActive]}>
                   <Ionicons
                     name={completed && !active ? 'checkmark-circle' : getSubjectIcon(subj.name)}
-                    size={14}
-                    color={active ? '#FFFFFF' : completed ? Palette.green : OnboardingPalette.textDim}
+                    size={15}
+                    color={
+                      active
+                        ? '#FFFFFF'
+                        : completed
+                          ? OnboardingPalette.success
+                          : OnboardingPalette.textDim
+                    }
                   />
                   <Txt
-                    variant="tiny"
-                    color={active ? '#FFFFFF' : completed ? Palette.text : OnboardingPalette.textDim}
+                    variant="smallStrong"
+                    color={active ? '#FFFFFF' : OnboardingPalette.text}
+                    style={styles.subjectPillText}
                   >
                     {subj.name}
                   </Txt>
@@ -188,7 +192,6 @@ export default function CurriculumOnboardingScreen() {
         {currentSubject ? (
           <>
             <StepHeader
-              color={DetailAccent}
               title={`${currentSubject.name} dersinde hangi konudasın?`}
               subtitle="Okulda en son işlediğiniz konuya dokun. Seçtiğin konuya kadar olan tüm konular tamamlanmış sayılır."
               mood="happy"
@@ -208,45 +211,28 @@ export default function CurriculumOnboardingScreen() {
         ) : null}
       </KeyboardAwareScrollView>
 
-      <KeyboardStickyView>
-        <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
-          <View style={styles.footerRow}>
-            <GhostButton
-              label={safeIndex > 0 ? 'Önceki Ders' : 'Kapat'}
-              icon={safeIndex > 0 ? 'chevron-back' : 'close'}
-              color={OnboardingPalette.textDim}
-              onPress={handleBack}
-              style={styles.backBtn}
-              full
-            />
-            <NeonButton
-              label={
-                saving
-                  ? 'Kaydediliyor...'
-                  : isLastStep
-                    ? 'Kaydet ve Tamamla'
-                    : `Sonraki: ${subjects[safeIndex + 1]?.name ?? 'İleri'}`
-              }
-              icon={isLastStep ? 'checkmark-circle' : 'arrow-forward'}
-              color={DetailAccent}
-              size="lg"
-              disabled={saving}
-              onPress={handleNext}
-              style={styles.nextBtn}
-              full
-            />
-          </View>
-          {!isLastStep ? (
-            <PressScale onPress={handleSave} scaleTo={0.98}>
-              <View style={styles.saveNowLink}>
-                <Txt variant="tiny" color={OnboardingPalette.textDim} center>
-                  Değişiklikleri şimdi kaydet ve Derslerim&apos;e dön
-                </Txt>
-              </View>
-            </PressScale>
-          ) : null}
-        </View>
-      </KeyboardStickyView>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
+        <OnboardingPrimaryButton
+          label={
+            saving
+              ? 'Kaydediliyor…'
+              : isLastStep
+                ? 'Yolculuğa Başla →'
+                : 'Devam Et →'
+          }
+          disabled={saving}
+          onPress={handleNext}
+        />
+        {!isLastStep ? (
+          <PressScale onPress={handleSave} scaleTo={0.98}>
+            <View style={styles.saveNowLink}>
+              <Txt variant="tiny" color={OnboardingPalette.textDim} center>
+                Değişiklikleri şimdi kaydet ve Derslerim&apos;e dön
+              </Txt>
+            </View>
+          </PressScale>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -263,27 +249,33 @@ const styles = StyleSheet.create({
     gap: Space.sm,
   },
   pillsRow: {
-    gap: 6,
-    paddingVertical: 2,
+    gap: Space.sm,
+    paddingVertical: 4,
+  },
+  pillWrap: {
+    flexShrink: 0,
   },
   subjectPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
     gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: pillRadius(32),
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: pillRadius(40),
     borderWidth: 1,
-    borderColor: 'rgba(58, 57, 103, 0.12)',
-    backgroundColor: '#FFFFFF',
+    borderColor: OnboardingPalette.border,
+    backgroundColor: OnboardingPalette.surface,
+    ...OnboardingCardShadow,
   },
   subjectPillActive: {
-    borderColor: DetailAccent,
-    backgroundColor: DetailAccent,
+    borderColor: OnboardingPalette.accent,
+    backgroundColor: OnboardingPalette.accent,
   },
-  subjectPillCompleted: {
-    borderColor: 'rgba(16, 185, 129, 0.35)',
-    backgroundColor: '#FFFFFF',
+  subjectPillText: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontFamily: Font.semibold,
   },
   content: {
     paddingHorizontal: Space.lg,
@@ -293,20 +285,10 @@ const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: Space.lg,
     paddingTop: Space.md,
-    borderTopWidth: Border.thick,
+    borderTopWidth: 1,
     borderTopColor: OnboardingPalette.border,
     backgroundColor: OnboardingPalette.bg,
     gap: Space.xs,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    gap: Space.sm,
-  },
-  backBtn: {
-    flex: 0.9,
-  },
-  nextBtn: {
-    flex: 1.4,
   },
   saveNowLink: {
     paddingVertical: 4,

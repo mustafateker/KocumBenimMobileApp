@@ -1,12 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GhostButton, NeonButton } from '@/components/button';
-import { PatternBackground } from '@/components/pattern-background';
-import { IconBubble, TextField, Txt } from '@/components/ui';
+import { Txt } from '@/components/ui';
 import { completeOnboarding } from '@/lib/api';
 import {
   ALL_STEPS,
@@ -16,19 +15,22 @@ import {
   DEPARTMENTS,
   DISCIPLINE_MEANINGS,
   GOALS,
-  GRADES,
   HIGH_SCHOOLS,
   LISE_GRADES,
   LISE_ONCESI_GRADES,
   MOTIVATIONS,
   STEP_META,
   UNIVERSITIES,
-  progressCheer,
   type StepKey,
 } from '@/features/onboarding/data';
 import {
   CheckList,
-  OptionList,
+  GradeGridPicker,
+  GridCheckList,
+  GridOptionList,
+  OnboardingCardShadow,
+  OnboardingInput,
+  OnboardingPrimaryButton,
   SearchPicker,
   StepHeader,
   StepProgress,
@@ -38,10 +40,7 @@ import { getCurriculumSubjectsForGrade, type CurriculumProgressMap } from '@/lib
 import { useErrorDialog } from '@/lib/error-dialog';
 import { useSession, useStudent } from '@/lib/session';
 import {
-  Border,
-  DetailAccent,
   OnboardingPalette,
-  Radius,
   Space,
 } from '@/theme/tokens';
 
@@ -151,7 +150,6 @@ function isStepValid(targetStep: StepKey, form: FormState): boolean {
  * universite ve bolum hedefleri ise 9-12. sinif icin gosterilir.
  */
 export default function Onboarding() {
-  // Ogrenci disi rolde ekran acilirsa erken hata firlatir (bkz. useStudent tanimi).
   const student = useStudent();
   const { setUser } = useSession();
   const { showError } = useErrorDialog();
@@ -162,6 +160,13 @@ export default function Onboarding() {
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const lastNavAtRef = useRef(0);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const isLiseOncesi = LISE_ONCESI_GRADES.has(form.grade);
   const isLise = LISE_GRADES.has(form.grade);
@@ -196,8 +201,6 @@ export default function Onboarding() {
   const finish = useCallback(async () => {
     if (saving) return;
 
-    // Eger hizli dokunma veya sinif degisimi nedeniyle zorunlu bir adim bos kaldiysa
-    // sunucudan 422 hatasi almak yerine dogrudan eksik adima yonlendir.
     const missingIdx = steps.findIndex((s) => s !== 'summary' && !isStepValid(s, form));
     if (missingIdx !== -1) {
       setIndex(missingIdx);
@@ -234,16 +237,13 @@ export default function Onboarding() {
         motivation: form.motivation.slice(0, 20),
         curriculumProgress: finalProgress,
       });
-      // updated.onboardingCompletedAt burada dolu gelir; ayri bir GET /me
-      // atmiyoruz ki o istegin sessizce yutulan bir hatasi (bkz session.tsx
-      // refresh()) zaten basarili olmus bu islemi geciktirip kullaniciyi
-      // /student -> onboarding yonlendirme dongusune sokmasin.
       setUser(updated);
       router.replace('/student');
     } catch (err) {
+      if (isMountedRef.current) {
+        setSaving(false);
+      }
       showError(err, { title: 'Bilgilerin kaydedilemedi', code: 'ONBOARDING_SAVE' });
-    } finally {
-      setSaving(false);
     }
   }, [saving, steps, form, student, isLiseOncesi, isLise, setUser, router, showError]);
 
@@ -270,29 +270,17 @@ export default function Onboarding() {
     setIndex((i) => Math.max(0, i - 1));
   }, []);
 
-  // Root'ta padding yok: dekoratif zemin mutlak konumlu ve mutlak cocuklar
-  // ebeveynin padding kutusuna gore yerlesir; padding burada olsaydi desen
-  // durum cubugu kadar asagi kayardi. Guvenli alan boslugunu ilk cocuk verir.
   return (
     <View style={styles.root}>
-      <PatternBackground
-        color={meta.color}
-        backgroundColor={OnboardingPalette.bg}
-        blobColor={OnboardingPalette.blob}
-      />
-
       <View style={[styles.progressWrap, { paddingTop: insets.top + Space.sm }]}>
         <StepProgress
           index={index}
           total={steps.length}
-          color={meta.color}
-          icon={meta.icon}
-          cheer={progressCheer((index + 1) / steps.length)}
+          onBack={back}
+          showBack={index > 0}
         />
       </View>
 
-      {/* Android edge-to-edge modunda pencere klavye icin kucultulmuyor;
-          odaklanan alani yukari kaydirma isini bu bilesen ustleniyor. */}
       <KeyboardAwareScrollView
         style={styles.flex}
         bottomOffset={Space.xl}
@@ -304,243 +292,209 @@ export default function Onboarding() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-          <StepHeader
-            color={meta.color}
-            title={meta.title}
-            subtitle={meta.subtitle}
-            mood={meta.mood}
-            hero={meta.hero}
-          />
+        <StepHeader
+          color={meta.color}
+          title={meta.title}
+          subtitle={meta.subtitle}
+          mood={meta.mood}
+          hero={meta.hero}
+        />
 
-          <View style={styles.body}>
-            {step === 'welcome' ? (
+        <View style={styles.body}>
+          {step === 'welcome' ? (
+            <View style={styles.welcomeCard}>
               <Txt variant="body" color={OnboardingPalette.textDim} center>
                 Sınıfını, hedeflerini ve çalışma tarzını öğrenip sana özel bir yolculuk
                 hazırlayacağız. Hazırsan başlayalım!
               </Txt>
-            ) : null}
+            </View>
+          ) : null}
 
-            {step === 'name' ? (
-              <View style={styles.body}>
-                <View style={styles.field}>
-                  <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
-                    Adın
-                  </Txt>
-                  <TextField
-                    value={form.firstName}
-                    onChangeText={(v) => set('firstName', v)}
-                    placeholder="Adını yaz"
-                    autoCapitalize="words"
-                    tone="onboarding"
-                  />
-                </View>
-                <View style={styles.field}>
-                  <Txt variant="smallStrong" color={OnboardingPalette.textDim}>
-                    Soyadın
-                  </Txt>
-                  <TextField
-                    value={form.lastName}
-                    onChangeText={(v) => set('lastName', v)}
-                    placeholder="Soyadını yaz"
-                    autoCapitalize="words"
-                    tone="onboarding"
-                  />
-                </View>
-              </View>
-            ) : null}
+          {step === 'name' ? (
+            <View style={styles.body}>
+              <OnboardingInput
+                label="Adın"
+                value={form.firstName}
+                onChangeText={(v) => set('firstName', v)}
+                placeholder="Adını yaz"
+                autoCapitalize="words"
+              />
+              <OnboardingInput
+                label="Soyadın"
+                value={form.lastName}
+                onChangeText={(v) => set('lastName', v)}
+                placeholder="Soyadını yaz"
+                autoCapitalize="words"
+              />
+            </View>
+          ) : null}
 
-            {step === 'grade' ? (
-              <OptionList
-                options={GRADES}
-                value={form.grade}
-                onSelect={(v) => {
-                  const subjects = getCurriculumSubjectsForGrade(v);
-                  const validNames = new Set(subjects.map((s) => s.name));
-                  const retained: CurriculumProgressMap = {};
-                  for (const [sName, top] of Object.entries(form.curriculumProgress)) {
-                    if (validNames.has(sName) && top) {
-                      retained[sName] = top;
-                    }
+          {step === 'grade' ? (
+            <GradeGridPicker
+              value={form.grade}
+              onSelect={(v) => {
+                const subjects = getCurriculumSubjectsForGrade(v);
+                const validNames = new Set(subjects.map((s) => s.name));
+                const retained: CurriculumProgressMap = {};
+                for (const [sName, top] of Object.entries(form.curriculumProgress)) {
+                  if (validNames.has(sName) && top) {
+                    retained[sName] = top;
                   }
-                  setForm((f) => ({ ...f, grade: v, curriculumProgress: retained }));
-                }}
-                color={meta.color}
-              />
-            ) : null}
+                }
+                setForm((f) => ({ ...f, grade: v, curriculumProgress: retained }));
+              }}
+            />
+          ) : null}
 
-            {step === 'currentTopics' ? (
-              <CurriculumTopicPicker
-                grade={form.grade || '8. Sınıf'}
-                value={form.curriculumProgress}
-                onChange={(v) => set('curriculumProgress', v)}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'currentTopics' ? (
+            <CurriculumTopicPicker
+              grade={form.grade || '8. Sınıf'}
+              value={form.curriculumProgress}
+              onChange={(v) => set('curriculumProgress', v)}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'goal' ? (
-              <SearchPicker
-                value={form.goal}
-                onChangeText={(v) => set('goal', v)}
-                placeholder="Hedefini ara ya da yaz…"
-                popularLabel="Örnek hedefler"
-                options={GOALS}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'goal' ? (
+            <SearchPicker
+              value={form.goal}
+              onChangeText={(v) => set('goal', v)}
+              placeholder="Hedefini ara ya da yaz…"
+              popularLabel="Örnek hedefler"
+              options={GOALS}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'career' ? (
-              <SearchPicker
-                value={form.career}
-                onChangeText={(v) => set('career', v)}
-                placeholder="Meslek ara…"
-                popularLabel="Popüler meslekler"
-                options={CAREERS}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'career' ? (
+            <SearchPicker
+              value={form.career}
+              onChangeText={(v) => set('career', v)}
+              placeholder="Meslek ara…"
+              popularLabel="Popüler meslekler"
+              options={CAREERS}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'highSchool' ? (
-              <SearchPicker
-                value={form.highSchool}
-                onChangeText={(v) => set('highSchool', v)}
-                placeholder="Lise ara…"
-                popularLabel="Seçkin liseler"
-                options={HIGH_SCHOOLS}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'highSchool' ? (
+            <SearchPicker
+              value={form.highSchool}
+              onChangeText={(v) => set('highSchool', v)}
+              placeholder="Lise ara…"
+              popularLabel="Seçkin liseler"
+              options={HIGH_SCHOOLS}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'university' ? (
-              <SearchPicker
-                value={form.university}
-                onChangeText={(v) => set('university', v)}
-                placeholder="Üniversite ara…"
-                popularLabel="Popüler üniversiteler"
-                options={UNIVERSITIES}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'university' ? (
+            <SearchPicker
+              value={form.university}
+              onChangeText={(v) => set('university', v)}
+              placeholder="Üniversite ara…"
+              popularLabel="Popüler üniversiteler"
+              options={UNIVERSITIES}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'department' ? (
-              <SearchPicker
-                value={form.department}
-                onChangeText={(v) => set('department', v)}
-                placeholder="Bölüm ara…"
-                popularLabel="Popüler bölümler"
-                options={DEPARTMENTS}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'department' ? (
+            <SearchPicker
+              value={form.department}
+              onChangeText={(v) => set('department', v)}
+              placeholder="Bölüm ara…"
+              popularLabel="Popüler bölümler"
+              options={DEPARTMENTS}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'disciplineMeaning' ? (
-              <CheckList
-                options={DISCIPLINE_MEANINGS}
-                values={form.disciplineMeaning}
-                onToggle={(v) => toggleMulti('disciplineMeaning', v)}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'disciplineMeaning' ? (
+            <CheckList
+              options={DISCIPLINE_MEANINGS}
+              values={form.disciplineMeaning}
+              onToggle={(v) => toggleMulti('disciplineMeaning', v)}
+              color={meta.color}
+            />
+          ) : null}
 
-            {step === 'dailyHours' ? (
-              <OptionList
-                options={DAILY_HOURS}
-                value={form.dailyHours}
-                onSelect={(v) => set('dailyHours', v)}
-                color={meta.color}
-              />
-            ) : null}
+          {step === 'dailyHours' ? (
+            <GridOptionList
+              options={DAILY_HOURS}
+              value={form.dailyHours}
+              onSelect={(v) => set('dailyHours', v)}
+            />
+          ) : null}
 
-            {step === 'commitmentDuration' ? (
-              <OptionList
-                options={COMMITMENT_DURATIONS}
+          {step === 'commitmentDuration' ? (
+            <GridOptionList
+              options={COMMITMENT_DURATIONS}
+              value={form.commitmentDuration}
+              onSelect={(v) => set('commitmentDuration', v)}
+            />
+          ) : null}
+
+          {step === 'motivation' ? (
+            <GridCheckList
+              options={MOTIVATIONS}
+              values={form.motivation}
+              onToggle={(v) => toggleMulti('motivation', v)}
+            />
+          ) : null}
+
+          {step === 'summary' ? (
+            <View style={styles.summaryCard}>
+              <SummaryRow icon="school" label="Sınıf" value={form.grade} />
+              <SummaryRow icon="trophy" label="Hedefin" value={form.goal} />
+              <SummaryRow icon="briefcase" label="Meslek Hayali" value={form.career} />
+              <SummaryRow icon="time" label="Günlük Çalışma" value={form.dailyHours} />
+              <SummaryRow
+                icon="shield-checkmark"
+                label="Disiplin"
+                value={form.disciplineMeaning.join(', ')}
+              />
+              <SummaryRow
+                icon="calendar"
+                label="Devam Süresi"
                 value={form.commitmentDuration}
-                onSelect={(v) => set('commitmentDuration', v)}
-                color={meta.color}
               />
-            ) : null}
-
-            {step === 'motivation' ? (
-              <CheckList
-                options={MOTIVATIONS}
-                values={form.motivation}
-                onToggle={(v) => toggleMulti('motivation', v)}
-                color={meta.color}
-              />
-            ) : null}
-
-            {step === 'summary' ? (
-              <View style={styles.summaryCard}>
-                <SummaryRow icon="school" color={DetailAccent} label="Sınıf" value={form.grade} />
-                <SummaryRow icon="trophy" color={DetailAccent} label="Hedefin" value={form.goal} />
-                <SummaryRow icon="briefcase" color={DetailAccent} label="Meslek Hayali" value={form.career} />
-                <SummaryRow
-                  icon="time"
-                  color={DetailAccent}
-                  label="Günlük Çalışma"
-                  value={form.dailyHours}
-                />
-                <SummaryRow
-                  icon="shield-checkmark"
-                  color={DetailAccent}
-                  label="Disiplin"
-                  value={form.disciplineMeaning.join(', ')}
-                />
-                <SummaryRow
-                  icon="calendar"
-                  color={DetailAccent}
-                  label="Devam Süresi"
-                  value={form.commitmentDuration}
-                />
-              </View>
-            ) : null}
-          </View>
+            </View>
+          ) : null}
+        </View>
       </KeyboardAwareScrollView>
 
-      {/* Ileri/Geri butonlari klavyenin arkasinda kalmasin diye onun ustune biner. */}
-      <KeyboardStickyView>
-        <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
-          <View style={styles.footerRow}>
-            {index > 0 ? (
-              <GhostButton
-                label="Geri"
-                icon="chevron-back"
-                color={OnboardingPalette.textDim}
-                onPress={back}
-                style={styles.flex}
-                full
-              />
-            ) : null}
-            <NeonButton
-              label={step === 'summary' ? 'Başlayalım!' : 'İleri'}
-              icon={step === 'summary' ? 'checkmark' : 'arrow-forward'}
-              color={OnboardingPalette.accent}
-              size="lg"
-              disabled={!valid || saving}
-              onPress={next}
-              style={styles.flex}
-              full
-            />
-          </View>
-        </View>
-      </KeyboardStickyView>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + Space.md }]}>
+        <OnboardingPrimaryButton
+          label={
+            saving
+              ? 'Kaydediliyor…'
+              : step === 'summary'
+                ? 'Yolculuğa Başla →'
+                : 'Devam Et →'
+          }
+          disabled={!valid || saving}
+          onPress={next}
+        />
+      </View>
     </View>
   );
 }
 
 function SummaryRow({
   icon,
-  color,
   label,
   value,
 }: {
-  icon: React.ComponentProps<typeof IconBubble>['name'];
-  color: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   value: string;
 }) {
   return (
     <View style={styles.summaryRow}>
-      <IconBubble name={icon} color={color} size={44} />
+      <View style={styles.summaryIconCircle}>
+        <Ionicons name={icon} size={20} color={OnboardingPalette.accent} />
+      </View>
       <View style={styles.flex}>
         <Txt variant="tiny" color={OnboardingPalette.textFaint}>
           {label.toUpperCase()}
@@ -565,8 +519,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Space.lg,
-    paddingTop: Space.lg,
-    gap: Space.xl,
+    paddingTop: Space.md,
+    gap: Space.lg,
   },
   contentCentered: {
     flexGrow: 1,
@@ -575,31 +529,41 @@ const styles = StyleSheet.create({
   body: {
     gap: Space.md,
   },
-  field: {
-    gap: 6,
+  welcomeCard: {
+    backgroundColor: OnboardingPalette.surface,
+    borderRadius: 20,
+    padding: Space.lg,
+    borderWidth: 1,
+    borderColor: OnboardingPalette.border,
+    ...OnboardingCardShadow,
   },
   footer: {
     paddingHorizontal: Space.lg,
     paddingTop: Space.md,
-    borderTopWidth: Border.thick,
+    borderTopWidth: 1,
     borderTopColor: OnboardingPalette.border,
     backgroundColor: OnboardingPalette.bg,
   },
-  footerRow: {
-    flexDirection: 'row',
-    gap: Space.md,
-  },
   summaryCard: {
-    gap: Space.sm,
+    gap: 10,
   },
   summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Space.md,
     padding: Space.md,
-    borderRadius: Radius.lg,
-    borderWidth: Border.thick,
+    borderRadius: 18,
+    borderWidth: 1,
     borderColor: OnboardingPalette.border,
     backgroundColor: OnboardingPalette.surface,
+    ...OnboardingCardShadow,
+  },
+  summaryIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: OnboardingPalette.accentSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
