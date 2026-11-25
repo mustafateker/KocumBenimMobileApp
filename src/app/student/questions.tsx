@@ -433,7 +433,13 @@ function QuestionCard({
   }, [question.id]);
 
   const handleFetchHint = useCallback(async (forceRefresh = false) => {
-    if (aiHint && !forceRefresh) {
+    const isErrorOrInvalid =
+      Boolean(aiHint) &&
+      (aiHint!.includes('duraklatıldı') ||
+        aiHint!.includes('kota') ||
+        aiHint!.includes('tespit edilemedi') ||
+        aiHint!.includes('okunabilir bir soru'));
+    if (aiHint && !forceRefresh && !isErrorOrInvalid) {
       setHintVisible((v) => !v);
       return;
     }
@@ -445,7 +451,7 @@ function QuestionCard({
         note: question.note ?? undefined,
         subject: question.subject ?? 'Matematik',
         grade: student.grade ?? undefined,
-        forceRefresh,
+        forceRefresh: forceRefresh || isErrorOrInvalid,
         isPro,
       });
       setAiHint(hint);
@@ -621,7 +627,7 @@ function QuestionCard({
                 <Txt variant="tiny" color={titleColor} style={styles.aiHintTitle}>
                   {titleText}
                 </Txt>
-                {isInvalidQuestion ? (
+                {isInvalidQuestion || isLimitReached ? (
                   <PressScale onPress={() => handleFetchHint(true)} style={styles.aiHintRetryBtn}>
                     <Ionicons name="refresh" size={12} color={Palette.textDim} />
                     <Txt variant="tiny" color={Palette.textDim}>

@@ -5,7 +5,6 @@ import { apiMediaUrl, getAccessToken } from '@/lib/api-client';
 import { canUseAi, consumeAiQuota } from '@/lib/usage-limits';
 
 const DAILY_HINT_LIMIT = 10;
-const CIRCUIT_BREAKER_COOLDOWN_MS = 30 * 60 * 1000; // 30 dakika kota aşımı kilidi
 const STORAGE_KEY_CIRCUIT_BREAKER = 'kocumbenim.aiHint.circuitBreakerUntil';
 const STORAGE_KEY_DAILY_USAGE = 'kocumbenim.aiHint.dailyUsage';
 
@@ -30,28 +29,13 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 export async function checkCircuitBreaker(): Promise<{ tripped: boolean; remainingMinutes: number }> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY_CIRCUIT_BREAKER);
-    if (!raw) return { tripped: false, remainingMinutes: 0 };
-    const until = Number(raw);
-    const now = Date.now();
-    if (now < until) {
-      const remainingMinutes = Math.max(1, Math.ceil((until - now) / 60000));
-      return { tripped: true, remainingMinutes };
-    }
     await AsyncStorage.removeItem(STORAGE_KEY_CIRCUIT_BREAKER);
-    return { tripped: false, remainingMinutes: 0 };
-  } catch {
-    return { tripped: false, remainingMinutes: 0 };
-  }
+  } catch {}
+  return { tripped: false, remainingMinutes: 0 };
 }
 
 export async function tripCircuitBreaker(): Promise<void> {
-  try {
-    const until = Date.now() + CIRCUIT_BREAKER_COOLDOWN_MS;
-    await AsyncStorage.setItem(STORAGE_KEY_CIRCUIT_BREAKER, String(until));
-  } catch {
-    // sessizce devam
-  }
+  // Geçici tek-model 429/503 hatalarının tüm servisi 30 dakika kilitlemesini önlemek için devre dışı
 }
 
 function getTodayString(): string {
@@ -98,7 +82,14 @@ async function incrementDailyUsage(): Promise<void> {
 export async function getCachedQuestionHint(questionId: number): Promise<string | null> {
   try {
     const cached = await AsyncStorage.getItem(`kocumbenim.aiHint.${questionId}`);
-    if (cached && (cached.includes('üslü ifadeler') || cached.includes('denklemleştirmeyi'))) {
+    if (
+      cached &&
+      (cached.includes('üslü ifadeler') ||
+        cached.includes('denklemleştirmeyi') ||
+        cached.includes('duraklatıldı') ||
+        cached.includes('kota sınırına') ||
+        cached.includes('kullanım hakkın doldu'))
+    ) {
       await AsyncStorage.removeItem(`kocumbenim.aiHint.${questionId}`);
       return null;
     }
@@ -216,11 +207,16 @@ Lütfen görseldeki soruyu inceleyerek rehberlik et.`;
       const candidateModels = [
         'gemini-3.5-flash-lite',
         'gemini-flash-lite-latest',
-        'gemini-3.1-flash-lite',
-        'gemini-3.8-flash',
+        'gemini-3.5-flash',
+        'gemini-3.5-flash-lite',
       ];
 
-      for (const model of candidateModels) {
+      for (let i = 0; i < candidateModels.length; i++) {
+        const model = candidateModels[i];
+        if (i === candidateModels.length - 1) {
+          // Son denemeden önce anlık 503 yoğunluk dalgasının geçmesi için kısa bekleme
+          await new Promise((r) => setTimeout(r, 700));
+        }
         try {
           const res = await expoFetch(
             `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`,
@@ -235,12 +231,6 @@ Lütfen görseldeki soruyu inceleyerek rehberlik et.`;
             }
           );
 
-          // 3. HTTP 429 (Too Many Requests / Quota Exceeded) Algılama
-          if (res.status === 429) {
-            await tripCircuitBreaker();
-            return 'Yapay zeka ipucu servisi günlük/dakikalık kota sınırına ulaştığı için 30 dakika süreyle duraklatıldı. Lütfen daha sonra tekrar dene.';
-          }
-
           if (res.ok) {
             const data = await res.json();
             const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -254,17 +244,8 @@ Lütfen görseldeki soruyu inceleyerek rehberlik et.`;
               await AsyncStorage.setItem(`kocumbenim.aiHint.${questionId}`, clean);
               return clean;
             }
-          } else {
-            const errData = await res.json().catch(() => null);
-            if (
-              res.status === 403 ||
-              errData?.error?.status === 'RESOURCE_EXHAUSTED' ||
-              errData?.error?.message?.toLowerCase().includes('quota')
-            ) {
-              await tripCircuitBreaker();
-              return 'Yapay zeka ipucu servisi kota sınırına ulaştığı için geçici olarak duraklatıldı. Lütfen daha sonra tekrar dene.';
-            }
           }
+          // 429 / 503 / 403 durumunda döngüyü kırma; sıradaki aktif modeli dene
         } catch {
           // Sıradaki modeli dene
         }

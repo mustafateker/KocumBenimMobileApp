@@ -980,8 +980,8 @@ KESİN SINIRLAR VE KURALLAR:
     const candidateModels = [
       'gemini-3.5-flash-lite',
       'gemini-flash-lite-latest',
-      'gemini-3.1-flash-lite',
       'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
     ];
 
     for (const model of candidateModels) {

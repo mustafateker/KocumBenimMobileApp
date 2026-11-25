@@ -1,6 +1,19 @@
 // CI: `expo prebuild` sonrası android/app/build.gradle dosyasına release imzası ve versionCode ekler.
 // Gerekli env: KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD, VERSION_CODE
 const fs = require("fs");
+const path = require("path");
+const os = require("os");
+
+// `expo prebuild --clean` android klasorunu sifirladiginda debug.keystore'un degismemesi icin
+// sabit debug keystore'u geri yukle (boylece SHA-1 parmak izi her build'de degismez).
+const permanentDebugKeystore = path.join(os.homedir(), "keystores", "kocumbenim-debug.keystore");
+const appDebugKeystore = "android/app/debug.keystore";
+if (fs.existsSync(permanentDebugKeystore)) {
+  fs.copyFileSync(permanentDebugKeystore, appDebugKeystore);
+} else if (fs.existsSync(appDebugKeystore)) {
+  fs.mkdirSync(path.dirname(permanentDebugKeystore), { recursive: true });
+  fs.copyFileSync(appDebugKeystore, permanentDebugKeystore);
+}
 
 const file = "android/app/build.gradle";
 let gradle = fs.readFileSync(file, "utf8");

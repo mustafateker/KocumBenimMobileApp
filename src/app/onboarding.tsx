@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -112,6 +112,39 @@ function prefillName(student: {
 /** Bu adimlarda icerik ScrollView icinde dikeyde ortalanir. */
 const CENTERED_STEPS = new Set<StepKey>(['welcome', 'name']);
 
+function isStepValid(targetStep: StepKey, form: FormState): boolean {
+  switch (targetStep) {
+    case 'welcome':
+      return true;
+    case 'name':
+      return form.firstName.trim().length > 0 && form.lastName.trim().length > 0;
+    case 'grade':
+      return form.grade !== '';
+    case 'currentTopics':
+      return true;
+    case 'goal':
+      return form.goal.trim().length > 0;
+    case 'career':
+      return form.career.trim().length > 0;
+    case 'highSchool':
+      return form.highSchool.trim().length > 0;
+    case 'university':
+      return form.university.trim().length > 0;
+    case 'department':
+      return form.department.trim().length > 0;
+    case 'dailyHours':
+      return form.dailyHours !== '';
+    case 'disciplineMeaning':
+      return form.disciplineMeaning.length > 0;
+    case 'commitmentDuration':
+      return form.commitmentDuration !== '';
+    case 'motivation':
+      return form.motivation.length > 0;
+    case 'summary':
+      return true;
+  }
+}
+
 /**
  * "Ilk Kurulum" sihirbazi — kayittan hemen sonra ogrenciyi taniyip hedeflerini
  * kaydeder. Tek ekran, adimlar arasinda index ile gezinir; lise hedefi 1-8,
@@ -128,6 +161,7 @@ export default function Onboarding() {
   const [form, setForm] = useState<FormState>(() => ({ ...EMPTY_FORM, ...prefillName(student) }));
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
+  const lastNavAtRef = useRef(0);
 
   const isLiseOncesi = LISE_ONCESI_GRADES.has(form.grade);
   const isLise = LISE_GRADES.has(form.grade);
@@ -157,41 +191,19 @@ export default function Onboarding() {
     });
   }, []);
 
-  const valid = useMemo(() => {
-    switch (step) {
-      case 'welcome':
-        return true;
-      case 'name':
-        return form.firstName.trim().length > 0 && form.lastName.trim().length > 0;
-      case 'grade':
-        return form.grade !== '';
-      case 'currentTopics':
-        return true;
-      case 'goal':
-        return form.goal.trim().length > 0;
-      case 'career':
-        return form.career.trim().length > 0;
-      case 'highSchool':
-        return form.highSchool.trim().length > 0;
-      case 'university':
-        return form.university.trim().length > 0;
-      case 'department':
-        return form.department.trim().length > 0;
-      case 'dailyHours':
-        return form.dailyHours !== '';
-      case 'disciplineMeaning':
-        return form.disciplineMeaning.length > 0;
-      case 'commitmentDuration':
-        return form.commitmentDuration !== '';
-      case 'motivation':
-        return form.motivation.length > 0;
-      case 'summary':
-        return true;
-    }
-  }, [step, form]);
+  const valid = useMemo(() => isStepValid(step, form), [step, form]);
 
   const finish = useCallback(async () => {
     if (saving) return;
+
+    // Eger hizli dokunma veya sinif degisimi nedeniyle zorunlu bir adim bos kaldiysa
+    // sunucudan 422 hatasi almak yerine dogrudan eksik adima yonlendir.
+    const missingIdx = steps.findIndex((s) => s !== 'summary' && !isStepValid(s, form));
+    if (missingIdx !== -1) {
+      setIndex(missingIdx);
+      return;
+    }
+
     setSaving(true);
     try {
       const subjects = getCurriculumSubjectsForGrade(form.grade);
@@ -203,19 +215,23 @@ export default function Onboarding() {
         }
       }
 
+      const fallbackPrefill = prefillName(student);
+      const safeFirstName = (form.firstName.trim() || fallbackPrefill.firstName || student.name || 'Öğrenci').slice(0, 60);
+      const safeLastName = (form.lastName.trim() || fallbackPrefill.lastName || student.surname || '-').slice(0, 60);
+
       const updated = await completeOnboarding({
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        grade: form.grade,
-        goal: form.goal.trim(),
-        career: form.career.trim(),
-        targetHighSchool: isLiseOncesi ? form.highSchool.trim() : '',
-        targetUniversity: isLise ? form.university.trim() : '',
-        targetDepartment: isLise ? form.department.trim() : '',
-        dailyHours: form.dailyHours,
-        disciplineMeaning: form.disciplineMeaning,
-        commitmentDuration: form.commitmentDuration,
-        motivation: form.motivation,
+        firstName: safeFirstName,
+        lastName: safeLastName,
+        grade: (form.grade || '8. Sınıf').slice(0, 40),
+        goal: (form.goal.trim() || GOALS[0]).slice(0, 200),
+        career: (form.career.trim() || CAREERS[0]).slice(0, 200),
+        targetHighSchool: isLiseOncesi ? form.highSchool.trim().slice(0, 200) : '',
+        targetUniversity: isLise ? form.university.trim().slice(0, 200) : '',
+        targetDepartment: isLise ? form.department.trim().slice(0, 200) : '',
+        dailyHours: (form.dailyHours || DAILY_HOURS[1]).slice(0, 40),
+        disciplineMeaning: form.disciplineMeaning.slice(0, 20),
+        commitmentDuration: (form.commitmentDuration || COMMITMENT_DURATIONS[4]).slice(0, 100),
+        motivation: form.motivation.slice(0, 20),
         curriculumProgress: finalProgress,
       });
       // updated.onboardingCompletedAt burada dolu gelir; ayri bir GET /me
@@ -229,18 +245,28 @@ export default function Onboarding() {
     } finally {
       setSaving(false);
     }
-  }, [saving, form, isLiseOncesi, isLise, setUser, router, showError]);
+  }, [saving, steps, form, student, isLiseOncesi, isLise, setUser, router, showError]);
 
   const next = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavAtRef.current < 280) return;
     if (!valid) return;
+    lastNavAtRef.current = now;
     if (step === 'summary') {
       finish();
       return;
     }
-    setIndex((i) => Math.min(steps.length - 1, i + 1));
-  }, [valid, step, finish, steps.length]);
+    setIndex((i) => {
+      const currentKey = steps[Math.min(i, steps.length - 1)];
+      if (!isStepValid(currentKey, form)) return i;
+      return Math.min(steps.length - 1, i + 1);
+    });
+  }, [valid, step, finish, steps, form]);
 
   const back = useCallback(() => {
+    const now = Date.now();
+    if (now - lastNavAtRef.current < 200) return;
+    lastNavAtRef.current = now;
     setIndex((i) => Math.max(0, i - 1));
   }, []);
 
