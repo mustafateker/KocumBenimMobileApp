@@ -139,20 +139,23 @@ export function preloadInterstitialAd(isPro = false): void {
   if (isPro || Platform.OS === 'web') return;
   if (isLoaded || isLoading) return;
 
-  ensureAdsInitialized()
-    .then(() => {
-      if (isLoaded || isLoading) return;
-      try {
-        const ad = setupInterstitialAd();
-        if (!ad) return;
-        isLoading = true;
-        ad.load();
-      } catch {
-        isLoading = false;
-        isLoaded = false;
-      }
-    })
-    .catch(() => {});
+  // Ilk acilista UI thread'i ve acilis animasyonunu kilitlememesi icin AdMob ilklendirmesini 2 saniye erteliyoruz
+  setTimeout(() => {
+    ensureAdsInitialized()
+      .then(() => {
+        if (isLoaded || isLoading) return;
+        try {
+          const ad = setupInterstitialAd();
+          if (!ad) return;
+          isLoading = true;
+          ad.load();
+        } catch {
+          isLoading = false;
+          isLoaded = false;
+        }
+      })
+      .catch(() => {});
+  }, 2000);
 }
 
 export async function isAdCooldownActive(): Promise<boolean> {

@@ -42,9 +42,16 @@ export default function Login() {
       if (!result) return;
       await signInWithGoogle(result.idToken);
       router.replace('/');
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof ApiError && err.code === 'FORBIDDEN_ROLE') {
         showMessage('Öğrenci Hesabı Gerekli', err.message);
+      } else if (err?.code === '10' || err?.code === 'DEVELOPER_ERROR') {
+        showMessage(
+          'Google İmzası Tanımsız',
+          'Bu uygulamanın SHA-1 sertifika parmak izi Firebase Console / Google Cloud kimlik bilgilerine eklenmemiş (Kod: DEVELOPER_ERROR 10).'
+        );
+      } else if (err?.code === '7' || err?.code === 'NETWORK_ERROR') {
+        showMessage('Bağlantı Hatası', 'Google Play Services ağ bağlantısı kuramadı. Lütfen internet bağlantınızı kontrol edin.');
       } else {
         showError(err, { title: 'Google ile giriş yapılamadı', code: 'GOOGLE_LOGIN' });
       }

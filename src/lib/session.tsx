@@ -18,6 +18,7 @@ import {
   logout as apiLogout,
   studentSignup,
 } from './api';
+import { CacheKeys, CacheTTL, clearAllAppCache, getCachedData, setCachedData } from './cache';
 import { registerForPushNotifications } from './push-notifications';
 import type { Student } from './types';
 
@@ -62,25 +63,58 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       try {
-        const [, storedProvider] = await Promise.all([
+        const [, storedProvider, cachedUser] = await Promise.all([
           loadStoredTokens(),
           AsyncStorage.getItem(AUTH_PROVIDER_KEY).catch(() => null),
+          getCachedData<Student>(CacheKeys.USER_PROFILE, true),
         ]);
-        if (!hasAccessToken()) return;
-        const me = await getMe();
-        if (me.role !== 'student') {
-          await clearTokens();
+
+        if (!hasAccessToken()) {
+          if (!cancelled) setLoading(false);
           return;
         }
-        if (!cancelled) {
-          setUser(me);
+
+        // 1. Önbellekte kayıtlı öğrenci varsa beklemeden anında yükle (0ms açılış)
+        if (cachedUser && cachedUser.role === 'student' && !cancelled) {
+          setUser(cachedUser);
           if (storedProvider === 'email' || storedProvider === 'google' || storedProvider === 'apple') {
             setAuthProvider(storedProvider);
           }
+          setLoading(false);
+        }
+
+        // 2. Arka planda sunucudan taze profil bilgisini al (Stale-While-Revalidate)
+        try {
+          const me = await getMe();
+          if (me.role !== 'student') {
+            await clearTokens();
+            await clearAllAppCache();
+            if (!cancelled) {
+              setUser(null);
+              setAuthProvider(null);
+            }
+            return;
+          }
+          if (!cancelled) {
+            setUser(me);
+            void setCachedData(CacheKeys.USER_PROFILE, me, CacheTTL.HOUR_24);
+            if (storedProvider === 'email' || storedProvider === 'google' || storedProvider === 'apple') {
+              setAuthProvider(storedProvider);
+            }
+          }
+        } catch (netErr: any) {
+          if (netErr?.status === 401) {
+            await clearTokens();
+            await clearAllAppCache();
+            if (!cancelled) {
+              setUser(null);
+              setAuthProvider(null);
+            }
+          }
         }
       } catch {
-        // Token gecersiz/suresi dolmus ve refresh basarisizsa oturumsuz baslamak dogru davranis.
         await clearTokens();
+        await clearAllAppCache();
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -113,6 +147,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
     await persistTokens(tokens, remember);
     await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'email').catch(() => {});
+    await setCachedData(CacheKeys.USER_PROFILE, signedInUser, CacheTTL.HOUR_24);
     setAuthProvider('email');
     setUser(signedInUser);
   }, []);
@@ -129,6 +164,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
     await persistTokens(tokens, true);
     await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'google').catch(() => {});
+    await setCachedData(CacheKeys.USER_PROFILE, signedInUser, CacheTTL.HOUR_24);
     setAuthProvider('google');
     setUser(signedInUser);
   }, []);
@@ -145,6 +181,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     }
     await persistTokens(tokens, true);
     await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'apple').catch(() => {});
+    await setCachedData(CacheKeys.USER_PROFILE, signedInUser, CacheTTL.HOUR_24);
     setAuthProvider('apple');
     setUser(signedInUser);
   }, []);
@@ -153,6 +190,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     const { user: newUser, tokens } = await studentSignup(email.trim().toLowerCase(), password);
     await persistTokens(tokens, true);
     await AsyncStorage.setItem(AUTH_PROVIDER_KEY, 'email').catch(() => {});
+    await setCachedData(CacheKeys.USER_PROFILE, newUser, CacheTTL.HOUR_24);
     setAuthProvider('email');
     setUser(newUser);
   }, []);
@@ -163,6 +201,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     setAuthProvider(null);
     await Promise.all([
       clearTokens(),
+      clearAllAppCache(),
       AsyncStorage.removeItem(AUTH_PROVIDER_KEY).catch(() => {}),
     ]);
     if (refreshToken) {
@@ -177,14 +216,20 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     try {
       const fresh = await getMe();
       setUser(fresh);
+      void setCachedData(CacheKeys.USER_PROFILE, fresh, CacheTTL.HOUR_24);
     } catch {
       // Gecici bir aglama hatasi ekrani bozmasin — mevcut deger korunur.
     }
   }, [user]);
 
+  const handleSetUser = useCallback((updated: Student) => {
+    setUser(updated);
+    void setCachedData(CacheKeys.USER_PROFILE, updated, CacheTTL.HOUR_24);
+  }, []);
+
   const value = useMemo(
-    () => ({ user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh, setUser }),
-    [user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh]
+    () => ({ user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh, setUser: handleSetUser }),
+    [user, authProvider, loading, signIn, signInWithGoogle, signInWithApple, signUp, signOut, refresh, handleSetUser]
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { IconButton } from './button';
@@ -23,10 +23,15 @@ export function MenuButton() {
 export function NotificationBell() {
   const router = useRouter();
   const { unread, refresh } = useNotificationCenter();
+  const lastRefreshAt = useRef<number>(0);
 
   useFocusEffect(
     useCallback(() => {
-      refresh();
+      const now = Date.now();
+      if (now - lastRefreshAt.current > 30000) {
+        lastRefreshAt.current = now;
+        refresh();
+      }
     }, [refresh])
   );
 

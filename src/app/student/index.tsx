@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 
@@ -13,6 +13,7 @@ import { Screen } from '@/components/screen';
 import { TodayStudyCard } from '@/components/today-study-card';
 import { Card, IconBubble, ProgressBar, SectionLabel, Txt } from '@/components/ui';
 import { getAiCoachContext, getCurriculumProgress, getSummary, getTasks, getUpcomingLessons, requestAiCoachTask } from '@/lib/api';
+import { CacheKeys, CacheTTL, getCachedData, setCachedData } from '@/lib/cache';
 import { clockFormat, formatLessonDateTime } from '@/lib/date';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { hasIncompleteCurriculumTopics, loadExtraCompletedTopics } from '@/lib/maarif-curriculum';
@@ -71,45 +72,87 @@ export default function Home() {
   /** Halka bu ekranda ilerleme degil, secilen sureyi gosteren dekoratif bir cerceve. */
   const ringProgress = useSharedValue(1);
 
+  const lastLoadAt = useRef<number>(0);
+
+  // 1. Ekran ilk acildiginda son bilinen verileri aninda (0ms) onbellekten yukle
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const [cachedTasks, cachedSummary, cachedAiCtx, cachedLesson] = await Promise.all([
+          getCachedData<Task[]>(CacheKeys.HOME_TASKS, true),
+          getCachedData<StudentSummary>(CacheKeys.HOME_SUMMARY, true),
+          getCachedData<AiCoachContext>(CacheKeys.HOME_AI_CONTEXT, true),
+          getCachedData<PrivateLesson>(CacheKeys.HOME_NEXT_LESSON, true),
+        ]);
+        if (!active) return;
+        if (cachedTasks && cachedTasks.length > 0) setTasks(cachedTasks);
+        if (cachedSummary) setSummary(cachedSummary);
+        if (cachedAiCtx) setAiContext(cachedAiCtx);
+        if (cachedLesson) setNextLesson(cachedLesson);
+      } catch {}
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // 2. Taze verileri arka planda paralel cek ve onbellegi guncelle (Stale-While-Revalidate)
   const load = useCallback(async () => {
     try {
-      setTasks(await getTasks('day'));
-    } catch (err) {
-      showError(err, { title: 'Görevler yüklenemedi', code: 'HOME_TASKS_LOAD' });
-    }
-    try {
-      const s = await getSummary();
-      setSummary(s);
-    } catch {
-      // sessizce devam
-    }
-    try {
-      const ctx = await getAiCoachContext();
-      setAiContext(ctx);
-    } catch {
-      // cevrimdisi durumda yerel oneriler gosterilir
-    }
-    try {
-      const upcoming = await getUpcomingLessons(1);
-      setNextLesson(upcoming[0] ?? null);
-    } catch (err) {
-      showError(err, { title: 'Ders bilgisi yüklenemedi', code: 'HOME_LESSON_LOAD' });
-    }
-    try {
-      const [prog, extra] = await Promise.all([
-        getCurriculumProgress(student),
-        loadExtraCompletedTopics(student?.id),
+      const [tasksRes, summaryRes, aiCtxRes, lessonsRes, curriculumRes] = await Promise.allSettled([
+        getTasks('day'),
+        getSummary(),
+        getAiCoachContext(),
+        getUpcomingLessons(1),
+        Promise.all([
+          getCurriculumProgress(student),
+          loadExtraCompletedTopics(student?.id),
+        ]),
       ]);
-      setShowCurriculumPrompt(hasIncompleteCurriculumTopics(student?.grade, prog, extra));
+
+      if (tasksRes.status === 'fulfilled') {
+        setTasks(tasksRes.value);
+        void setCachedData(CacheKeys.HOME_TASKS, tasksRes.value, CacheTTL.MINUTE_15);
+      } else {
+        showError(tasksRes.reason, { title: 'Görevler yüklenemedi', code: 'HOME_TASKS_LOAD' });
+      }
+
+      if (summaryRes.status === 'fulfilled') {
+        setSummary(summaryRes.value);
+        void setCachedData(CacheKeys.HOME_SUMMARY, summaryRes.value, CacheTTL.MINUTE_15);
+      }
+
+      if (aiCtxRes.status === 'fulfilled') {
+        setAiContext(aiCtxRes.value);
+        void setCachedData(CacheKeys.HOME_AI_CONTEXT, aiCtxRes.value, CacheTTL.MINUTE_15);
+      }
+
+      if (lessonsRes.status === 'fulfilled') {
+        const lesson = lessonsRes.value[0] ?? null;
+        setNextLesson(lesson);
+        void setCachedData(CacheKeys.HOME_NEXT_LESSON, lesson, CacheTTL.MINUTE_15);
+      }
+
+      if (curriculumRes.status === 'fulfilled') {
+        const [prog, extra] = curriculumRes.value;
+        setShowCurriculumPrompt(hasIncompleteCurriculumTopics(student?.grade, prog, extra));
+      } else {
+        setShowCurriculumPrompt(false);
+      }
     } catch {
-      setShowCurriculumPrompt(false);
+      // Beklenmeyen genel hata ekrani kilitlemesin
     }
   }, [showError, student]);
 
   useFocusEffect(
     useCallback(() => {
-      load();
-      refresh();
+      const now = Date.now();
+      if (now - lastLoadAt.current > 12000) {
+        lastLoadAt.current = now;
+        load();
+        refresh();
+      }
     }, [load, refresh])
   );
 

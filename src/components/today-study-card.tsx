@@ -8,14 +8,8 @@ import {
   Target,
   Timer,
 } from 'lucide-react-native';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { PressScale } from '@/components/button';
 import { Txt } from '@/components/ui';
@@ -33,25 +27,10 @@ export function TodayStudyCard({
   correctCount,
 }: TodayStudyCardProps) {
   const router = useRouter();
-
-  // Soldan kayarak acilma animasyonu
-  const translateX = useSharedValue(-36);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    translateX.value = withSpring(0, { damping: 14, stiffness: 120 });
-    opacity.value = withTiming(1, { duration: 350 });
-  }, [translateX, opacity]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-    opacity: opacity.value,
-  }));
-
   const hasActivity = pomodoroMinutes > 0 || questionsSolved > 0 || correctCount > 0;
 
   return (
-    <Animated.View style={[styles.wrapper, animatedStyle]}>
+    <View style={styles.wrapper}>
       <PressScale onPress={() => router.push('/stats')} scaleTo={0.98}>
         <View
           style={styles.card}
@@ -143,7 +122,7 @@ export function TodayStudyCard({
           </View>
         </View>
       </PressScale>
-    </Animated.View>
+    </View>
   );
 }
 

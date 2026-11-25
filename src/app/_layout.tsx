@@ -68,6 +68,20 @@ export default function RootLayout() {
 
   const dismissSplash = useCallback(() => setSplashVisible(false), []);
 
+  useEffect(() => {
+    // Emniyet kilidi: Fontlar veya native katman gecikse bile native splash en gec 1.2 sn icinde gizlensin
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
   if (!fontsLoaded) {
     // Yazi tipleri gelene kadar native acilis ekrani ustte kalir; buradaki
     // zemin onun rengiyle ayni olsun ki bir kare bile beyaz parlamasin.

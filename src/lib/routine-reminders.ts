@@ -10,6 +10,9 @@ const ROUTINE_TASK_ID = 'routine_task_daily';
 const ROUTINE_MOCK_EXAM_ID = 'routine_mock_exam_weekly';
 const ROUTINE_CURRICULUM_ID = 'routine_curriculum_weekly';
 
+let lastSyncFingerprint = '';
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
 function canScheduleLocalNotifications(): boolean {
   if (isRunningInExpoGo()) return false;
   return (
@@ -34,6 +37,31 @@ export async function syncRoutineReminders(
 ): Promise<void> {
   if (!student || !canScheduleLocalNotifications()) return;
 
+  const fingerprint = `${student.id}:${student.grade}:${options?.tasks?.length ?? 0}:${options?.pomodoroMinutesToday ?? 0}:${options?.hasIncompleteTopics ? 1 : 0}`;
+  if (fingerprint === lastSyncFingerprint) {
+    return;
+  }
+
+  if (syncTimer) {
+    clearTimeout(syncTimer);
+  }
+
+  return new Promise<void>((resolve) => {
+    syncTimer = setTimeout(async () => {
+      lastSyncFingerprint = fingerprint;
+      try {
+        await executeSync(student, options);
+      } finally {
+        resolve();
+      }
+    }, 1500);
+  });
+}
+
+async function executeSync(
+  student: Student,
+  options?: RoutineSyncOptions
+): Promise<void> {
   try {
     const Notifications = await import('expo-notifications');
     const { SchedulableTriggerInputTypes } = Notifications;

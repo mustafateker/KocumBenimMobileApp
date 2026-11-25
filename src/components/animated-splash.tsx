@@ -35,8 +35,8 @@ import { Txt } from './ui';
  */
 const MASCOT_WIDTH = 188;
 
-/** Katmanin toplam omru — _layout bu sureden sonra bilesen kaldirilir. */
-const SPLASH_DURATION = 2050;
+/** Katmanin toplam omru — hizli ve akici acilis icin optimize edildi. */
+const SPLASH_DURATION = 950;
 
 export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
   const hero = useSharedValue(0);
@@ -45,9 +45,9 @@ export function AnimatedSplash({ onFinish }: { onFinish: () => void }) {
 
   useEffect(() => {
     const easeOut = Easing.out(Easing.cubic);
-    hero.value = withDelay(80, withTiming(1, { duration: 720, easing: easeOut }));
-    caption.value = withDelay(300, withTiming(1, { duration: 680, easing: easeOut }));
-    cover.value = withDelay(1500, withTiming(0, { duration: 500, easing: Easing.inOut(Easing.cubic) }));
+    hero.value = withTiming(1, { duration: 380, easing: easeOut });
+    caption.value = withDelay(120, withTiming(1, { duration: 320, easing: easeOut }));
+    cover.value = withDelay(650, withTiming(0, { duration: 300, easing: Easing.inOut(Easing.cubic) }));
 
     const timer = setTimeout(onFinish, SPLASH_DURATION);
     return () => clearTimeout(timer);

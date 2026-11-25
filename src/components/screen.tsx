@@ -1,4 +1,4 @@
-import { StyleSheet, View, type ScrollViewProps } from 'react-native';
+import { ScrollView, StyleSheet, View, type ScrollViewProps } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -55,28 +55,42 @@ export function ScreenBackground({
 export function Screen({
   tint,
   pattern,
+  keyboardAware = false,
   contentContainerStyle,
   children,
   ...rest
-}: ScrollViewProps & { tint?: string; pattern?: boolean }) {
+}: ScrollViewProps & { tint?: string; pattern?: boolean; keyboardAware?: boolean }) {
   const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 16) + 96;
+
+  const resolvedContentStyle = [
+    styles.content,
+    { paddingTop: insets.top + Space.md, paddingBottom: bottomPadding },
+    contentContainerStyle,
+  ];
 
   return (
     <ScreenBackground tint={tint} pattern={pattern}>
-      <KeyboardAwareScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-        // Odaklanan girdi ile klavyenin ust kenari arasinda nefes payi.
-        bottomOffset={Space.xl}
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + Space.md, paddingBottom: insets.bottom + 84 },
-          contentContainerStyle,
-        ]}
-        {...rest}
-      >
-        {children}
-      </KeyboardAwareScrollView>
+      {keyboardAware ? (
+        <KeyboardAwareScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          bottomOffset={Space.xl}
+          contentContainerStyle={resolvedContentStyle}
+          {...rest}
+        >
+          {children}
+        </KeyboardAwareScrollView>
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={resolvedContentStyle}
+          {...rest}
+        >
+          {children}
+        </ScrollView>
+      )}
     </ScreenBackground>
   );
 }
