@@ -33,6 +33,18 @@ export function configureGoogleSignIn() {
 }
 
 /**
+ * Oturum kapatıldığında cihazdaki Google Sign-In önbelleğini temizler.
+ */
+export async function signOutGoogleSilently(): Promise<void> {
+  try {
+    configureGoogleSignIn();
+    await GoogleSignin.signOut();
+  } catch {
+    // Google oturumu zaten kapalıysa sessizce geç
+  }
+}
+
+/**
  * Native Google hesap seçici penceresini açar.
  * Kullanıcı vazgeçerse null döner; hata oluşursa hata fırlatır.
  */
@@ -42,6 +54,8 @@ export async function promptGoogleSignIn(): Promise<{ idToken: string } | null> 
     if (Platform.OS === 'android') {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     }
+    // Önceki yarım kalmış veya farklı hesaba ait oturumu temizle ki hesap seçici her zaman açılsın
+    await GoogleSignin.signOut().catch(() => {});
     const response = await GoogleSignin.signIn();
     if (isCancelledResponse(response)) {
       return null;

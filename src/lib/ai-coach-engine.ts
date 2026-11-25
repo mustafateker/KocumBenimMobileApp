@@ -7,7 +7,9 @@ import {
   foldTurkish,
   getCurriculumSubjectsForGrade,
   gradeTopicPerformance,
+  loadExtraCompletedTopics,
   loadLocalCurriculumProgress,
+  mergeExtraIntoCurriculumProgress,
   parseGradeNumber,
   type CurriculumProgressMap,
 } from './maarif-curriculum';
@@ -336,11 +338,18 @@ async function fetchLiveStudentData() {
     loadAllStoredAiTasks(),
   ]);
 
-  const localProg = await loadLocalCurriculumProgress(student.id);
-  const curriculumProgress: CurriculumProgressMap = {
-    ...(student.curriculumProgress ?? {}),
-    ...localProg,
-  };
+  const [localProg, extraTopics] = await Promise.all([
+    loadLocalCurriculumProgress(student.id),
+    loadExtraCompletedTopics(student.id),
+  ]);
+  const curriculumProgress: CurriculumProgressMap = mergeExtraIntoCurriculumProgress(
+    student.grade,
+    {
+      ...(student.curriculumProgress ?? {}),
+      ...localProg,
+    },
+    extraTopics
+  );
 
   const remoteIds = new Set(remoteTodayTasks.map((t) => t.id));
   const todayTasks = [...storedTodayTasks.filter((t) => !remoteIds.has(t.id)), ...remoteTodayTasks];
@@ -716,9 +725,16 @@ export async function createAndStoreAiTasks(options: {
     topic,
     categories,
   } = options;
-  const chosenSubj = subject || weakTopics[0]?.subject || 'Matematik';
+  const gradeSubjects = getCurriculumSubjectsForGrade(grade).map((s) => s.name);
+  const progressedSubjects = gradeSubjects.filter((s) => Boolean(curriculumProgress[s]));
+  const candidateSubjects = progressedSubjects.length > 0 ? progressedSubjects : gradeSubjects;
+  const existingSubjects = new Set(existingTodayTasks.map((t) => t.subject).filter(Boolean));
+  const unassignedSubjects = candidateSubjects.filter((s) => !existingSubjects.has(s));
+  const orderedSubjects = [...unassignedSubjects, ...candidateSubjects.filter((s) => existingSubjects.has(s))];
+
+  const chosenSubj = subject || weakTopics[0]?.subject || orderedSubjects[0] || 'Matematik';
   const subjState = deriveSubjectCurriculumState(grade, chosenSubj, curriculumProgress[chosenSubj]);
-  const uncoveredFolded = new Set(subjState.uncoveredTopics.map((u) => foldTurkish(u)));
+  const uncoveredFolded = new Set(subjState.uncoveredTopics.slice(1).map((u) => foldTurkish(u)));
 
   const isTopicCovered = (tName: string) => {
     if (!curriculumProgress[chosenSubj]) return true;
@@ -821,7 +837,8 @@ export async function createAndStoreAiTasks(options: {
 
 export async function generateLiveAiCoachChat(
   message: string,
-  history?: { role: string; text: string }[]
+  history?: { role: string; text: string }[],
+  preCreatedTasks?: Task[]
 ): Promise<AiChatResponse> {
   const ctx = await buildLiveAiCoachContext();
   const { todayTasks, curriculumProgress } = await fetchLiveStudentData();
@@ -847,8 +864,8 @@ export async function generateLiveAiCoachChat(
   }
 
   const { isAssign, requestedCategories } = detectAssignmentIntent(lower);
-  let createdTasks: Task[] = [];
-  if (isAssign) {
+  let createdTasks: Task[] = preCreatedTasks && preCreatedTasks.length > 0 ? preCreatedTasks : [];
+  if (isAssign && createdTasks.length === 0) {
     const { subject: reqSubj, topic: reqTopic } = detectSubjectAndTopic(grade, message);
     createdTasks = await createAndStoreAiTasks({
       studentId: ctx.student.id,

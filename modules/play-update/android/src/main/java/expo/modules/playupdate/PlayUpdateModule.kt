@@ -31,5 +31,38 @@ class PlayUpdateModule : Module() {
           promise.resolve(false)
         }
     }
+
+    AsyncFunction("getSigningCertSha1") { promise: Promise ->
+      try {
+        val context = appContext.reactContext
+        if (context == null) {
+          promise.resolve(null)
+          return@AsyncFunction
+        }
+        val pm = context.packageManager
+        val pkg = context.packageName
+        val certBytes = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+          val info = pm.getPackageInfo(pkg, android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES)
+          val signInfo = info.signingInfo
+          val sigs = if (signInfo?.hasMultipleSigners() == true) signInfo.apkContentsSigners else signInfo?.signingCertificateHistory
+          sigs?.firstOrNull()?.toByteArray()
+        } else {
+          @Suppress("DEPRECATION")
+          val info = pm.getPackageInfo(pkg, android.content.pm.PackageManager.GET_SIGNATURES)
+          @Suppress("DEPRECATION")
+          info.signatures?.firstOrNull()?.toByteArray()
+        }
+        if (certBytes == null) {
+          promise.resolve(null)
+          return@AsyncFunction
+        }
+        val md = java.security.MessageDigest.getInstance("SHA-1")
+        val digest = md.digest(certBytes)
+        val sha1 = digest.joinToString(":") { "%02X".format(it) }
+        promise.resolve(sha1)
+      } catch (_: Throwable) {
+        promise.resolve(null)
+      }
+    }
   }
 }

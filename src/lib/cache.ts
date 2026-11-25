@@ -113,6 +113,12 @@ export async function removeCachedData(key: string): Promise<void> {
   } catch {}
 }
 
+const EXTRA_SESSION_KEYS = [
+  'kocumbenim.ai.assignedTasks.v1',
+  'kocumbenim.maarif.curriculumProgress.v1',
+  'kocumbenim.maarif.extraCompletedTopics.v1',
+];
+
 /**
  * Oturum kapatıldığında veya hesap silindiğinde tüm önbelleği temizler (Apple Guideline 5.1.1).
  */
@@ -120,7 +126,9 @@ export async function clearAllAppCache(): Promise<void> {
   memoryStore.clear();
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const cacheKeys = keys.filter((k) => k.startsWith(CACHE_PREFIX));
+    const cacheKeys = keys.filter(
+      (k) => k.startsWith(CACHE_PREFIX) || EXTRA_SESSION_KEYS.includes(k)
+    );
     if (cacheKeys.length > 0) {
       await AsyncStorage.multiRemove(cacheKeys);
     }

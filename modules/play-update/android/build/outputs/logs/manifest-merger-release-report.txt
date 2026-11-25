@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml:2:13-83
-INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml:2:13-83
+ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml:2:13-83
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml:2:13-83
 	package
-		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml
 	xmlns:android
-		ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml:2:23-81
+		ADDED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml:2:23-81
 uses-sdk
-INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml reason: use-sdk injection requested
-INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml
-INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml reason: use-sdk injection requested
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml
+INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml
 	android:targetSdkVersion
-		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml
 	android:minSdkVersion
-		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6740594902653377364.xml
+		INJECTED from /Users/mustafa/Desktop/cod/KocumBenimMobileApp/modules/play-update/android/build/intermediates/tmp/ProcessLibraryManifest/release/tempAndroidManifest6353949057896274002.xml

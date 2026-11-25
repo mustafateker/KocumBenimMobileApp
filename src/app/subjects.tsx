@@ -12,16 +12,20 @@ import {
   getStats,
   getTasks,
   requestAiCoachTask,
+  updateCurriculumProgress,
 } from '@/lib/api';
+import { CacheKeys, removeCachedData } from '@/lib/cache';
 import { useErrorDialog } from '@/lib/error-dialog';
 import {
   deriveSubjectCurriculumState,
   foldTurkish,
   getCurriculumSubjectsForGrade,
+  getFlatTopicsForSubject,
   gradeTopicPerformance,
   loadExtraCompletedTopics,
+  mergeExtraIntoCurriculumProgress,
+  saveExtraCompletedTopics,
   searchSubjectUnits,
-  toggleExtraCompletedTopic,
   type CurriculumProgressMap,
   type ExtraCompletedTopicsMap,
   type TopicPerformanceGrade,
@@ -71,6 +75,7 @@ export default function SubjectsScreen() {
 }
 
 function SubjectsScreenContent({ student }: { student: Student }) {
+  const { setUser } = useSession();
   const { showError } = useErrorDialog();
   const router = useRouter();
 
@@ -95,7 +100,8 @@ function SubjectsScreenContent({ student }: { student: Student }) {
         getTasks('day').catch(() => []),
       ]);
 
-      setProgressMap(savedProg);
+      const effectiveProg = mergeExtraIntoCurriculumProgress(gradeLabel, savedProg, savedExtra);
+      setProgressMap(effectiveProg);
       setExtraCompletedMap(savedExtra);
 
       const map: Record<string, TopicSolvedStats> = {};
@@ -167,7 +173,7 @@ function SubjectsScreenContent({ student }: { student: Student }) {
     } catch (err) {
       showError(err, { title: 'Dersler yüklenemedi', code: 'SUBJECTS_LOAD' });
     }
-  }, [student, showError]);
+  }, [student, gradeLabel, showError]);
 
   useFocusEffect(
     useCallback(() => {
@@ -211,10 +217,59 @@ function SubjectsScreenContent({ student }: { student: Student }) {
       if (Platform.OS !== 'web') {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
       }
-      const nextExtra = await toggleExtraCompletedTopic(subjectName, topicName, student.id);
-      setExtraCompletedMap(nextExtra);
+
+      const flatTopics = getFlatTopicsForSubject(gradeLabel, subjectName).map((f) => f.topic);
+      const orderIdx = flatTopics.findIndex((t) => foldTurkish(t) === foldTurkish(topicName));
+      const currState = deriveSubjectCurriculumState(gradeLabel, subjectName, progressMap[subjectName]);
+      const wasCompleted = isTopicCompleted(subjectName, topicName, orderIdx, currState.currentIndex);
+
+      const currentExtraList = extraCompletedMap[subjectName] ?? [];
+      let nextExtraList: string[];
+      let nextProgressTopic = progressMap[subjectName];
+
+      if (!wasCompleted) {
+        // Konuyu tamamlandı olarak işaretle ve en son gelinen konuyu ilerlet
+        const exists = currentExtraList.some((t) => foldTurkish(t) === foldTurkish(topicName));
+        nextExtraList = exists ? currentExtraList : [...currentExtraList, topicName];
+        if (orderIdx >= currState.currentIndex && orderIdx !== -1) {
+          nextProgressTopic = topicName;
+        }
+      } else {
+        // Konu işaretini kaldır
+        nextExtraList = currentExtraList.filter((t) => {
+          const idx = flatTopics.findIndex((ft) => foldTurkish(ft) === foldTurkish(t));
+          if (orderIdx !== -1 && orderIdx <= currState.currentIndex && idx >= orderIdx) {
+            return false;
+          }
+          return foldTurkish(t) !== foldTurkish(topicName);
+        });
+        if (orderIdx !== -1 && orderIdx <= currState.currentIndex) {
+          nextProgressTopic = orderIdx > 0 ? flatTopics[orderIdx - 1] : flatTopics[0] ?? '';
+        }
+      }
+
+      const nextExtraMap: ExtraCompletedTopicsMap = {
+        ...extraCompletedMap,
+        [subjectName]: nextExtraList,
+      };
+      const baseNextProgress: CurriculumProgressMap = {
+        ...progressMap,
+        ...(nextProgressTopic ? { [subjectName]: nextProgressTopic } : {}),
+      };
+      const nextProgressMap = mergeExtraIntoCurriculumProgress(gradeLabel, baseNextProgress, nextExtraMap);
+
+      setExtraCompletedMap(nextExtraMap);
+      setProgressMap(nextProgressMap);
+
+      await saveExtraCompletedTopics(nextExtraMap, student.id);
+      const synced = await updateCurriculumProgress(nextProgressMap, student.id);
+      setUser({
+        ...student,
+        curriculumProgress: synced,
+      });
+      void removeCachedData(CacheKeys.HOME_AI_CONTEXT);
     },
-    [student.id]
+    [gradeLabel, progressMap, isTopicCompleted, extraCompletedMap, student, setUser]
   );
 
   const handleAssignTopicStudy = useCallback(

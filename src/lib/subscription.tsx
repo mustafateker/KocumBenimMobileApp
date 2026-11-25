@@ -7,6 +7,19 @@ import { useSession } from './session';
 
 export const PRO_ENTITLEMENT_ID = 'pro';
 
+function checkHasPro(info: any): boolean {
+  if (!info) return false;
+  const activeEntitlements = info?.entitlements?.active;
+  if (activeEntitlements && typeof activeEntitlements === 'object') {
+    if (activeEntitlements[PRO_ENTITLEMENT_ID]) return true;
+    if (Object.keys(activeEntitlements).length > 0) return true;
+  }
+  if (Array.isArray(info?.activeSubscriptions) && info.activeSubscriptions.length > 0) {
+    return true;
+  }
+  return false;
+}
+
 type SubscriptionContextValue = {
   isPro: boolean;
   loading: boolean;
@@ -64,7 +77,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       // Ilk durumu al
       Purchases.getCustomerInfo()
         .then((info: any) => {
-          const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+          const hasPro = checkHasPro(info);
           setIsPro(hasPro);
           if (!hasPro) {
             preloadInterstitialAd(false);
@@ -77,7 +90,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
       // Dinleyici: satin alma / iptal / yenilenme durumlarini aninda yakala
       const listener = (info: any) => {
-        const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+        const hasPro = checkHasPro(info);
         setIsPro(hasPro);
       };
       Purchases.addCustomerInfoUpdateListener(listener);
@@ -104,9 +117,21 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       const Purchases = require('react-native-purchases').default;
       if (user?.id) {
         Purchases.logIn(String(user.id))
-          .then((res: any) => {
+          .then(async (res: any) => {
             if (cancelled) return;
-            const hasPro = Boolean(res?.customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+            let hasPro = checkHasPro(res?.customerInfo);
+            // Cihazdaki Google Play / App Store hesabinda zaten aktif abonelik varsa
+            // ("This product is already active for the user" hatasini onlemek icin) mevcut makbuzu senkronize et
+            if (!hasPro) {
+              try {
+                if (typeof Purchases.syncPurchases === 'function') {
+                  await Purchases.syncPurchases();
+                }
+                const syncedInfo = await Purchases.getCustomerInfo();
+                hasPro = checkHasPro(syncedInfo);
+              } catch {}
+            }
+            if (cancelled) return;
             setIsPro(hasPro);
             if (!hasPro) {
               preloadInterstitialAd(false);
@@ -116,7 +141,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       } else {
         Purchases.isAnonymous()
           .then((isAnon: boolean) => {
-            if (cancelled || isAnon) return;
+            if (cancelled) return;
+            setIsPro(false);
+            if (isAnon) return;
             return Purchases.logOut().catch(() => {});
           })
           .catch(() => {});
@@ -134,7 +161,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       const Purchases = require('react-native-purchases').default;
       const info = await Purchases.getCustomerInfo();
-      const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+      const hasPro = checkHasPro(info);
       setIsPro(hasPro);
       if (!hasPro) {
         preloadInterstitialAd(false);
@@ -160,13 +187,33 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       const { PAYWALL_RESULT } = require('react-native-purchases-ui');
       const Purchases = require('react-native-purchases').default;
 
+      // Paywall acilmadan once cihazda aktif bir abonelik varsa senkronize et
+      try {
+        const preInfo = await Purchases.getCustomerInfo();
+        if (checkHasPro(preInfo)) {
+          setIsPro(true);
+          return true;
+        }
+      } catch {}
+
       const result = await RevenueCatUI.presentPaywall({ displayCloseButton: true });
       if (result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED) {
         const info = await Purchases.getCustomerInfo();
-        const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+        const hasPro = checkHasPro(info);
         setIsPro(hasPro);
         return hasPro;
       }
+
+      // Kullanici "This product is already active for the user" uyarisi alip paywall'u kapattiysa
+      // mevcut magaza aboneligini otomatik geri yukle / senkronize et
+      try {
+        const restoredInfo = await Purchases.restorePurchases();
+        if (checkHasPro(restoredInfo)) {
+          setIsPro(true);
+          return true;
+        }
+      } catch {}
+
       if (result === PAYWALL_RESULT.ERROR) {
         Alert.alert(
           'Paketler Yüklenemedi',
@@ -190,7 +237,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     try {
       const Purchases = require('react-native-purchases').default;
       const info = await Purchases.restorePurchases();
-      const hasPro = Boolean(info?.entitlements?.active?.[PRO_ENTITLEMENT_ID]);
+      const hasPro = checkHasPro(info);
       setIsPro(hasPro);
       return hasPro;
     } catch (err) {

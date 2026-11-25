@@ -354,6 +354,70 @@ export async function loadExtraCompletedTopics(studentId?: number | null): Promi
   }
 }
 
+export async function saveExtraCompletedTopics(
+  extraMap: ExtraCompletedTopicsMap,
+  studentId?: number | null
+): Promise<ExtraCompletedTopicsMap> {
+  try {
+    const raw = await AsyncStorage.getItem(LOCAL_EXTRA_COMPLETED_TOPICS_KEY);
+    const all = raw ? JSON.parse(raw) : {};
+    const key = studentId ? String(studentId) : 'default';
+    all[key] = extraMap;
+    all.default = extraMap;
+    await AsyncStorage.setItem(LOCAL_EXTRA_COMPLETED_TOPICS_KEY, JSON.stringify(all));
+    return extraMap;
+  } catch {
+    return extraMap;
+  }
+}
+
+/**
+ * Derslerim sayfasında tik atılan ek konuları (extraCompleted) ve mevcut curriculumProgress
+ * haritasını birleştirerek her derste öğrencinin ulaştığı en son konuyu (effective currentTopic) hesaplar.
+ */
+export function mergeExtraIntoCurriculumProgress(
+  gradeRaw: string | number | null | undefined,
+  baseProgress: CurriculumProgressMap,
+  extraCompleted?: ExtraCompletedTopicsMap
+): CurriculumProgressMap {
+  const result: CurriculumProgressMap = { ...baseProgress };
+  if (!extraCompleted || typeof extraCompleted !== 'object') {
+    return result;
+  }
+  const subjects = getCurriculumSubjectsForGrade(gradeRaw);
+  for (const subj of subjects) {
+    const flat = getFlatTopicsForSubject(gradeRaw, subj.name).map((f) => f.topic);
+    if (flat.length === 0) continue;
+
+    let maxIdx = -1;
+    const baseTopic = result[subj.name];
+    if (baseTopic && baseTopic.trim().length > 0) {
+      const targetFolded = foldTurkish(baseTopic.trim());
+      maxIdx = flat.findIndex((t) => foldTurkish(t) === targetFolded);
+      if (maxIdx === -1) {
+        maxIdx = flat.findIndex(
+          (t) => foldTurkish(t).includes(targetFolded) || targetFolded.includes(foldTurkish(t))
+        );
+      }
+    }
+
+    const extraList = extraCompleted[subj.name];
+    if (Array.isArray(extraList) && extraList.length > 0) {
+      const extraFolded = new Set(extraList.map((e) => foldTurkish(e)));
+      for (let i = 0; i < flat.length; i++) {
+        if (extraFolded.has(foldTurkish(flat[i])) && i > maxIdx) {
+          maxIdx = i;
+        }
+      }
+    }
+
+    if (maxIdx >= 0) {
+      result[subj.name] = flat[maxIdx];
+    }
+  }
+  return result;
+}
+
 export async function toggleExtraCompletedTopic(
   subjectName: string,
   topicName: string,

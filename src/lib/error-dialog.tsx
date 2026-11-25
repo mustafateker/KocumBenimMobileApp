@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, useState } fro
 
 import { AppDialog } from '@/components/app-dialog';
 
+import { ApiError, hasAccessToken } from './api-client';
 import { logHandledError } from './crash-reporter';
 import { describeError } from './error-messages';
 
@@ -15,6 +16,8 @@ type ErrorDialogValue = {
    * `code` Ayarlar > Hata Kayitlari'nda gorunen kimliktir.
    */
   showError: (err: unknown, options: { title: string; code: string }) => void;
+  /** Cikis yapildiginda acik kalan hata diyaloglarini temizler. */
+  clearDialog: () => void;
 };
 
 const ErrorDialogContext = createContext<ErrorDialogValue | null>(null);
@@ -34,17 +37,30 @@ export function ErrorDialogProvider({ children }: { children: React.ReactNode })
     setDialog((current) => current ?? copy);
   }, []);
 
+  const clearDialog = useCallback(() => {
+    setDialog(null);
+    lastShown.current = null;
+  }, []);
+
   const showMessage = useCallback((title: string, message: string) => open({ title, message }), [open]);
 
   const showError = useCallback(
     (err: unknown, options: { title: string; code: string }) => {
+      // Kullanici cikis yaptiysa (accessToken temizlendiyse) arka planda kalan isteklerin
+      // 401/yetki hatalarini login ekraninda pop-up olarak gosterme
+      if (!hasAccessToken() && options.code !== 'LOGIN' && options.code !== 'SIGNUP' && options.code !== 'GOOGLE_LOGIN' && options.code !== 'APPLE_LOGIN' && options.code !== 'GOOGLE_SIGNUP' && options.code !== 'APPLE_SIGNUP') {
+        return;
+      }
+      if (err instanceof ApiError && err.status === 401 && !hasAccessToken()) {
+        return;
+      }
       logHandledError(options.code, err);
       open(describeError(err, options.title));
     },
     [open]
   );
 
-  const value = useMemo(() => ({ showMessage, showError }), [showMessage, showError]);
+  const value = useMemo(() => ({ showMessage, showError, clearDialog }), [showMessage, showError, clearDialog]);
 
   return (
     <ErrorDialogContext.Provider value={value}>

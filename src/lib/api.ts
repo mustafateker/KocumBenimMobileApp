@@ -7,9 +7,12 @@ import {
   saveStoredAiTasks,
 } from './ai-coach-engine';
 import { api, getRefreshToken } from './api-client';
+import { CacheKeys, removeCachedData } from './cache';
 import {
+  loadExtraCompletedTopics,
   loadLocalCurriculumProgress,
   markTopicStudiedAndCompleted,
+  mergeExtraIntoCurriculumProgress,
   saveLocalCurriculumProgress,
   type CurriculumProgressMap,
 } from './maarif-curriculum';
@@ -113,26 +116,44 @@ export async function completeOnboarding(input: OnboardingInput) {
 }
 
 export async function getCurriculumProgress(student?: Student | null): Promise<CurriculumProgressMap> {
-  const local = await loadLocalCurriculumProgress(student?.id);
+  const [local, extra] = await Promise.all([
+    loadLocalCurriculumProgress(student?.id),
+    loadExtraCompletedTopics(student?.id),
+  ]);
   const remote = student?.curriculumProgress ?? {};
-  return { ...remote, ...local };
+  const combined = { ...remote, ...local };
+  const effective = mergeExtraIntoCurriculumProgress(student?.grade, combined, extra);
+
+  // Eğer yerel işaretlenen konular sunucudaki curriculumProgress'ten ilerideyse arka planda senkronize et
+  const hasDiff = Object.keys(effective).some((k) => effective[k] && effective[k] !== remote[k]);
+  if (hasDiff && Object.keys(effective).length > 0) {
+    void saveLocalCurriculumProgress(effective, student?.id);
+    api.patch('/me/curriculum-progress', effective).catch(() => {
+      api.patch('/me', { curriculumProgress: effective }).catch(() => {});
+    });
+  }
+
+  return effective;
 }
 
 export async function updateCurriculumProgress(
   progress: CurriculumProgressMap,
   studentId?: number | null
 ): Promise<CurriculumProgressMap> {
+  const extra = await loadExtraCompletedTopics(studentId);
   const merged = await saveLocalCurriculumProgress(progress, studentId);
+  const effective = mergeExtraIntoCurriculumProgress(undefined, merged, extra);
+  await removeCachedData(CacheKeys.HOME_AI_CONTEXT);
   try {
-    await api.patch('/me/curriculum-progress', merged);
+    await api.patch('/me/curriculum-progress', effective);
   } catch {
     try {
-      await api.patch('/me', { curriculumProgress: merged });
+      await api.patch('/me', { curriculumProgress: effective });
     } catch {
       // Canli sunucu guncellenene kadar yerel kayit uzerinden kesintisiz calisir
     }
   }
-  return merged;
+  return effective;
 }
 
 export function getSummary() {
@@ -235,6 +256,12 @@ export async function completeTask(taskId: number, correct: number, wrong: numbe
     }).catch(() => {});
   }
 
+  await Promise.all([
+    removeCachedData(CacheKeys.HOME_TASKS),
+    removeCachedData(CacheKeys.HOME_SUMMARY),
+    removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+  ]);
+
   return completed;
 }
 
@@ -288,8 +315,20 @@ export function getLessons() {
 // AI KOÇ (RAKUN) İSTEMCİ METOTLARI
 // -----------------------------------------------------------------------------
 
+async function getEffectiveLocalProgress(): Promise<CurriculumProgressMap> {
+  const [local, extra] = await Promise.all([
+    loadLocalCurriculumProgress(),
+    loadExtraCompletedTopics(),
+  ]);
+  return mergeExtraIntoCurriculumProgress(undefined, local, extra);
+}
+
 export async function getAiCoachContext(): Promise<AiCoachContext> {
   try {
+    const localProg = await getEffectiveLocalProgress();
+    if (Object.keys(localProg).length > 0) {
+      await api.patch('/me/curriculum-progress', localProg).catch(() => {});
+    }
     return await api.get<AiCoachContext>('/me/ai-coach/context');
   } catch {
     return await buildLiveAiCoachContext();
@@ -301,21 +340,68 @@ export async function sendAiCoachMessage(
   history?: { role: string; text: string }[]
 ): Promise<AiChatResponse> {
   try {
-    const res = await api.post<AiChatResponse>('/me/ai-coach/chat', { message, history });
+    const curriculumProgress = await getEffectiveLocalProgress();
+    const res = await api.post<AiChatResponse>('/me/ai-coach/chat', {
+      message,
+      history,
+      curriculumProgress: Object.keys(curriculumProgress).length > 0 ? curriculumProgress : undefined,
+    });
     if (res.createdTasks && res.createdTasks.length > 0) {
       await saveStoredAiTasks(res.createdTasks);
+      await Promise.all([
+        removeCachedData(CacheKeys.HOME_TASKS),
+        removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+      ]);
+    }
+    if (!res.geminiUsed) {
+      try {
+        const clientRes = await generateLiveAiCoachChat(message, history, res.createdTasks);
+        if (clientRes.geminiUsed) {
+          const finalTasks =
+            res.createdTasks && res.createdTasks.length > 0 ? res.createdTasks : clientRes.createdTasks;
+          if (finalTasks && finalTasks.length > 0) {
+            await saveStoredAiTasks(finalTasks);
+            await Promise.all([
+              removeCachedData(CacheKeys.HOME_TASKS),
+              removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+            ]);
+          }
+          return {
+            ...res,
+            reply: clientRes.reply,
+            createdTasks: finalTasks,
+            geminiUsed: true,
+          };
+        }
+      } catch {}
     }
     return res;
   } catch {
-    return await generateLiveAiCoachChat(message, history);
+    const fallbackRes = await generateLiveAiCoachChat(message, history);
+    if (fallbackRes.createdTasks && fallbackRes.createdTasks.length > 0) {
+      await Promise.all([
+        removeCachedData(CacheKeys.HOME_TASKS),
+        removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+      ]);
+    }
+    return fallbackRes;
   }
 }
 
 export async function requestAiCoachTask(subject?: string, topic?: string): Promise<Task[]> {
   try {
-    const tasks = await api.post<Task[]>('/me/ai-coach/request-task', { subject, topic });
+    const curriculumProgress = await getEffectiveLocalProgress();
+    const tasks = await api.post<Task[]>('/me/ai-coach/request-task', {
+      subject,
+      topic,
+      curriculumProgress: Object.keys(curriculumProgress).length > 0 ? curriculumProgress : undefined,
+    });
     if (tasks && tasks.length > 0) {
       await saveStoredAiTasks(tasks);
+      await Promise.all([
+        removeCachedData(CacheKeys.HOME_TASKS),
+        removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+      ]);
     }
     return tasks;
   } catch {
@@ -323,6 +409,10 @@ export async function requestAiCoachTask(subject?: string, topic?: string): Prom
       ? `${subject ?? 'Matematik'} dersi ${topic} konusundan bugün bana ödev ata`
       : 'Bugün bana ödev ata';
     const res = await generateLiveAiCoachChat(prompt);
+    await Promise.all([
+      removeCachedData(CacheKeys.HOME_TASKS),
+      removeCachedData(CacheKeys.HOME_AI_CONTEXT),
+    ]);
     return res.createdTasks;
   }
 }

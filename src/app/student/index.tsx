@@ -147,11 +147,13 @@ export default function Home() {
 
   useFocusEffect(
     useCallback(() => {
+      // Sekmeye her donuldugunde gunluk gorevleri ve AI baglamini aninda tazele;
+      // kullanici profilini (GET /me) ise gereksiz ag trafigini onlemek icin 10 sn aralikla tazele.
+      void load();
       const now = Date.now();
-      if (now - lastLoadAt.current > 12000) {
+      if (now - lastLoadAt.current > 10000) {
         lastLoadAt.current = now;
-        load();
-        refresh();
+        void refresh();
       }
     }, [load, refresh])
   );

@@ -19,7 +19,9 @@ import {
   studentSignup,
 } from './api';
 import { CacheKeys, CacheTTL, clearAllAppCache, getCachedData, setCachedData } from './cache';
+import { useErrorDialog } from './error-dialog';
 import { registerForPushNotifications } from './push-notifications';
+import { signOutGoogleSilently } from './social-auth';
 import type { Student } from './types';
 
 export type AuthProviderType = 'email' | 'google' | 'apple' | null;
@@ -57,6 +59,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<Student | null>(null);
   const [authProvider, setAuthProvider] = useState<AuthProviderType>(null);
   const [loading, setLoading] = useState(true);
+  const { clearDialog } = useErrorDialog();
 
   useEffect(() => {
     let cancelled = false;
@@ -197,30 +200,34 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = useCallback(async () => {
     const refreshToken = getRefreshToken();
-    setUser(null);
-    setAuthProvider(null);
+    clearDialog();
     await Promise.all([
       clearTokens(),
       clearAllAppCache(),
       AsyncStorage.removeItem(AUTH_PROVIDER_KEY).catch(() => {}),
+      signOutGoogleSilently(),
     ]);
+    setUser(null);
+    setAuthProvider(null);
+    clearDialog();
     if (refreshToken) {
       apiLogout(refreshToken).catch(() => {
         // Cikis her halukarda yerelde tamamlanir; sunucu tarafi en iyi cabayla iptal edilir.
       });
     }
-  }, []);
+  }, [clearDialog]);
 
   const refresh = useCallback(async () => {
-    if (!user) return;
+    if (!hasAccessToken()) return;
     try {
       const fresh = await getMe();
+      if (!hasAccessToken()) return;
       setUser(fresh);
       void setCachedData(CacheKeys.USER_PROFILE, fresh, CacheTTL.HOUR_24);
     } catch {
       // Gecici bir aglama hatasi ekrani bozmasin — mevcut deger korunur.
     }
-  }, [user]);
+  }, []);
 
   const handleSetUser = useCallback((updated: Student) => {
     setUser(updated);

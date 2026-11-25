@@ -12,6 +12,7 @@ import { TextField, Txt } from '@/components/ui';
 import { ApiError } from '@/lib/api-client';
 import { useErrorDialog } from '@/lib/error-dialog';
 import { STUDENT_SELF_SIGNUP_ENABLED } from '@/lib/feature-flags';
+import { getRunningApkSha1 } from '@/lib/play-update';
 import { useSession } from '@/lib/session';
 import { promptAppleSignIn, promptGoogleSignIn } from '@/lib/social-auth';
 import { EMAIL_RE } from '@/lib/validation';
@@ -49,9 +50,11 @@ function SignUpForm() {
       if (err instanceof ApiError && err.code === 'FORBIDDEN_ROLE') {
         showMessage('Öğrenci Hesabı Gerekli', err.message);
       } else if (err?.code === '10' || err?.code === 'DEVELOPER_ERROR') {
+        const runningSha1 = await getRunningApkSha1();
+        const shaNote = runningSha1 ? `\n\nEksik SHA-1: ${runningSha1}` : '';
         showMessage(
           'Google İmzası Tanımsız',
-          'Bu uygulamanın SHA-1 sertifika parmak izi Firebase Console / Google Cloud kimlik bilgilerine eklenmemiş (Kod: DEVELOPER_ERROR 10).'
+          `Bu uygulamanın SHA-1 sertifika parmak izi Firebase Console / Google Cloud kimlik bilgilerine eklenmemiş (Kod: DEVELOPER_ERROR 10).${shaNote}`
         );
       } else if (err?.code === '7' || err?.code === 'NETWORK_ERROR') {
         showMessage('Bağlantı Hatası', 'Google Play Services ağ bağlantısı kuramadı. Lütfen internet bağlantınızı kontrol edin.');

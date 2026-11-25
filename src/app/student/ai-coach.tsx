@@ -266,7 +266,12 @@ export default function AiCoachScreen() {
   const targetMinutes = context?.student?.targetMinutes ?? 60;
   const todayMin = context?.studyStats?.todayMinutes ?? 0;
   const yesterdayMin = context?.studyStats?.yesterdayMinutes ?? 0;
-  const topWeak = context?.weakTopics?.[0]?.topic ?? 'Dengeli';
+  const firstProgressedTopic =
+    student.curriculumProgress && typeof student.curriculumProgress === 'object'
+      ? Object.values(student.curriculumProgress).find((v) => typeof v === 'string' && v.trim().length > 0)
+      : undefined;
+  const recTopicTitle = context?.dailyRecommendations?.[0]?.topic;
+  const topWeak = context?.weakTopics?.[0]?.topic ?? recTopicTitle ?? firstProgressedTopic ?? 'Dengeli';
   const quickQuestions = context?.suggestedPrompts && context.suggestedPrompts.length > 0 ? context.suggestedPrompts : QUICK_QUESTIONS;
 
   return (
@@ -421,7 +426,7 @@ export default function AiCoachScreen() {
         icon="sparkles"
         title="Günlük Yapay Zeka Limiti Doldu"
         message="Ücretsiz planda günlük 1 yapay zeka kullanım hakkı bulunmaktadır. Sınırsız Koçum AI sohbeti ve rehberliği için Koçum Pro'ya geçebilirsin."
-        confirmLabel="Koçum Pro'ya Geç"
+        confirmLabel="Pro'ya Geç"
         cancelLabel="Kapat"
         onConfirm={() => {
           setQuotaDialogOpen(false);
