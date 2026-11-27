@@ -7,7 +7,7 @@ import { File } from 'expo-file-system';
  * icin derlenmis pakete gomulur — bu yuzden burada asla sunucu sirri
  * (DB baglantisi, JWT_SECRET, AWS anahtarlari) tutulmaz, sadece bu URL.
  */
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? 'https://backend.kocumbenimapp.com';
 
 /** API'nin dondurdugu goreli medya yollarini HTTPS API adresine baglar. */
 export function apiMediaUrl(value: string): string {
